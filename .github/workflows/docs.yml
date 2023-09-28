@@ -1,8 +1,6 @@
 name: Documentation Build
 
-on:
-  push:
-    branches: [ "main" , "docs" ]
+on: workflow_dispatch
 
 jobs:
   build:
