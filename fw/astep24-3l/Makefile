@@ -8,6 +8,7 @@ install: sudo npm -gi junit-cli-report-viewer
 ## This target tries to delete as much as possible, for example to remove work files and help more easily check git status
 mrproper: clean
 	@make -C target-multiboard/ clean
+
 ## Clean
 #########
 clean: 
@@ -24,6 +25,7 @@ common/main_rfg.sv: common/astep24_3layers.rfg.tcl
 ## Firmware build
 ##############
 gecco-astropix2: gecco-astropix2.fw
+gecco-astropix3: gecco-astropix3.fw
 %.fw: 
 	@make -C target-multiboard/ $(basename $@).build
 
