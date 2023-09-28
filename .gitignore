@@ -1,0 +1,48 @@
+
+**/*.gen
+**/ip/
+
+**/*.log
+
+
+## Xilinx
+**/*.cache
+**/*.hw
+**/*.ip_user_files
+**/*.sim
+**/*.runs
+**/*.srcs/*
+*_ooc.xdc
+*.bxml
+*.jou
+*pid*
+.Xil
+
+## Xcelium/sim
+xcelium.d*
+**/.icflow/sim/*
+.simvision
+waves.shm
+xrun.*
+
+## HDL Tools
+.generated/
+generated/
+.rtl
+outputs
+hw/
+.outputs
+
+## Python
+sw/dist
+**/.venv
+**/__pycache__
+**/*pycache*
+
+## Docs
+.icflow
+.$*
+docs/site
+
+## vendor things
+*.tar.gz
