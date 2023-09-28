@@ -9,5 +9,12 @@ mrproper:
 
 ## Docs
 ############
-docs:
-	@icf_docs
+ci_docs:
+	@xvfb-run icf_doc
+ci_deps:
+	@sudo apt install tcl tcllib xvfb
+	@icf_update_drawio
+
+docs: docs/site/index.html
+docs/site/index.html: docs/mkdocs.yml
+	@icf_doc
