@@ -1,0 +1,29 @@
+SHELL=/bin/bash
+
+SRCBASE?=.
+FILES=$(wildcard $(SRCBASE)/files/*)
+
+setup: .venv/bin/cocotb-config probes.tcl $(FILES)
+	@echo "Setting up CCTB"
+	@cp -Rf $(SRCBASE)/files files
+
+
+
+.venv/bin/cocotb-config: $(CCTBV1_HOME)/setup/requirements.txt sim_requirements.txt node_modules/.bin/junit-cli-report-viewer package.json
+	@python3  -m venv .venv 
+	## Now install requirements
+	@.venv/bin/python3 -m pip install --upgrade pip
+	@.venv/bin/pip3 install --upgrade -r $(CCTBV1_HOME)/setup/requirements.txt -r sim_requirements.txt
+	
+
+node_modules/.bin/junit-cli-report-viewer: package.json
+	@npm i
+package.json: $(CCTBV1_HOME)/setup/package.json
+	@cp -v $(CCTBV1_HOME)/setup/package.json .
+
+sim_requirements.txt:
+	@touch sim_requirements.txt
+
+
+probes.tcl: $(CCTBV1_HOME)/xcelium/probes.tcl
+	@cp -v $(CCTBV1_HOME)/xcelium/probes.tcl .

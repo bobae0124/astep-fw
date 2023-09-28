@@ -1,0 +1,19 @@
+name: Documentation Build
+
+on:
+  push:
+    branches: [ "main" , "docs" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: configure
+      run: apt install tcl
+
+    - name: Build
+      run: source load.sh && make docs
