@@ -1,5 +1,5 @@
 ## Load main functions
-source flow.tcl
+source ../flow.tcl
 
 ## Open (see make.tcl for options)
 #           board name	       Version    Defines             constraints file
