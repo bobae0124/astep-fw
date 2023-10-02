@@ -7,7 +7,7 @@ import drivers.boards
 import drivers.astropix.asic
 
 ## Open UART Driver for Gecco
-boardDriver = drivers.boards.getGeccoUARTDriver()
+boardDriver = drivers.boards.getGeccoFTDIDriver()
 boardDriver.open()
 
 ## Read Firmware version

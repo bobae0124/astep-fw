@@ -438,8 +438,6 @@ class Asic():
 
             ## Sleep to give time for the FW to send the bytes, this will be better synchronised in the future
             ## Must be improved
-            await asyncio.sleep(0.2)
-
-            
+            await asyncio.sleep(0.1)         
             logger.info("Current MISO Write count=%d",await self.rfg.read_layer_0_mosi_write_size())
 

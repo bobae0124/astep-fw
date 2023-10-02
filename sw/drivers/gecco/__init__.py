@@ -37,5 +37,7 @@ class GeccoCarrierBoard(BoardDriver):
             raise RuntimeError("No Serial Port available")
 
     def selectFTDIFifoIO(self):
-        pass
+        import rfg.io.ftdi
+        self.rfg.withFTDIIO("Device A",rfg.io.ftdi.FLAG_LIST_DESCRIPTOR)
+        return self
 

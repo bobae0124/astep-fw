@@ -49,7 +49,7 @@ class BoardDriver():
     ################
     def setupASICS(self,version : int , rows: int = 1 , chipsPerRow:int = 1 , configFile : str | None = None ):
         assert version >=2 and version < 4 , "Only Astropix 2 and 3 Supported"
-        if version is 2: 
+        if version == 2: 
             self.geccoGetVoltageBoard().dacvalues =  (8, [0, 0, 1.1, 1, 0, 0, 1, 1.100])
 
         for i in range(rows):
@@ -63,6 +63,11 @@ class BoardDriver():
     def getAsic(self,row = 0 ): 
         """Returns the Asic Model for the Given Row - Other chips in the Daisy Chain are handeled by the returned 'front' model"""
         return self.asics[row]
+
+    async def enableSensorClocks(self,flush:bool = True):
+        """This method flushes"""
+        await self.rfg.write_io_ctrl(0x03,flush = flush)
+
 
 
     ## Layers
