@@ -28,6 +28,7 @@ module layer_if_a  #(LAYER_ID = 0)(
     input  wire             cfg_disable_autoread,
     input  wire [31:0]		cfg_frame_tag_counter,
     input  wire [7:0]		cfg_nodata_continue,
+    input  wire             cfg_layer_reset,
 
     output wire             status_frame_decoding,
 
@@ -38,6 +39,8 @@ module layer_if_a  #(LAYER_ID = 0)(
 
     // Connections
     //----------------
+    wire cfg_layer_resetn = !cfg_layer_reset;
+
     wire spi_io_enable; // size=1
     wire mosi_fifo_m_axis_tvalid; // size=1
     wire mosi_fifo_m_axis_tready; // size=1
@@ -56,16 +59,7 @@ module layer_if_a  #(LAYER_ID = 0)(
     // Instances
     //------------
         
-    // Module Instance
-    /*async_input_sync #(.RESET_VALUE(1'b1),.DEBOUNCE_DELAY(2)) interrupt_sync (
-       .async_input(interruptn),
-       .clk(clk_core),
-        .resn(clk_core_resn),
-        .sync_out(interrupt_sync_sync_out)
-    );*/
-            
 
-    // Module Instance
     fifo_axis_2clk_spi_layer  mosi_fifo(
         .m_axis_aclk(clk_spi),
         .m_axis_tdata(mosi_fifo_m_axis_tdata),
@@ -82,15 +76,13 @@ module layer_if_a  #(LAYER_ID = 0)(
         .s_axis_tvalid(mosi_s_axis_tvalid)
     );
             
-
-    // Module Instance
     spi_axis_if_v1 #(.QSPI(1),.MSB_FIRST(0),.CLOCK_OUT_CG(1)) spi_io(
         .clk(clk_spi),
         .enable(spi_io_enable),
         .m_axis_tdata(spi_io_m_axis_tdata),
         .m_axis_tready(spi_io_m_axis_tready),
         .m_axis_tvalid(spi_io_m_axis_tvalid),
-        .resn(clk_spi_resn),
+        .resn(clk_spi_resn && cfg_layer_resetn),
         .s_axis_tdata(mosi_fifo_m_axis_tdata),
         .s_axis_tready(mosi_fifo_m_axis_tready),
         .s_axis_tvalid(mosi_fifo_m_axis_tvalid),
@@ -100,8 +92,6 @@ module layer_if_a  #(LAYER_ID = 0)(
         .spi_mosi(spi_mosi)
     );
             
-
-    // Module Instance
     fifo_axis_2clk_spi_layer  miso_fifo(
         .m_axis_aclk(clk_core),
         .m_axis_tdata(miso_fifo_m_axis_tdata),
@@ -110,7 +100,7 @@ module layer_if_a  #(LAYER_ID = 0)(
         .m_axis_tlast(/* WAIVED: Last not used by SPI Output */),
         .axis_rd_data_count(/* unused */),
         .s_axis_aclk(clk_spi),
-        .s_axis_aresetn(clk_spi_resn),
+        .s_axis_aresetn(clk_spi_resn && cfg_layer_resetn),
         .s_axis_tdata(spi_io_m_axis_tdata),
         .s_axis_tready(spi_io_m_axis_tready),
         .s_axis_tvalid(spi_io_m_axis_tvalid),
@@ -118,9 +108,7 @@ module layer_if_a  #(LAYER_ID = 0)(
         .axis_wr_data_count(/*unused*/)
     );
             
-
-    // Module Instance
-    astropix_spi_protocol_av1 #(.DATA_WIDTH(8),.ID_WIDTH(8),.DEST_WIDTH(8),.USER_WIDTH(1),.LAYER_ID(LAYER_ID)) protocol(
+    astropix_spi_protocol_av1 #(.LAYER_ID(LAYER_ID)) protocol(
         .clk(clk_core),
         .resn(clk_core_resn),
 
@@ -142,6 +130,7 @@ module layer_if_a  #(LAYER_ID = 0)(
         .cfg_frame_tag_counter(cfg_frame_tag_counter),
         .cfg_nodata_continue(cfg_nodata_continue),
         .cfg_disable_autoread(cfg_disable_autoread),
+        .cfg_layer_reset(cfg_layer_reset),
         .status_frame_decoding(status_frame_decoding),
         .stat_frame_detected(stat_frame_detected),
         .stat_idle_detected(stat_idle_detected)

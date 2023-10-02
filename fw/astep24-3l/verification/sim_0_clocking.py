@@ -9,6 +9,9 @@ from cocotbext.uart import UartSource, UartSink
 
 import vip.cctb
 
+## Import simulation target driver
+import astep24_3l_sim
+
 @cocotb.test(timeout_time = 1,timeout_unit="ms")
 async def test_clocking_resets(dut):
     await vip.cctb.common_clock_reset(dut)
@@ -38,6 +41,7 @@ async def test_clocking_resets(dut):
 
 @cocotb.test(timeout_time = 1,timeout_unit="ms")
 async def test_clocking_dividers(dut):
+  
     await vip.cctb.common_clock_reset(dut)
     dut.warm_resn.value = 0
     await Timer(2, units="us")
@@ -49,4 +53,28 @@ async def test_clocking_dividers(dut):
     await Combine(RisingEdge(dut.main_rfg_I.spi_layers_ckdivider_divided_resn),RisingEdge(dut.main_rfg_I.spi_hk_ckdivider_divided_resn))
 
     
+    await Timer(50, units="us")
+
+
+@cocotb.test(timeout_time = 1,timeout_unit="ms")
+async def test_buffers_reset(dut):
+  
+    ## Get Target Driver
+    driver = astep24_3l_sim.getUARTDriver(dut)
+
+    ## Clock/Reset
+    await vip.cctb.common_clock_reset(dut)
+    await Timer(10, units="us")
+
+    ## Create SPI Slave
+    slave = vip.spi.VSPISlave(clk = dut.layer_0_spi_clk, csn = dut.layer_0_spi_csn,mosi=dut.layer_0_spi_mosi,miso=dut.layer_0_spi_miso,misoDefaultValue=0xFF)
+    slave.start_monitor()
+
+    ## Write MOSI Bytes to Layer
+    await driver.writeLayerBytes(layer = 0 , bytes = [0x00]*16,flush=True)
     await Timer(100, units="us")
+    dut.warm_resn.value = 0
+    await Timer(2, units="us")
+    dut.warm_resn.value =1
+    
+    await Timer(50, units="us")

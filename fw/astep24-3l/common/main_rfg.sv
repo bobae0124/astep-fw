@@ -151,11 +151,15 @@ module main_rfg(
     output wire [7:0]            layer_3_gen_ctrl,
     output wire                  layer_3_gen_ctrl_frame_enable,
     output wire [15:0]            layer_3_gen_frame_count,
+    output wire [7:0]            io_ctrl,
+    output wire                  io_ctrl_sample_clock_enable,
+    output wire                  io_ctrl_timestamp_clock_enable,
+    output wire                  io_ctrl_gecco_sample_clock_se,
+    output wire [7:0]            io_led,
     output wire [7:0]            gecco_sr_ctrl,
     output wire                  gecco_sr_ctrl_ck,
     output wire                  gecco_sr_ctrl_sin,
     output wire                  gecco_sr_ctrl_ld,
-    output wire [7:0]            io_led,
     output wire [31:0]            hk_conversion_trigger_match
     );
     
@@ -255,11 +259,14 @@ module main_rfg(
     reg [15:0] layer_3_gen_frame_count_reg;
     assign layer_3_gen_frame_count = layer_3_gen_frame_count_reg;
     
-    reg [7:0] gecco_sr_ctrl_reg;
-    assign gecco_sr_ctrl = gecco_sr_ctrl_reg;
+    reg [7:0] io_ctrl_reg;
+    assign io_ctrl = io_ctrl_reg;
     
     reg [7:0] io_led_reg;
     assign io_led = io_led_reg;
+    
+    reg [7:0] gecco_sr_ctrl_reg;
+    assign gecco_sr_ctrl = gecco_sr_ctrl_reg;
     
     reg [31:0] hk_conversion_trigger_match_reg;
     assign hk_conversion_trigger_match = hk_conversion_trigger_match_reg;
@@ -294,6 +301,9 @@ module main_rfg(
     assign layers_inj_ctrl_trigger = layers_inj_ctrl_reg[3];
     assign layers_sr_in_rb = layers_sr_in_reg[0];
     assign layer_3_gen_ctrl_frame_enable = layer_3_gen_ctrl_reg[0];
+    assign io_ctrl_sample_clock_enable = io_ctrl_reg[0];
+    assign io_ctrl_timestamp_clock_enable = io_ctrl_reg[1];
+    assign io_ctrl_gecco_sample_clock_se = io_ctrl_reg[2];
     assign gecco_sr_ctrl_ck = gecco_sr_ctrl_reg[0];
     assign gecco_sr_ctrl_sin = gecco_sr_ctrl_reg[1];
     assign gecco_sr_ctrl_ld = gecco_sr_ctrl_reg[2];
@@ -315,8 +325,8 @@ module main_rfg(
             hk_adc_miso_fifo_read_size_reg <= 0;
             hk_dac_mosi_fifo_m_axis_tvalid <= 1'b0;
             hk_dac_mosi_fifo_m_axis_tlast  <= 1'b0;
-            spi_layers_ckdivider_reg <= 8'h2;
-            spi_hk_ckdivider_reg <= 8'h2;
+            spi_layers_ckdivider_reg <= 8'h4;
+            spi_hk_ckdivider_reg <= 8'h4;
             layer_0_cfg_ctrl_reg <= 8'b00000111;
             layer_1_cfg_ctrl_reg <= 8'b00000111;
             layer_2_cfg_ctrl_reg <= 8'b00000111;
@@ -355,8 +365,9 @@ module main_rfg(
             layers_readout_read_size_reg <= 0;
             layer_3_gen_ctrl_reg <= 0;
             layer_3_gen_frame_count_reg <= 16'd5;
-            gecco_sr_ctrl_reg <= 0;
+            io_ctrl_reg <= 0;
             io_led_reg <= 0;
+            gecco_sr_ctrl_reg <= 0;
             hk_conversion_trigger_match_reg <= 32'd10;
         end else begin
             
@@ -547,21 +558,24 @@ module main_rfg(
                     layer_3_gen_frame_count_reg[15:8] <= rfg_write_value;
                 end
                 {1'b1,8'h6b}: begin
-                    gecco_sr_ctrl_reg[7:0] <= rfg_write_value;
+                    io_ctrl_reg[7:0] <= rfg_write_value;
                 end
                 {1'b1,8'h6c}: begin
                     io_led_reg[7:0] <= rfg_write_value;
                 end
                 {1'b1,8'h6d}: begin
-                    hk_conversion_trigger_match_reg[7:0] <= rfg_write_value;
+                    gecco_sr_ctrl_reg[7:0] <= rfg_write_value;
                 end
                 {1'b1,8'h6e}: begin
-                    hk_conversion_trigger_match_reg[15:8] <= rfg_write_value;
+                    hk_conversion_trigger_match_reg[7:0] <= rfg_write_value;
                 end
                 {1'b1,8'h6f}: begin
-                    hk_conversion_trigger_match_reg[23:16] <= rfg_write_value;
+                    hk_conversion_trigger_match_reg[15:8] <= rfg_write_value;
                 end
                 {1'b1,8'h70}: begin
+                    hk_conversion_trigger_match_reg[23:16] <= rfg_write_value;
+                end
+                {1'b1,8'h71}: begin
                     hk_conversion_trigger_match_reg[31:24] <= rfg_write_value;
                 end
                 default: begin
@@ -1102,7 +1116,7 @@ module main_rfg(
                     rfg_read_valid <= 1 ;
                 end
                 {1'b1,8'h6b}: begin
-                    rfg_read_value <= gecco_sr_ctrl_reg[7:0];
+                    rfg_read_value <= io_ctrl_reg[7:0];
                     rfg_read_valid <= 1 ;
                 end
                 {1'b1,8'h6c}: begin
@@ -1110,18 +1124,22 @@ module main_rfg(
                     rfg_read_valid <= 1 ;
                 end
                 {1'b1,8'h6d}: begin
-                    rfg_read_value <= hk_conversion_trigger_match_reg[7:0];
+                    rfg_read_value <= gecco_sr_ctrl_reg[7:0];
                     rfg_read_valid <= 1 ;
                 end
                 {1'b1,8'h6e}: begin
-                    rfg_read_value <= hk_conversion_trigger_match_reg[15:8];
+                    rfg_read_value <= hk_conversion_trigger_match_reg[7:0];
                     rfg_read_valid <= 1 ;
                 end
                 {1'b1,8'h6f}: begin
-                    rfg_read_value <= hk_conversion_trigger_match_reg[23:16];
+                    rfg_read_value <= hk_conversion_trigger_match_reg[15:8];
                     rfg_read_valid <= 1 ;
                 end
                 {1'b1,8'h70}: begin
+                    rfg_read_value <= hk_conversion_trigger_match_reg[23:16];
+                    rfg_read_valid <= 1 ;
+                end
+                {1'b1,8'h71}: begin
                     rfg_read_value <= hk_conversion_trigger_match_reg[31:24];
                     rfg_read_valid <= 1 ;
                 end

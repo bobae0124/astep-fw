@@ -1,20 +1,25 @@
 ## I/O Delays
 
+#[Synth 8-3917] design astep24_3l_multitarget_top has port vadj_en driven by constant 1
+# -id "Synth 8-3917"
+set_msg_config -string vadj_en -suppress 
+set_msg_config -string set_vadj -suppress
+
 ## Async inputs: First constraint to dummy virtual clock, then set falsepath so that warnings go away from reports
 create_clock -name async_io_dummy_clk -period 10
 
 # Uart I/O Delay can be ignored
 # Interrupt is fully async, synced internally layers_sr_ld*
-set async_in {uart_tx_in layer_*_interruptn cpu_resetn layers_sr_sout* sw* btn*}
-set async_out {uart_rx_out layers_sr_sin* layers_sr_ck* layers_sr_ld* layer_*_hold  layers_sr_rb led* layer*_inj layer_*_resn gecco_inj* gecco_sr*}
+set async_in {uart_tx_in layer_*_interruptn cpu_resetn *resn layers_sr_sout* sw* btn*}
+set async_out {uart_rx_out layers_sr_sin* layers_sr_ck* layers_sr_ld* *_hold  layers_sr_rb led* layer*_inj layer*_resn gecco_inj* gecco_sr*}
 
 set_output_delay -max -clock async_io_dummy_clk 1.0 [get_ports $async_out ]
 set_output_delay -min -clock async_io_dummy_clk 0.5 [get_ports $async_out ]
 
-set_input_delay  -max -clock async_io_dummy_clk 1.0 [get_ports $async_in  ]
-set_input_delay  -min -clock async_io_dummy_clk 0.5 [get_ports $async_in  ]
+set_input_delay  -max -clock async_io_dummy_clk 1.0 [get_ports -filter {DIRECTION == IN} $async_in  ]
+set_input_delay  -min -clock async_io_dummy_clk 0.5 [get_ports -filter {DIRECTION == IN} $async_in  ]
 
-set_false_path -from [get_ports $async_in  ]
+set_false_path -from [get_ports -filter {DIRECTION == IN} $async_in  ]
 set_false_path -to   [get_ports $async_out ]
 
 
@@ -85,11 +90,11 @@ for {set i 0} {$i < 3} {incr i} {
 
 ## ADC + DAC
 if {[llength [get_ports -quiet ext_spi*]]>0} {
-    set_output_delay -max -clock hk_spi_divided $layer_spi_io_delay  [get_ports {ext_spi_mosi  ext_dac_spi_csn ext_adc_spi_csn} ]
-    set_output_delay -min -clock hk_spi_divided 1                    [get_ports {ext_spi_mosi  ext_dac_spi_csn ext_adc_spi_csn}]
+    set_output_delay -max -clock hk_spi_divided $layer_spi_io_delay  [get_ports {ext_spi_mosi  ext_spi_dac_csn ext_spi_adc_csn} ]
+    set_output_delay -min -clock hk_spi_divided 1                    [get_ports {ext_spi_mosi  ext_spi_dac_csn ext_spi_adc_csn}]
 
-    set_input_delay  -max -clock hk_spi_divided  $layer_spi_io_delay [get_ports ext_adc_spi_miso ] -clock_fall
-    set_input_delay  -min -clock hk_spi_divided  1                   [get_ports ext_adc_spi_miso ] -clock_fall
+    set_input_delay  -max -clock hk_spi_divided  $layer_spi_io_delay [get_ports ext_spi_adc_miso ] -clock_fall
+    set_input_delay  -min -clock hk_spi_divided  1                   [get_ports ext_spi_adc_miso ] -clock_fall
 }
 
 

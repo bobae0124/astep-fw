@@ -48,7 +48,8 @@ module astropix_spi_protocol_av1 #(
     // Configs
     input  wire                   cfg_disable_autoread,
     input  wire [31:0]            cfg_frame_tag_counter,
-    input  wire [7:0]             cfg_nodata_continue // Number of IDLE bytes to keep readout active after interrupt is high
+    input  wire [7:0]             cfg_nodata_continue, // Number of IDLE bytes to keep readout active after interrupt is high
+    input  wire                   cfg_layer_reset
 );
 
     // Receiving interface
@@ -82,7 +83,7 @@ module astropix_spi_protocol_av1 #(
     enum {WAIT_FRAME,HEADER_LENGTH,HEADER_ID,RECEIVE,FORWARD,TIMESTAMP0,TIMESTAMP1,TIMESTAMP2,TIMESTAMP3} protocol_state;
 
     always @(posedge clk) begin 
-        if (!resn) begin 
+        if (!resn || cfg_layer_reset) begin 
             s_axis_tready           <= 1'b0;
             
             readout_active          <= 1'b0;

@@ -11,7 +11,6 @@
 module rfg_axis_protocol  #(
     parameter DATA_WIDTH = 8,
     parameter ID_WIDTH = 8,
-    parameter USER_WIDTH = 1,
     parameter AXIS_MASTER_DEST = 0) (
 
 
@@ -28,17 +27,16 @@ module rfg_axis_protocol  #(
     input  wire                     m_axis_tready,
     output wire                     m_axis_tlast,
     output reg [ID_WIDTH-1:0]       m_axis_tid, // ID is passed back to readout from header
-    output reg  [7:0]               m_axis_tdest,
-    output wire [USER_WIDTH-1:0]    m_axis_tuser,
+    output reg  [7:0]               m_axis_tdest, // Destination is set from slave ID input
+
     
     // AXIS slave to receive protocol bytes from IO interface
     input  wire [DATA_WIDTH-1:0]    s_axis_tdata,
     input  wire                     s_axis_tvalid,
     output reg                      s_axis_tready,
-    input  wire                     s_axis_tlast,
-    input  wire [ID_WIDTH-1:0]      s_axis_tid,
+    input  wire [ID_WIDTH-1:0]      s_axis_tid, // Source Port from slave so that answers are forwared back to the right port
     input  wire [7:0]               s_axis_tdest,
-    input  wire [USER_WIDTH-1:0]    s_axis_tuser,
+ 
 
     output reg [7:0]                rfg_address,
     output reg [7:0]                rfg_write_value,
@@ -56,15 +54,13 @@ module rfg_axis_protocol  #(
         // Master inferface to write data to SW I/O
         AXIS #(
         .AXIS_ADDR_WIDTH(8),
-        .AXIS_USER_WIDTH(USER_WIDTH),
+        .AXIS_USER_WIDTH(1),
         .AXIS_DATA_WIDTH(DATA_WIDTH),
         .AXIS_ID_WIDTH(ID_WIDTH))    switch_m_axis_if ();
 
         assign m_axis_tdata             = switch_m_axis_if.tdata;
         assign m_axis_tvalid            = switch_m_axis_if.tvalid;
         assign m_axis_tlast             = switch_m_axis_if.tlast;
-        //assign m_axis_tid               = switch_m_axis_if.tid;
-        assign m_axis_tuser             = switch_m_axis_if.tuser;
         always_comb begin 
             switch_m_axis_if.tready     = m_axis_tready;
         end

@@ -57,9 +57,10 @@ LAYERS_READOUT = 0x63
 LAYERS_READOUT_READ_SIZE = 0x64
 LAYER_3_GEN_CTRL = 0x68
 LAYER_3_GEN_FRAME_COUNT = 0x69
-GECCO_SR_CTRL = 0x6b
+IO_CTRL = 0x6b
 IO_LED = 0x6c
-HK_CONVERSION_TRIGGER_MATCH = 0x6d
+GECCO_SR_CTRL = 0x6d
+HK_CONVERSION_TRIGGER_MATCH = 0x6e
 
 
 
@@ -115,9 +116,10 @@ class main_rfg(AbstractRFG):
         LAYERS_READOUT_READ_SIZE = 0x64
         LAYER_3_GEN_CTRL = 0x68
         LAYER_3_GEN_FRAME_COUNT = 0x69
-        GECCO_SR_CTRL = 0x6b
+        IO_CTRL = 0x6b
         IO_LED = 0x6c
-        HK_CONVERSION_TRIGGER_MATCH = 0x6d
+        GECCO_SR_CTRL = 0x6d
+        HK_CONVERSION_TRIGGER_MATCH = 0x6e
     
     
     
@@ -774,18 +776,18 @@ class main_rfg(AbstractRFG):
     
     
     
-    async def write_gecco_sr_ctrl(self,value : int,flush = False):
-        self.addWrite(register = self.Registers['GECCO_SR_CTRL'],value = value,increment = False,valueLength=1)
+    async def write_io_ctrl(self,value : int,flush = False):
+        self.addWrite(register = self.Registers['IO_CTRL'],value = value,increment = False,valueLength=1)
         if flush == True:
             await self.flush()
         
     
-    async def read_gecco_sr_ctrl(self, count : int = 1 , targetQueue: str | None = None) -> int: 
-        return  int.from_bytes(await self.syncRead(register = self.Registers['GECCO_SR_CTRL'],count = count, increment = False , targetQueue = targetQueue), 'little') 
+    async def read_io_ctrl(self, count : int = 1 , targetQueue: str | None = None) -> int: 
+        return  int.from_bytes(await self.syncRead(register = self.Registers['IO_CTRL'],count = count, increment = False , targetQueue = targetQueue), 'little') 
         
     
-    async def read_gecco_sr_ctrl_raw(self, count : int = 1 ) -> bytes: 
-        return  await self.syncRead(register = self.Registers['GECCO_SR_CTRL'],count = count, increment = False)
+    async def read_io_ctrl_raw(self, count : int = 1 ) -> bytes: 
+        return  await self.syncRead(register = self.Registers['IO_CTRL'],count = count, increment = False)
         
     
     
@@ -806,6 +808,22 @@ class main_rfg(AbstractRFG):
     
     
     
+    async def write_gecco_sr_ctrl(self,value : int,flush = False):
+        self.addWrite(register = self.Registers['GECCO_SR_CTRL'],value = value,increment = False,valueLength=1)
+        if flush == True:
+            await self.flush()
+        
+    
+    async def read_gecco_sr_ctrl(self, count : int = 1 , targetQueue: str | None = None) -> int: 
+        return  int.from_bytes(await self.syncRead(register = self.Registers['GECCO_SR_CTRL'],count = count, increment = False , targetQueue = targetQueue), 'little') 
+        
+    
+    async def read_gecco_sr_ctrl_raw(self, count : int = 1 ) -> bytes: 
+        return  await self.syncRead(register = self.Registers['GECCO_SR_CTRL'],count = count, increment = False)
+        
+    
+    
+    
     async def write_hk_conversion_trigger_match(self,value : int,flush = False):
         self.addWrite(register = self.Registers['HK_CONVERSION_TRIGGER_MATCH'],value = value,increment = True,valueLength=4)
         if flush == True:
@@ -819,3 +837,4 @@ class main_rfg(AbstractRFG):
     async def read_hk_conversion_trigger_match_raw(self, count : int = 4 ) -> bytes: 
         return  await self.syncRead(register = self.Registers['HK_CONVERSION_TRIGGER_MATCH'],count = count, increment = True)
         
+    

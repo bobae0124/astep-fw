@@ -13,8 +13,6 @@ module rfg_axis_readout_framing #(
     input  wire                 s_axis_tvalid,
     input  wire                 s_axis_tlast,
     output reg                  s_axis_tready,
-    // TUser Byte is used as placeholder if no data is available to be send
-    //nput  wire [MTU_SIZE-1:0]  s_axis_tuser,
     input  wire [7:0]           s_axis_tid, // Used as Frame delimiter to indicate the vchannel
 
     // Master interface transfers to Egress

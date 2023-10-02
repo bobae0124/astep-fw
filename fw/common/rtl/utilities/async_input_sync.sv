@@ -1,15 +1,12 @@
 
 
+
 module async_input_sync #(
     parameter RESET_VALUE = 1'b0, 
     parameter DEBOUNCE_DELAY = 2) (
     input wire clk, 
     input wire resn,
-
-    (* IOB = "true" *)
     input wire async_input,
-
-    //(* IOB = "true" *)
     output reg sync_out
 );
 

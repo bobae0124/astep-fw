@@ -45,6 +45,7 @@ module layers_readout_switched #(
     input wire  [LAYER_COUNT-1:0]       config_disable_autoread,
     input wire  [31:0]                  config_frame_tag_counter,
     input wire  [7:0]                   config_nodata_continue,
+    input wire  [LAYER_COUNT-1:0]       config_layers_reset,
 
     // Status
     //---------------------
@@ -102,6 +103,7 @@ module layers_readout_switched #(
                 .cfg_disable_autoread(config_disable_autoread[li]),
                 .cfg_frame_tag_counter(config_frame_tag_counter),
                 .cfg_nodata_continue(config_nodata_continue),
+                .cfg_layer_reset(config_layers_reset[li]),
                 .status_frame_decoding(layers_status_frame_decoding[li]),
                 .stat_frame_detected(layers_stat_count_frame[li]),
                 .stat_idle_detected(layers_stat_count_idle[li])
@@ -153,7 +155,8 @@ module layers_readout_switched #(
         .axis_rd_data_count(readout_frames_data_count),
         .m_axis_tdata(readout_frames_m_axis_tdata),
         .m_axis_tready(readout_frames_m_axis_tready),
-        .m_axis_tvalid(readout_frames_m_axis_tvalid)
+        .m_axis_tvalid(readout_frames_m_axis_tvalid),
+        .m_axis_tlast()
     );
 
 endmodule

@@ -41,6 +41,7 @@ async def test_layer_0_single_frame_noautoread(dut):
     ## Then Write 10 NULL Bytes, which will be enought to readout the whole frame
     generator = cocotb.start_soon(asic.generateTestFrame(length = 5))
     await Timer(1,units="us")  
+    await driver.setLayerReset(layer = 0, reset = False)
     await driver.writeLayerBytes( layer = 0 , bytes = [0x00]*10 , flush = True)
     await generator.join()
 
@@ -57,6 +58,8 @@ async def test_layer_0_single_frame_autoread(dut):
     asic = vip.astropix3.Astropix3Model(dut = dut, prefix = "layer_0" , chipID = 1)
     await vip.cctb.common_clock_reset(dut)
     await Timer(10, units="us")
+
+    assert await driver.readoutGetBufferSize() == 0
 
     ##########
 

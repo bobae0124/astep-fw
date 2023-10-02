@@ -119,7 +119,8 @@ module spi_axis_if_v1 #(
                     spi_clk_enable_negedge      <= 1'b1;
 
                 // Pause CLK if waiting to get the byte
-                if (master_stage_byte_valid && m_axis_byte_waiting)
+                //RL: Changed on 02/10/23, fixed otherwise pausing first started after a bytes was lost at the interface if (master_stage_byte_valid && m_axis_byte_waiting)
+                if (m_axis_byte_waiting)
                     spi_clk_pause <= 1'b1;
                 else if (spi_clk_pause && m_axis_byte_valid)
                     spi_clk_pause <= 1'b0;

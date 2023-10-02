@@ -8,6 +8,8 @@ module astep24_3l_top(
     output wire				clk_sample,
     output wire				clk_timestamp,
     input  wire				cold_resn,
+    input  wire				warm_resn,
+
     output wire				ext_adc_spi_csn,
     input  wire				ext_adc_spi_miso,
     output wire				ext_dac_spi_csn,
@@ -58,13 +60,30 @@ module astep24_3l_top(
     input  wire				sysclk,
     input  wire				uart_rx,
     output wire				uart_tx,
-    input  wire				warm_resn,
+
+
+    input  wire             ftdi_clko,
+    inout  [7:0]            ftdi_data,
+    input  wire             ftdi_rxf_n,
+    input  wire             ftdi_txe_n,
+    output wire             ftdi_rd_n,
+    output wire             ftdi_wr_n,
+    output wire             ftdi_oe_n,
+    
+
+    
 
     // Target Specific
     //---------------
     output wire             gecco_sr_ctrl_ck,
     output wire             gecco_sr_ctrl_sin,
-    output wire             gecco_sr_ctrl_ld
+    output wire             gecco_sr_ctrl_ld,
+
+    // IO Control
+    //-----------
+    output wire io_ctrl_sample_clock_enable,
+    output wire io_ctrl_timestamp_clock_enable,
+    output wire io_ctrl_gecco_sample_clock_se
 );
 
     
@@ -77,23 +96,23 @@ module astep24_3l_top(
     wire clk_uart_resn; // size=1
     wire clk_core; // size=1
     wire clk_core_resn; // size=1
-    wire clk_sample_resn; // size=1
-    wire clk_timestamp_resn; // size=1
+    wire clk_ftdi_resn;
     astep24_3l_top_clocking  clocking_reset_I (
+        .sysclk_in(sysclk),
+        .cold_resn_in(cold_resn),
+        .io_aresn(io_aresn),
+        .warm_resn_in(warm_resn),
         .clk_100(clk_100),
         .clk_100_resn(clk_100_resn),
         .clk_core(clk_core),
         .clk_core_resn(clk_core_resn),
         .clk_sample(clk_sample),
-        .clk_sample_resn(clk_sample_resn),
         .clk_timestamp(clk_timestamp),
-        .clk_timestamp_resn(clk_timestamp_resn),
         .clk_uart(clk_uart),
         .clk_uart_resn(clk_uart_resn),
-        .cold_resn_in(cold_resn),
-        .io_aresn(io_aresn),
-        .sysclk_in(sysclk),
-        .warm_resn_in(warm_resn)
+        .clk_ftdi(ftdi_clko),
+        .clk_ftdi_resn(clk_ftdi_resn)
+        
     );
 
     // Interrupt Input Sychronisation
@@ -124,8 +143,8 @@ module astep24_3l_top(
     wire sw_if_rfg_read;
     wire sw_if_rfg_read_valid; 
 
- 
-    sw_dual_spi_uart  sw_if(
+    
+    sw_ftdi245_spi_uart  sw_if (
         .clk_core(clk_core),
         .clk_core_resn(clk_core_resn),
         .clk_uart(clk_uart),
@@ -142,7 +161,17 @@ module astep24_3l_top(
         .spi_miso(spi_miso),
         .spi_mosi(spi_mosi),
         .uart_rx(uart_rx),
-        .uart_tx(uart_tx)
+        .uart_tx(uart_tx),
+
+
+        .clk_ftdi(ftdi_clko),
+        .clk_ftdi_resn(clk_ftdi_resn),
+        .ftdi_txe_n(ftdi_txe_n),
+        .ftdi_rxf_n(ftdi_rxf_n),
+        .ftdi_rd_n(ftdi_rd_n),
+        .ftdi_oe_n(ftdi_oe_n),
+        .ftdi_wr_n(ftdi_wr_n),
+        .ftdi_data(ftdi_data)
     );
 
 
@@ -364,7 +393,13 @@ module astep24_3l_top(
         .gecco_sr_ctrl(),
         .gecco_sr_ctrl_ck(gecco_sr_ctrl_ck),
         .gecco_sr_ctrl_sin(gecco_sr_ctrl_sin),
-        .gecco_sr_ctrl_ld(gecco_sr_ctrl_ld)
+        .gecco_sr_ctrl_ld(gecco_sr_ctrl_ld),
+
+        // I/O Control like clocks
+        .io_ctrl(),
+        .io_ctrl_sample_clock_enable(io_ctrl_sample_clock_enable),
+        .io_ctrl_timestamp_clock_enable(io_ctrl_timestamp_clock_enable),
+        .io_ctrl_gecco_sample_clock_se(io_ctrl_gecco_sample_clock_se)
   );
 
 
@@ -459,6 +494,12 @@ module astep24_3l_top(
         }),
         .config_frame_tag_counter(layers_cfg_frame_tag_counter),
         .config_nodata_continue(layers_cfg_nodata_continue),
+        .config_layers_reset({
+            layer_3_reset,
+            layer_2_reset,
+            layer_1_reset,
+            layer_0_reset
+        }),
 
         // Statistics
         //----------------------
