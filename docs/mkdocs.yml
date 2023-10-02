@@ -18,6 +18,7 @@ plugins:
   - git-revision-date
   - awesome-pages
   - include-markdown
+  - mkdocstrings
 repo_url: !ENV [IC_REPO_URL, '']
 repo_name: Repository
 extra_css:
