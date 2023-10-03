@@ -128,8 +128,6 @@ module rfg_axis_protocol  #(
         
         assign rfg_read = !read_buffer_almost_full && rfp_state == RFP_READ;
 
-        int readout_count;
-
         always @(posedge aclk) begin 
             if (aresetn==0) begin 
 
@@ -146,19 +144,9 @@ module rfg_axis_protocol  #(
                 read_buffer_write <= 1'b0;
                 read_buffer_read  <= 1'b0;
 
-                readout_count <= 0;
             end
             else begin 
-
-                if (m_axis_write_valid) begin
-                    
-                   readout_count <= readout_count +1;
-
-                end
-                else if (rfp_state == RFP_HEADER) begin 
-                    readout_count <= 0;
-                end
-
+           
                 // Readback AXIS Master stage
                 //-------------
                 case (rfp_state)
