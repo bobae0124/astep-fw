@@ -43,7 +43,7 @@
 |0x5d | [layers_cfg_nodata_continue](#layers_cfg_nodata_continue) | 8 |  | Number of IDLE Bytes until stopping readout|
 |0x5e | [layers_sr_out](#layers_sr_out) | 8 |  | |
 |0x5f | [layers_inj_ctrl](#layers_inj_ctrl) | 8 |  | |
-|0x60 | [layers_inj_waddr](#layers_inj_waddr) | 5 |  | |
+|0x60 | [layers_inj_waddr](#layers_inj_waddr) | 4 |  | |
 |0x61 | [layers_inj_wdata](#layers_inj_wdata) | 8 |  | |
 |0x62 | [layers_sr_in](#layers_sr_in) | 8 |  | |
 |0x63 | [layers_readout](#layers_readout) | 8 | AXIS FIFO Slave (read) | |
@@ -438,14 +438,15 @@
 > 
 
 
-|[7:6] |5 |4 |3 |2 |1 |0 |
-|--|-- |-- |-- |-- |-- |-- |
-|RSVD |running|done|trigger|synced|suspend|resn|
+|[7:7] |6 |5 |4 |3 |2 |1 |0 |
+|--|-- |-- |-- |-- |-- |-- |-- |
+|RSVD |running|done|write|trigger|synced|suspend|reset|
 
-- resn: -
+- reset: -
 - suspend: -
 - synced: -
 - trigger: -
+- write: -
 - done: -
 - running: -
 
@@ -527,13 +528,14 @@
 > I/O Configurations for clocks or others
 
 
-|[7:3] |2 |1 |0 |
-|--|-- |-- |-- |
-|RSVD |gecco_sample_clock_se|timestamp_clock_enable|sample_clock_enable|
+|[7:4] |3 |2 |1 |0 |
+|--|-- |-- |-- |-- |
+|RSVD |gecco_inj_enable|gecco_sample_clock_se|timestamp_clock_enable|sample_clock_enable|
 
 - sample_clock_enable: -
 - timestamp_clock_enable: -
 - gecco_sample_clock_se: -
+- gecco_inj_enable: -
 
 
 ## <a id='io_led'></a>io_led

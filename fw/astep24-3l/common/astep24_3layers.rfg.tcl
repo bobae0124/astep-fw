@@ -61,14 +61,15 @@ set baseRegisters [subst {
             LD4
         }}
         {LAYERS_INJ_CTRL -reset 8'b00000110   -bits {
-            resn
+            reset
             suspend
             synced
             trigger
+            write
             {done -input}
             {running -input}
         }}
-        {LAYERS_INJ_WADDR -size 5  }
+        {LAYERS_INJ_WADDR -size 4  }
         {LAYERS_INJ_WDATA  }
         {LAYERS_SR_IN -bits {
             RB
@@ -84,7 +85,7 @@ set baseRegisters [subst {
         }}]
         [rrepeat 1 {LAYER_[expr ${i}+3]_GEN_FRAME_COUNT  -size 16 -reset 16'd5}]
 
-        {IO_CTRL -bits {sample_clock_enable timestamp_clock_enable gecco_sample_clock_se} -doc "I/O Configurations for clocks or others"} 
+        {IO_CTRL -reset 8'b00001000 -bits {sample_clock_enable timestamp_clock_enable gecco_sample_clock_se gecco_inj_enable} -doc "I/O Configurations for clocks or others"} 
         {IO_LED}
         {GECCO_SR_CTRL -bits {ck sin ld} -doc "Shift Register Control for Gecco Cards"}
         

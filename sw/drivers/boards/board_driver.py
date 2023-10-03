@@ -44,6 +44,8 @@ class BoardDriver():
     ###############
     def geccoGetVoltageBoard(self):
         return self.getVoltageBoard(slot = 4 )
+    def geccoGetInjectionBoard(self):
+        return self.getInjectionBoard(slot = 3 )
 
     ## Chips
     ################

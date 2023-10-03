@@ -45,7 +45,7 @@
  //      In sync mode, each pulse set has to be initiated with a new syncrst
  //      signal. In async mode, the pulse sets are sent right after each other.
  //      The pulse generation can be paused with <suspend> or aborted using
- //      <resn>.
+ //      <rst>.
  //      <Periode> (address 8) specifies the length of the pulse and half the
  //          repetition length for pulse sets: In pulse sets, <periode> defines
  //          the length of the pulses and of the time between them (50% duty
@@ -73,7 +73,7 @@
  
  module sync_async_patgen(
      input  wire            clk, 
-     input  wire            resn,
+     input  wire            rst,
      input  wire            suspend, 
      input  wire            rfg_write, 
      input  wire  [3:0]     rfg_write_address, 
@@ -124,7 +124,7 @@
    end
    
    /*reset state values are taken on reset*/
-     if (!resn) begin
+     if (rst) begin
          runcnt      <= runlen-1'b1;
          if (runlen == 16'b0)
              infinite <= 1'b1;
@@ -184,7 +184,7 @@
                  end // (out == 1'b1 && periodecnt == 16'b0)
              end // clkfaccnt == 0
          end  //(running || !sync) && !done
-     end  //!resn
+     end  //!rst
  end // always @ clk
  
  endmodule

@@ -1,7 +1,7 @@
 
 from drivers.boards.board_driver import BoardDriver
 from .voltageboard import VoltageBoard
-
+from .injectionboard import InjectionBoard
 import rfg.io
 import rfg.core
 import rfg.discovery
@@ -15,15 +15,22 @@ class GeccoCarrierBoard(BoardDriver):
         self.cards = {}
 
 
-    def getVoltageBoard(self,slot : int ):
+    def getVoltageBoard(self,slot : int ) -> VoltageBoard:
         """Create or return Voltage board for a certain slot"""
         if slot in self.cards:
             return self.cards[slot]
         else:
             vb = VoltageBoard(rfg = self.rfg, slot = slot)
             self.cards[slot] = vb
-            vb.vsupply  = 3.3
-            vb.vcal     = .989
+            return vb
+
+    def getInjectionBoard(self,slot : int ) -> InjectionBoard:
+        """Create or return Voltage board for a certain slot"""
+        if slot in self.cards:
+            return self.cards[slot]
+        else:
+            vb = InjectionBoard(rfg = self.rfg, slot = slot)
+            self.cards[slot] = vb
             return vb
 
     def selectUARTIO(self):

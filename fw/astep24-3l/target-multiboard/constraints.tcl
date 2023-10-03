@@ -451,9 +451,12 @@ set_property -dict {PACKAGE_PIN B17 IOSTANDARD LVCMOS25} [get_ports layers_sr_so
 #set_property -dict { PACKAGE_PIN B16   IOSTANDARD LVDS_25 } [get_ports { data_fmc_n }]; #IO_L7N_T1_16 Sch=fmc_la_n[24]
 #set_property -dict { PACKAGE_PIN B15   IOSTANDARD LVDS_25 } [get_ports { data_fmc_p }]; #IO_L7P_T1_16 Sch=fmc_la_p[24]
 #set_property -dict { PACKAGE_PIN E17   IOSTANDARD LVDS_25 } [get_ports { bsyncres_n }]; #IO_L2N_T0_16 Sch=fmc_la_n[25]
-#set_property -dict { PACKAGE_PIN F16   IOSTANDARD LVDS_25 } [get_ports { bsyncres_p }]; #IO_L2P_T0_16 Sch=fmc_la_p[25]
+#set_property -dict { PACKAGE_PIN F16   IOSTANDARD LVDS_25 } [get_ports { bsyncres_p }]; #IO_L2P_T0_16 Sch=fmc_la_p[25
+
+# fmc_la_n[26] and fmc_la_p[26] are Chopper A on Gecco
 set_property -dict {PACKAGE_PIN E18 IOSTANDARD LVDS_25} [get_ports gecco_inj_n]
 set_property -dict {PACKAGE_PIN F18 IOSTANDARD LVDS_25} [get_ports gecco_inj_p]
+
 set_property -dict {PACKAGE_PIN A20 IOSTANDARD LVDS_25} [get_ports gecco_sr_ctrl_sin_n]
 set_property -dict {PACKAGE_PIN B20 IOSTANDARD LVDS_25} [get_ports gecco_sr_ctrl_sin_p]
 set_property -dict {PACKAGE_PIN B13 IOSTANDARD LVDS_25} [get_ports gecco_sr_ctrl_ck_n]

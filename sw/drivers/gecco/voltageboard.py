@@ -19,10 +19,15 @@ import copy
 class VoltageBoard(GeccoCard):
 
 
-    def __init__(self,rfg,slot:int):
+    def __init__(self,rfg,slot:int,dacvalues: tuple[int, list[float]] | None = None):
         GeccoCard.__init__(self, rfg,slot)
 
-        #self.dacvalues = dacvalues
+        self._dacvalues = []  # dacvalues
+        self._vcal = 1.0
+        self._vsupply = 3.3
+        
+        if dacvalues is not None:
+            self.dacvalues = dacvalues
 
     def map_dac_to_name(self,dac:int,name:str):
 

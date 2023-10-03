@@ -40,6 +40,8 @@ module astep24_3l_multitarget_top (
     output wire				vadj_en,
     output wire [1:0]		set_vadj,
 
+    // This is going to the Gecco Injection LVDS receiver, routed to Injection Card slot
+    // Starting v3, a direct injection signal can be send to the chip which embed the injection switch and capacitor
     output wire				gecco_inj_n,
     output wire				gecco_inj_p,
     output wire				gecco_sr_ctrl_ck_n,
@@ -142,7 +144,8 @@ module astep24_3l_multitarget_top (
 
     // Layers common signals
 
-    `ifndef TELESCOPE // Current Telescope PCB uses inj output ofr a sample clock, that's a mistake, no INjectino possible for Telescope PCB
+    // Direct Chip Injection
+    `ifndef TELESCOPE // Current Telescope PCB uses inj output ofr a sample clock, that's a mistake, no direct Chip Injection possible for Telescope PCB
     output wire             layers_inj,
     `endif
     output wire				layers_spi_csn,
@@ -252,6 +255,16 @@ module astep24_3l_multitarget_top (
     wire layers_sr_sin; // size=1
     `endif 
 
+    // Injection
+    //----------
+    // If Gecco Injection is selected (i.e Injection goes to Injection Card), then disable direct chip injection
+    // Only possible on nexys
+    wire layers_inj_internal;
+    `ifdef TARGET_NEXYS
+    assign layers_inj = layers_inj_internal & !io_ctrl_gecco_inj_enable;
+    `else
+    assign layers_inj = layers_inj_internal;
+    `endif
     // Other IO Assignmen that depend on the target (like leds, or pcb specific stuff)
     //---------------
     wire [7:0] led_internal;
@@ -386,7 +399,7 @@ module astep24_3l_multitarget_top (
         `endif
 
         // Layers Config
-        .layers_inj(layers_inj),
+        .layers_inj(layers_inj_internal),
         .layers_sr_in_rb(layers_sr_rb),
         .layers_sr_in_sout0(layers_sr_sout0),
         .layers_sr_in_sout1(`ifndef SINGLE_LAYER layers_sr_sout1 `else 1'b0 `endif),
@@ -430,7 +443,8 @@ module astep24_3l_multitarget_top (
 
         .io_ctrl_sample_clock_enable(io_ctrl_sample_clock_enable),
         .io_ctrl_timestamp_clock_enable(io_ctrl_timestamp_clock_enable),
-        .io_ctrl_gecco_sample_clock_se(io_ctrl_gecco_sample_clock_se)
+        .io_ctrl_gecco_sample_clock_se(io_ctrl_gecco_sample_clock_se),
+        .io_ctrl_gecco_inj_enable(io_ctrl_gecco_inj_enable)
     );
             
     
@@ -453,7 +467,7 @@ module astep24_3l_multitarget_top (
         .OB(gecco_sr_ctrl_sin_n)
     );
     OBUFDS  gecco_inj_odiff(
-        .I(layer_0_inj),
+        .I(layers_inj_internal & io_ctrl_gecco_inj_enable),
         .O(gecco_inj_p),
         .OB(gecco_inj_n)
     );

@@ -83,7 +83,8 @@ module astep24_3l_top(
     //-----------
     output wire io_ctrl_sample_clock_enable,
     output wire io_ctrl_timestamp_clock_enable,
-    output wire io_ctrl_gecco_sample_clock_se
+    output wire io_ctrl_gecco_sample_clock_se,
+    output wire io_ctrl_gecco_inj_enable
 );
 
     
@@ -180,7 +181,6 @@ module astep24_3l_top(
 
     wire [7:0]  injection_generator_inj_wdata;
     wire [3:0]  injection_generator_inj_waddr;
-    wire        injection_generator_inj_write;
 
     wire [7:0]  hk_dac_mosi_fifo_m_axis_tdata;
     wire [7:0]  hk_adc_mosi_fifo_m_axis_tdata;
@@ -360,13 +360,15 @@ module astep24_3l_top(
         .layers_sr_out_ld3(layers_sr_out_ld3),
         .layers_sr_out_ld4(layers_sr_out_ld4),
         .layers_inj_ctrl(),
-        .layers_inj_ctrl_resn               (injection_generator_inj_ctrl_resn),
+        .layers_inj_ctrl_reset              (injection_generator_inj_ctrl_reset),
         .layers_inj_ctrl_suspend            (injection_generator_inj_ctrl_suspend),
         .layers_inj_ctrl_synced             (injection_generator_inj_ctrl_synced),
         .layers_inj_ctrl_trigger            (injection_generator_inj_ctrl_trigger),
+        .layers_inj_ctrl_write              (injection_generator_inj_ctrl_write),
         .layers_inj_ctrl_done               (injection_generator_inj_ctrl_done),
         .layers_inj_ctrl_running            (injection_generator_inj_ctrl_running),
-        .layers_inj_waddr                   ({injection_generator_inj_write,injection_generator_inj_waddr}),
+        
+        .layers_inj_waddr                   (injection_generator_inj_waddr),
         .layers_inj_wdata                   (injection_generator_inj_wdata),
 
         .layers_sr_in(),
@@ -399,7 +401,8 @@ module astep24_3l_top(
         .io_ctrl(),
         .io_ctrl_sample_clock_enable(io_ctrl_sample_clock_enable),
         .io_ctrl_timestamp_clock_enable(io_ctrl_timestamp_clock_enable),
-        .io_ctrl_gecco_sample_clock_se(io_ctrl_gecco_sample_clock_se)
+        .io_ctrl_gecco_sample_clock_se(io_ctrl_gecco_sample_clock_se),
+        .io_ctrl_gecco_inj_enable(io_ctrl_gecco_inj_enable)
   );
 
 
@@ -525,11 +528,11 @@ module astep24_3l_top(
     //-------------------
     sync_async_patgen  injection_generator (
         .clk                (clk_core),
-        .resn               (injection_generator_inj_ctrl_resn),
+        .rst               (injection_generator_inj_ctrl_reset),
         
         .out                (layers_inj),
         
-        .rfg_write          (injection_generator_inj_write),
+        .rfg_write          (injection_generator_inj_ctrl_write),
         .rfg_write_address  (injection_generator_inj_waddr),
         .rfg_write_data     (injection_generator_inj_wdata),
 
