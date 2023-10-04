@@ -18,3 +18,6 @@ ci_deps:
 docs: docs/site/index.html
 docs/site/index.html: docs/mkdocs.yml
 	@icf_doc
+
+docs.serve:
+	@icf_doc --serve

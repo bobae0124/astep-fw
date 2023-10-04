@@ -1,6 +1,8 @@
 
 # Hardware Setup
 
+!!! note
+    This page is copied from Nicolas/Amanda's work in the astropix-fw repository
 
 ## Gecco FTDI 
 
@@ -42,4 +44,16 @@ See [FTDI Mac OS X Installation Guide](https://www.ftdichip.com/Support/Document
 
 ## UART (Gecco/CMOD)
 
-In case a Board UART is used, there is no specific setup to perform, the FTDI USB-UART Converters present on the Nexys Video and CMOD boards are recognised by all the operating systems natively.
+In case a Board UART is used, there should be no specific setup to perform, the FTDI USB-UART Converters present on the Nexys Video and CMOD boards are recognised by all the operating systems natively.
+
+On Linux, Serial ports are usually restricted to members of a specific group, which would be **dialout** for ubuntu. Just add your user to this group:
+
+```bash
+sudo gpasswd -a $USER dialout
+```
+Now re-open a new terminal, or login/logout to have the change take effect, you can check by using the id command, for example: 
+
+```bash
+id 
+uid=1001(xxx) gid=1002(xxx) groups=1002(xxxx),4(adm),20(dialout),27(sudo),46(plugdev),117(netdev),137(libvirt),1001(docker)
+```

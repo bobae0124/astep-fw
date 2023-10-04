@@ -74,7 +74,7 @@ async def main():
     # Start FPGA Temperature reading task
     asyncio.get_running_loop().create_task(readFPGATemperature())
 
-    # Wait for 10 seconds and stop
+    # Wait for 5 seconds and stop
     await asyncio.sleep(5)
 
     print("Stopping")
