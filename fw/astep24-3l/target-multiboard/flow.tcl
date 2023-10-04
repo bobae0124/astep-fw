@@ -268,9 +268,9 @@ proc run_bit {board version defines constraints_file} {
         set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design] 
         write_bitstream -force -bin_file bitstreams/${design_name}_${buildVersion} 
         if {$board=="astropix-cmod"} {
-             write_cfgmem  -format mcs -size 32 -interface SPIx1 -loadbit [list up 0x00000000 bitstreams/${design_name}_${buildVersion}.bit  ] -file bitstreams/${design_name}_${buildVersion}.mcs
+             write_cfgmem  -force -format mcs -size 32 -interface SPIx1 -loadbit [list up 0x00000000 bitstreams/${design_name}_${buildVersion}.bit  ] -file bitstreams/${design_name}_${buildVersion}.mcs
         } else {
-             write_cfgmem  -format mcs -size 32 -interface SPIx4 -loadbit [list up 0x00000000 bitstreams/${design_name}_${buildVersion}.bit  ] -file bitstreams/${design_name}_${buildVersion}.mcs
+             write_cfgmem  -force -format mcs -size 32 -interface SPIx4 -loadbit [list up 0x00000000 bitstreams/${design_name}_${buildVersion}.bit  ] -file bitstreams/${design_name}_${buildVersion}.mcs
         }
        close_project
     }
