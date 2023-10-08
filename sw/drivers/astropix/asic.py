@@ -45,7 +45,7 @@ SPI_HEADER_SR       = 0b011 << 5
 class Asic():
     """Configure ASIC"""
 
-    def __init__(self,rfg) -> None:
+    def __init__(self,rfg , row : int = 0, srRegisterName : str = "LAYERS_SR_OUT") -> None:
         
         
         self._chipversion = None
@@ -60,7 +60,8 @@ class Asic():
 
         ## Added 09/23 Richard
         self.rfg = rfg
-        self.row = 0  ## Row ID used to send the bytes to the right firmware interface
+        self.row = row  ## Row ID used to send the bytes to the right firmware interface
+        self.rfgSRRegisterName = "LAYERS_SR_OUT"
 
 
     @property
@@ -366,6 +367,48 @@ class Asic():
         for value in asicbits:
             self.nexys.write(value)
         logger.info("Wrote configbits successfully")
+
+    ## SR Update
+    async def writeConfigSR(self,ckdiv = 8 , limit : int | None = None ):
+        """This method writes the Config bits through the register file bits (SIN,CK1,CK2, LOAD)
+        
+        Args:
+            ckdiv(int) : Repeats the write for ck1/ck2/load ckdiv times to strech the signal. Set this value higher for faster software interface
+            limit(int) : Only write limit bits to SR - Mostly useful in simulation to limit runtime which checking the I/O are correctly driven
+        """
+        ## Generate Bit vector for config 
+        bits = self.gen_config_vector(msbfirst = False)
+        if limit is not None: 
+            bits = bits[:limit]
+
+        logger.info("Writing SR Config for row=%d,len=%d",self.row,len(bits))
+
+        ## Find target register to write to for IO 
+        targetRegister = self.rfg.Registers[self.rfgSRRegisterName]
+
+        ## Write to SR using register
+        for bit in bits: 
+
+
+            # SIN (bit 3 in register)
+            sinValue = (1 if bit == True else 0) << 2
+            self.rfg.addWrite(register = targetRegister, value = sinValue)
+
+            # CK1
+            self.rfg.addWrite(register = targetRegister, value = sinValue | 0x1 , repeat = ckdiv)
+            self.rfg.addWrite(register = targetRegister, value = sinValue , repeat = ckdiv)
+
+            # CK2
+            self.rfg.addWrite(register = targetRegister, value = sinValue | 0x2 , repeat = ckdiv)
+            self.rfg.addWrite(register = targetRegister, value = sinValue , repeat = ckdiv)
+            
+        
+        ## Set Load (loads start bit 4)
+        self.rfg.addWrite(register = targetRegister, value = sinValue | (0x1 << (self.row +3)) , repeat = ckdiv)
+        self.rfg.addWrite(register = targetRegister, value = 0 , repeat = ckdiv)
+
+
+        await self.rfg.flush()
 
     ## SPI 
     #############

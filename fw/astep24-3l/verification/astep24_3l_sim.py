@@ -10,7 +10,7 @@ from    rfg.cocotb.cocotb_spi  import SPIIO
 
 from   drivers.boards.board_driver import BoardDriver
 from   drivers.gecco.voltageboard import VoltageBoard
-
+from   drivers.gecco.injectionboard import InjectionBoard
 
 
 class SimBoard(BoardDriver): 
@@ -19,11 +19,15 @@ class SimBoard(BoardDriver):
         BoardDriver.__init__(self,rfg)
 
 
-    def getVoltageBoard(self):
-        vb = VoltageBoard(rfg = self.rfg, slot = 4)
+    def getVoltageBoard(self,slot : int ):
+        vb = VoltageBoard(rfg = self.rfg, slot = slot)
         vb.vsupply  = 2.7
         vb.vcal     = .989
         return vb
+
+    def getInjectionBoard(self,slot : int ):
+        ib = InjectionBoard(rfg = self.rfg, slot = slot)
+        return ib
 
 def getUARTDriver(dut):
 

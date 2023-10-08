@@ -126,8 +126,8 @@ class InjectionBoard(GeccoCard):
 
         self.rfg.addWrite(self._rfgWaddrRegister,address)
         self.rfg.addWrite(self._rfgWdataRegister,value)
-        self.__patgenCtrl(PG_CTRL_WRITE)
-        self.__patgenCtrl(PG_CTRL_NONE)
+        self.__patgenCtrl(self.controlStickBits | PG_CTRL_WRITE)
+        self.__patgenCtrl(self.controlStickBits)
 
         #data = bytearray()
 
@@ -157,10 +157,10 @@ class InjectionBoard(GeccoCard):
         :returns: patgen vector
         """
 
-        timestamps = [1, 3, 0, 0, 0, 0, 0, 0]
-
-        for i, val in enumerate(timestamps):
-            self.__patgenwrite(i, val)
+        ## Not used in hw
+        #timestamps = [1, 3, 0, 0, 0, 0, 0, 0]
+        #for i, val in enumerate(timestamps):
+        #    self.__patgenwrite(i, val)
 
         # Set period
         self.__patgenwrite(8, period)
@@ -217,6 +217,7 @@ class InjectionBoard(GeccoCard):
         ## We are writting Reset on start, reset means the register file values are going to be accepted for next run
         self.__patgenCtrl(PG_CTRL_SUSPEND | PG_CTRL_RESET)
         self.__patgenCtrl(PG_CTRL_NONE)
+        self.controlStickBits = PG_CTRL_NONE
 
         #data = bytearray()
 
@@ -236,6 +237,7 @@ class InjectionBoard(GeccoCard):
         :returns: stop vector
         """
         self.__patgenCtrl(PG_CTRL_SUSPEND | PG_CTRL_RESET)
+        self.controlStickBits = PG_CTRL_SUSPEND | PG_CTRL_RESET
         #self.__patgensuspend(True)
         #self.__patgenreset(True)
 
@@ -250,7 +252,7 @@ class InjectionBoard(GeccoCard):
         """Start injection - This method is synchronous to hardware"""
 
         # Stop injection
-        self.__stop()
+        await self.stop()
 
         # update inj
         self.update_inj()
@@ -262,7 +264,7 @@ class InjectionBoard(GeccoCard):
         await self.rfg.flush()
 
     async def stop(self) -> None:
-        """Stop injection"""
+        """Stop injection now"""
 
         self.__stop()
 

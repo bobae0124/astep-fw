@@ -55,7 +55,7 @@ class BoardDriver():
             self.geccoGetVoltageBoard().dacvalues =  (8, [0, 0, 1.1, 1, 0, 0, 1, 1.100])
 
         for i in range(rows):
-            asic = Astropix2(self.rfg)
+            asic = Astropix2(rfg = self.rfg, row = i)
             self.asics.append(asic)
             asic.num_chips = chipsPerRow
 
@@ -66,8 +66,8 @@ class BoardDriver():
         """Returns the Asic Model for the Given Row - Other chips in the Daisy Chain are handeled by the returned 'front' model"""
         return self.asics[row]
 
-    async def enableSensorClocks(self,flush:bool = True):
-        """This method flushes"""
+    async def enableSensorClocks(self,flush:bool = False):
+        """Writes the I/O Control register to enable both Timestamp and Sample clock outputs"""
         await self.rfg.write_io_ctrl(0x03,flush = flush)
 
 
@@ -77,14 +77,25 @@ class BoardDriver():
     async def configureLayerSPIDivider(self, divider:int , flush = False):
         await self.rfg.write_spi_layers_ckdivider(divider,flush)
 
-    async def resetLayer(self, layer : int , waitTime : float = 0.4 ):
-        """Sets Layer in Reset then Remove reset after a defined time - This method sends the bytes to Firmware right away"""
+    async def resetLayer(self, layer : int , waitTime : float = 0.5 ):
+        """Sets Layer in Reset then Remove reset after a wait time. The registers are written right now.
+
+        Args:
+            waitTime (float):  Reset duration - Default 0.5s
+        """
         await self.setLayerReset(layer = layer, reset = True , flush = True )
         await asyncio.sleep(waitTime)
         await self.setLayerReset(layer = layer, reset = False , flush = True )
 
     
     async def setLayerReset(self,layer:int, reset : bool, disable_autoread : int  = 1, flush = False):
+        """Asserts/Deasserts the Reset output for the given layer
+
+        Args:
+            disable_autoread (int): By default 1, disables the automatic layer readout upon interruptn=0 condition
+            flush (bool): Write the register right away
+        
+        """
         regval = 0xff if reset is True else 0x00
         if not reset: 
             regval = regval | ( disable_autoread << 2 )
@@ -92,6 +103,7 @@ class BoardDriver():
       
 
     async def holdLayer(self,layer:int,hold:bool = True,flush:bool = False):
+        """Asserts/Deasserts the hold signal for the given layer"""
         ctrl = await getattr(self.rfg, f"read_layer_{layer}_cfg_ctrl")()
         if hold:
             ctrl |= 1 
@@ -102,7 +114,9 @@ class BoardDriver():
 
     async def writeLayerBytes(self,layer : int , bytes: bytearray,flush:bool = False):
         await getattr(self.rfg, f"write_layer_{layer}_mosi_bytes")(bytes,flush)
- 
+    
+    async def writeBytesToLayer(self,layer : int , bytes: bytearray,flush:bool = False):
+        await getattr(self.rfg, f"write_layer_{layer}_mosi_bytes")(bytes,flush)
 
     async def getLayerStatIDLECounter(self,layer:int):
         return await getattr(self.rfg, f"read_layer_{layer}_stat_idle_counter")()
