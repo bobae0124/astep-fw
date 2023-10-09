@@ -28,6 +28,9 @@ set include_dirs [list $firmware_dir/src $commonSrcDir/includes]
 file mkdir reports
 file mkdir bitstreams
 
+## Config from Env 
+set ciMode [expr [catch {set ::env(CI)}] == 1 ? 0 : 1]
+
 proc add_files_no_simulation path {
     if {[file isdirectory $path]} {
         set addedFiles  [add_files -norecurse $path]

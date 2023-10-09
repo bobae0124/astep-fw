@@ -9,6 +9,7 @@ clean:
 	@mkdir -p vivado-run
 	@cd vivado-run && OPEN=1 vivado  -source ../$(basename $@).tcl
 
+build: export CI=1
 build: $(ALL_BUILDS)
 %.build:
 	@echo "Building Project for target $(basename $@)"
