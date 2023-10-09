@@ -802,7 +802,8 @@ namespace eval icflow::rfg {
         
         
         icflow::generate::writeEmptyLines $o 2
-        icflow::generate::writeLine $o "class ${className}(AbstractRFG):" -indent 
+        icflow::generate::writeLine $o "class ${className}(AbstractRFG):" -indent
+            icflow::generate::writeLine $o {"""Register File Entry Point Class"""}
             icflow::generate::writeEmptyLines $o 2
 
             icflow::generate::writeLine $o "class Registers(RFGRegister):" -indent 
@@ -836,7 +837,7 @@ namespace eval icflow::rfg {
                     set increment "True"
                 }
                 icflow::generate::writeEmptyLines $o 1
-                icflow::generate::writeLine $o "async def write_${name}(self,value : int,flush = False):" -indent 
+                icflow::generate::writeLine $o "async def write_${name}(self,value : int,flush = False):" -indent
                     icflow::generate::writeLine $o "self.addWrite(register = self.Registers\['[string toupper $name]'\],value = value,increment = $increment,valueLength=$bytesCount)" 
                     icflow::generate::writeLine $o "if flush == True:" -indent
                         icflow::generate::writeLine $o "await self.flush()" -outdent_after

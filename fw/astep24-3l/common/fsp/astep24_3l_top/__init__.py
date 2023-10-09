@@ -66,6 +66,7 @@ HK_CONVERSION_TRIGGER_MATCH = 0x6e
 
 
 class main_rfg(AbstractRFG):
+    """Register File Entry Point Class"""
     
     
     class Registers(RFGRegister):

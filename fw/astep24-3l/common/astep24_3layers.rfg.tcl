@@ -3,10 +3,7 @@
 icSetParameter IC_RFG_TARGET astep24_3l_top 
 icSetParameter IC_RFG_NAME   main_rfg
 
-proc getDateVersion args {
-    set date [clock seconds]
-    return   [clock format $date -format "%y%m%d"]01   
-}
+# This utility function replicates a list passed with an i index n times
 proc rrepeat {count lst} {
     set range {}
     for {set i 0} {$i < $count} {incr i} {
@@ -28,9 +25,11 @@ if {[catch {set ::RFG_EXTRA_BOARD_REGS}]} {
     set ::RFG_EXTRA_BOARD_REGS {}
 }
 
-## Build version 32'd[getDateVersion]
+## Build version, taken from define set in simulation or fpga project
 set ::RFG_FW_BUILD `RFG_FW_BUILD
 
+## Main registers definition
+######################
 set baseRegisters [subst {
         {HK_FIRMWARE_ID         -size 32 -reset ${::RFG_FW_ID}    -sw_read_only -hw_ignore -doc "ID to identify the Firmware"}
         {HK_FIRMWARE_VERSION    -size 32 -reset ${::RFG_FW_BUILD} -sw_read_only -hw_ignore -doc "Date based Build version: YEARMONTHDAYCOUNT"}
@@ -84,9 +83,17 @@ set baseRegisters [subst {
             FRAME_ENABLE
         }}]
         [rrepeat 1 {LAYER_[expr ${i}+3]_GEN_FRAME_COUNT  -size 16 -reset 16'd5}]
-
-        {IO_CTRL -reset 8'b00001000 -bits {sample_clock_enable timestamp_clock_enable gecco_sample_clock_se gecco_inj_enable} -doc "I/O Configurations for clocks or others"} 
-        {IO_LED}
+        {IO_CTRL 
+                -reset 8'b00001000 
+                -bits {
+                    {sample_clock_enable    -doc "Sample clock output enable. Sample clock output is 0 if this bit is set to 0"} 
+                    {timestamp_clock_enable -doc "Timestamp clock output enable. Timestamp clock output is 0 if this bit is set to 0"} 
+                    {gecco_sample_clock_se  -doc "Selects the Single Ended output for the sample clock on Gecco." } 
+                    {gecco_inj_enable       -doc "Selects the Gecco Injection to Injection Card output for the injection patterns. Set to 0 to route the injection pattern directly to the chip carrier"}
+                } 
+                -doc "Configuration register for I/O multiplexers and gating."
+        } 
+        {IO_LED -doc "This register is connected to the Board's LED. See target documentation for detailed connection information."}
         {GECCO_SR_CTRL -bits {ck sin ld} -doc "Shift Register Control for Gecco Cards"}
         
 }]

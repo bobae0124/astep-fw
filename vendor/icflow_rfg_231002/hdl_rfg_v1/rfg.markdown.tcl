@@ -78,7 +78,14 @@ namespace eval icflow::rfg::markdown {
             icflow::generate::writeLine $o "## <a id='$name'></a>$name"
             icflow::generate::writeEmptyLines $o 2
 
+            # Basic doc for the register
             icflow::generate::writeLine $o "> $doc"
+            icflow::generate::writeEmptyLines $o 2
+
+            ## Reset value
+            if {[icflow::args::contains $params -reset]} {
+                icflow::generate::writeLine $o "**Reset Value**: [icflow::args::getValue $params -reset {}]"
+            }
             icflow::generate::writeEmptyLines $o 2
 
             ## Bits Table

@@ -50,8 +50,8 @@
 |0x64 | [layers_readout_read_size](#layers_readout_read_size) | 32 |  | Number of entries in layers_readout fifo|
 |0x68 | [layer_3_gen_ctrl](#layer_3_gen_ctrl) | 8 |  | |
 |0x69 | [layer_3_gen_frame_count](#layer_3_gen_frame_count) | 16 |  | |
-|0x6b | [io_ctrl](#io_ctrl) | 8 |  | I/O Configurations for clocks or others|
-|0x6c | [io_led](#io_led) | 8 |  | |
+|0x6b | [io_ctrl](#io_ctrl) | 8 |  | Configuration register for I/O multiplexers and gating.|
+|0x6c | [io_led](#io_led) | 8 |  | This register is connected to the Board's LED. See target documentation for detailed connection information.|
 |0x6d | [gecco_sr_ctrl](#gecco_sr_ctrl) | 8 |  | Shift Register Control for Gecco Cards|
 |0x6e | [hk_conversion_trigger_match](#hk_conversion_trigger_match) | 32 |  | |
 
@@ -62,12 +62,18 @@
 > ID to identify the Firmware
 
 
+**Reset Value**: `RFG_FW_ID
+
+
 
 
 ## <a id='hk_firmware_version'></a>hk_firmware_version
 
 
 > Date based Build version: YEARMONTHDAYCOUNT
+
+
+**Reset Value**: `RFG_FW_BUILD
 
 
 
@@ -80,10 +86,14 @@
 
 
 
+
+
 ## <a id='hk_xadc_vccint'></a>hk_xadc_vccint
 
 
 > 
+
+
 
 
 
@@ -96,10 +106,14 @@
 
 
 
+
+
 ## <a id='hk_stat_conversions_counter'></a>hk_stat_conversions_counter
 
 
 > 
+
+
 
 
 
@@ -112,10 +126,14 @@
 
 
 
+
+
 ## <a id='hk_adc_miso_fifo'></a>hk_adc_miso_fifo
 
 
 > FIFO with read bytes from ADC
+
+
 
 
 
@@ -128,10 +146,14 @@
 
 
 
+
+
 ## <a id='hk_dac_mosi_fifo'></a>hk_dac_mosi_fifo
 
 
 > FIFO to send bytes to DAC
+
+
 
 
 
@@ -142,6 +164,9 @@
 > 
 
 
+**Reset Value**: 8'h4
+
+
 
 
 ## <a id='spi_hk_ckdivider'></a>spi_hk_ckdivider
@@ -150,12 +175,18 @@
 > 
 
 
+**Reset Value**: 8'h4
+
+
 
 
 ## <a id='layer_0_cfg_ctrl'></a>layer_0_cfg_ctrl
 
 
 > Layer 0 control bits
+
+
+**Reset Value**: 8'b00000111
 
 
 |[7:3] |2 |1 |0 |
@@ -173,6 +204,9 @@
 > Layer 1 control bits
 
 
+**Reset Value**: 8'b00000111
+
+
 |[7:3] |2 |1 |0 |
 |--|-- |-- |-- |
 |RSVD |disable_autoread|reset|hold|
@@ -186,6 +220,9 @@
 
 
 > Layer 2 control bits
+
+
+**Reset Value**: 8'b00000111
 
 
 |[7:3] |2 |1 |0 |
@@ -203,6 +240,9 @@
 > Layer 3 control bits
 
 
+**Reset Value**: 8'b00000111
+
+
 |[7:3] |2 |1 |0 |
 |--|-- |-- |-- |
 |RSVD |disable_autoread|reset|hold|
@@ -216,6 +256,8 @@
 
 
 > Layer 0 status bits
+
+
 
 
 |[7:2] |1 |0 |
@@ -232,6 +274,8 @@
 > Layer 1 status bits
 
 
+
+
 |[7:2] |1 |0 |
 |--|-- |-- |
 |RSVD |frame_decoding|interruptn|
@@ -246,6 +290,8 @@
 > Layer 2 status bits
 
 
+
+
 |[7:2] |1 |0 |
 |--|-- |-- |
 |RSVD |frame_decoding|interruptn|
@@ -258,6 +304,8 @@
 
 
 > Layer 3 status bits
+
+
 
 
 |[7:2] |1 |0 |
@@ -276,10 +324,14 @@
 
 
 
+
+
 ## <a id='layer_1_stat_frame_counter'></a>layer_1_stat_frame_counter
 
 
 > Counts the number of data frames
+
+
 
 
 
@@ -292,10 +344,14 @@
 
 
 
+
+
 ## <a id='layer_3_stat_frame_counter'></a>layer_3_stat_frame_counter
 
 
 > Counts the number of data frames
+
+
 
 
 
@@ -308,10 +364,14 @@
 
 
 
+
+
 ## <a id='layer_1_stat_idle_counter'></a>layer_1_stat_idle_counter
 
 
 > Counts the number of Idle bytes
+
+
 
 
 
@@ -324,10 +384,14 @@
 
 
 
+
+
 ## <a id='layer_3_stat_idle_counter'></a>layer_3_stat_idle_counter
 
 
 > Counts the number of Idle bytes
+
+
 
 
 
@@ -340,10 +404,14 @@
 
 
 
+
+
 ## <a id='layer_0_mosi_write_size'></a>layer_0_mosi_write_size
 
 
 > Number of entries in layer_0_mosi fifo
+
+
 
 
 
@@ -356,10 +424,14 @@
 
 
 
+
+
 ## <a id='layer_1_mosi_write_size'></a>layer_1_mosi_write_size
 
 
 > Number of entries in layer_1_mosi fifo
+
+
 
 
 
@@ -372,10 +444,14 @@
 
 
 
+
+
 ## <a id='layer_2_mosi_write_size'></a>layer_2_mosi_write_size
 
 
 > Number of entries in layer_2_mosi fifo
+
+
 
 
 
@@ -388,10 +464,14 @@
 
 
 
+
+
 ## <a id='layer_3_mosi_write_size'></a>layer_3_mosi_write_size
 
 
 > Number of entries in layer_3_mosi fifo
+
+
 
 
 
@@ -404,10 +484,15 @@
 
 
 
+
+
 ## <a id='layers_cfg_nodata_continue'></a>layers_cfg_nodata_continue
 
 
 > Number of IDLE Bytes until stopping readout
+
+
+**Reset Value**: 8'd5
 
 
 
@@ -416,6 +501,8 @@
 
 
 > 
+
+
 
 
 |[7:8] |7 |6 |5 |4 |3 |2 |1 |0 |
@@ -436,6 +523,9 @@
 
 
 > 
+
+
+**Reset Value**: 8'b00000110
 
 
 |[7:7] |6 |5 |4 |3 |2 |1 |0 |
@@ -459,6 +549,8 @@
 
 
 
+
+
 ## <a id='layers_inj_wdata'></a>layers_inj_wdata
 
 
@@ -467,10 +559,14 @@
 
 
 
+
+
 ## <a id='layers_sr_in'></a>layers_sr_in
 
 
 > 
+
+
 
 
 |[7:6] |5 |4 |3 |2 |1 |0 |
@@ -493,6 +589,8 @@
 
 
 
+
+
 ## <a id='layers_readout_read_size'></a>layers_readout_read_size
 
 
@@ -501,10 +599,14 @@
 
 
 
+
+
 ## <a id='layer_3_gen_ctrl'></a>layer_3_gen_ctrl
 
 
 > 
+
+
 
 
 |[7:1] |0 |
@@ -520,28 +622,36 @@
 > 
 
 
+**Reset Value**: 16'd5
+
+
 
 
 ## <a id='io_ctrl'></a>io_ctrl
 
 
-> I/O Configurations for clocks or others
+> Configuration register for I/O multiplexers and gating.
+
+
+**Reset Value**: 8'b00001000
 
 
 |[7:4] |3 |2 |1 |0 |
 |--|-- |-- |-- |-- |
 |RSVD |gecco_inj_enable|gecco_sample_clock_se|timestamp_clock_enable|sample_clock_enable|
 
-- sample_clock_enable: -
-- timestamp_clock_enable: -
-- gecco_sample_clock_se: -
-- gecco_inj_enable: -
+- sample_clock_enable: Sample clock output enable. Sample clock output is 0 if this bit is set to 0
+- timestamp_clock_enable: Timestamp clock output enable. Timestamp clock output is 0 if this bit is set to 0
+- gecco_sample_clock_se: Selects the Single Ended output for the sample clock on Gecco.
+- gecco_inj_enable: Selects the Gecco Injection to Injection Card output for the injection patterns. Set to 0 to route the injection pattern directly to the chip carrier
 
 
 ## <a id='io_led'></a>io_led
 
 
-> 
+> This register is connected to the Board's LED. See target documentation for detailed connection information.
+
+
 
 
 
@@ -550,6 +660,8 @@
 
 
 > Shift Register Control for Gecco Cards
+
+
 
 
 |[7:3] |2 |1 |0 |
@@ -565,5 +677,8 @@
 
 
 > 
+
+
+**Reset Value**: 32'd10
 
 

@@ -19,5 +19,6 @@ docs: docs/site/index.html
 docs/site/index.html: docs/mkdocs.yml
 	@icf_doc
 
+docs.serve: export PYTHONPATH := :$(BASE)/fw/astep24-3l/common:$(BASE)/fw/common/verification:$(PYTHONPATH)
 docs.serve:
 	@icf_doc --serve

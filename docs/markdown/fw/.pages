@@ -1,1 +1,5 @@
 title: Firmware
+nav:
+    - configurations.md
+    - layer_if.md
+    - main_rfg.md
