@@ -101,6 +101,11 @@ module astep24_3l_multitarget_top (
     
     // Layers Config
     //----------------
+
+    // Layers RB+Sout from chip is always single ended
+    input  wire				layers_sr_sout0,
+    output wire				layers_sr_rb,
+
     `ifndef CONFIG_SE
     output wire				layers_sr_ck1_n,
     output wire				layers_sr_ck1_p,
@@ -127,10 +132,10 @@ module astep24_3l_multitarget_top (
     output wire				layers_sr_ck1,
     output wire				layers_sr_ck2,
     output wire				layers_sr_sin,
-    output wire				layers_sr_rb,
+    
 
     output wire				layers_sr_ld0,
-    input  wire				layers_sr_sout0,
+    
 
         // Single ended config NOT single layer is the case for CMOD 3 Layers config
         `ifndef SINGLE_LAYER
@@ -141,6 +146,8 @@ module astep24_3l_multitarget_top (
     input  wire				layers_sr_sout2,
         `endif
     `endif
+
+    
 
     // Layers common signals
 
@@ -487,8 +494,8 @@ module astep24_3l_multitarget_top (
     );  
     OBUFDS  layers_sr_ld_odiff(
         .I(layers_sr_ld0),
-        .O(layers_sr_ld_p),
-        .OB(layers_sr_ld_n)
+        .O(layers_sr_ld0_p),
+        .OB(layers_sr_ld0_n)
     );      
     OBUFDS  layers_sr_sin_odiff(
         .I(layers_sr_sin),
