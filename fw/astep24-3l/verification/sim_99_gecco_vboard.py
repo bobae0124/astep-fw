@@ -28,7 +28,7 @@ async def test_update_vb(dut):
     ##########
 
     ## Get Voltage Board
-    vb = driver.getVoltageBoard()
+    vb = driver.geccoGetVoltageBoard()
     ## Set Dac Values
     vb.dacvalues =  (8, [0, 0, 1.1, 1, 0, 0, 1, 1.100])
 
