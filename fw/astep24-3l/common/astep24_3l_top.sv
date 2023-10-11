@@ -358,7 +358,6 @@ module astep24_3l_top(
         .layers_sr_out_ld1(layers_sr_out_ld1),
         .layers_sr_out_ld2(layers_sr_out_ld2),
         .layers_sr_out_ld3(layers_sr_out_ld3),
-        .layers_sr_out_ld4(layers_sr_out_ld4),
         .layers_inj_ctrl(),
         .layers_inj_ctrl_reset              (injection_generator_inj_ctrl_reset),
         .layers_inj_ctrl_suspend            (injection_generator_inj_ctrl_suspend),
@@ -377,7 +376,6 @@ module astep24_3l_top(
         .layers_sr_in_sout1(layers_sr_in_sout1),
         .layers_sr_in_sout2(layers_sr_in_sout2),
         .layers_sr_in_sout3(layers_sr_in_sout3),
-        .layers_sr_in_sout4(layers_sr_in_sout4),
 
         .layers_readout_s_axis_tdata(layers_readout_s_axis_tdata),
         .layers_readout_s_axis_tvalid(layers_readout_s_axis_tvalid),

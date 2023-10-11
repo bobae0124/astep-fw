@@ -7,7 +7,7 @@ plugins:
   - exclude:
       glob:
         - '**/~*'
-  - drawio-exporter
+  - drawio_file
   - search
   - table-reader:
       base_path: "docs_dir"
@@ -19,18 +19,20 @@ plugins:
   - awesome-pages
   - include-markdown
   - mkdocstrings
+  - glightbox
 repo_url: !ENV [IC_REPO_URL, '']
 repo_name: Repository
 extra_css:
+extra_javascript:
+  - wd.js
+  - https://cdnjs.cloudflare.com/ajax/libs/wavedrom/3.1.0/skins/default.js
+  - https://cdnjs.cloudflare.com/ajax/libs/wavedrom/3.1.0/wavedrom.min.js
 theme:
   name: material
   #custom_dir: custom_theme/
   font:
     text: Baloo Chettan 2
-  palette:
-    scheme: icflow
-  favicon: img/favicon.ico
-  logo: 
+  logo: astropix_main_logo.jpeg
   features:
     - navigation.expand
     - navigation.sections

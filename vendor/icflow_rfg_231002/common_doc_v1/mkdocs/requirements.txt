@@ -2,6 +2,7 @@ PyYAML>=5.4.1
 Jinja2>=2.11.2
 mkdocs
 mkdocs-drawio-exporter
+mkdocs-drawio-file
 mkdocs-enumerate-headings-plugin
 mkdocs-material
 mkdocs-mermaid2-plugin
@@ -15,3 +16,4 @@ mkdocs-include-markdown-plugin
 pheasant
 openpyxl
 mkdocstrings[python]
+mkdocs-glightbox

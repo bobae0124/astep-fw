@@ -49,10 +49,10 @@ LAYER_3_MOSI_WRITE_SIZE = 0x55
 LAYERS_CFG_FRAME_TAG_COUNTER = 0x59
 LAYERS_CFG_NODATA_CONTINUE = 0x5d
 LAYERS_SR_OUT = 0x5e
-LAYERS_INJ_CTRL = 0x5f
-LAYERS_INJ_WADDR = 0x60
-LAYERS_INJ_WDATA = 0x61
-LAYERS_SR_IN = 0x62
+LAYERS_SR_IN = 0x5f
+LAYERS_INJ_CTRL = 0x60
+LAYERS_INJ_WADDR = 0x61
+LAYERS_INJ_WDATA = 0x62
 LAYERS_READOUT = 0x63
 LAYERS_READOUT_READ_SIZE = 0x64
 LAYER_3_GEN_CTRL = 0x68
@@ -109,10 +109,10 @@ class main_rfg(AbstractRFG):
         LAYERS_CFG_FRAME_TAG_COUNTER = 0x59
         LAYERS_CFG_NODATA_CONTINUE = 0x5d
         LAYERS_SR_OUT = 0x5e
-        LAYERS_INJ_CTRL = 0x5f
-        LAYERS_INJ_WADDR = 0x60
-        LAYERS_INJ_WDATA = 0x61
-        LAYERS_SR_IN = 0x62
+        LAYERS_SR_IN = 0x5f
+        LAYERS_INJ_CTRL = 0x60
+        LAYERS_INJ_WADDR = 0x61
+        LAYERS_INJ_WDATA = 0x62
         LAYERS_READOUT = 0x63
         LAYERS_READOUT_READ_SIZE = 0x64
         LAYER_3_GEN_CTRL = 0x68
@@ -661,6 +661,22 @@ class main_rfg(AbstractRFG):
     
     
     
+    async def write_layers_sr_in(self,value : int,flush = False):
+        self.addWrite(register = self.Registers['LAYERS_SR_IN'],value = value,increment = False,valueLength=1)
+        if flush == True:
+            await self.flush()
+        
+    
+    async def read_layers_sr_in(self, count : int = 1 , targetQueue: str | None = None) -> int: 
+        return  int.from_bytes(await self.syncRead(register = self.Registers['LAYERS_SR_IN'],count = count, increment = False , targetQueue = targetQueue), 'little') 
+        
+    
+    async def read_layers_sr_in_raw(self, count : int = 1 ) -> bytes: 
+        return  await self.syncRead(register = self.Registers['LAYERS_SR_IN'],count = count, increment = False)
+        
+    
+    
+    
     async def write_layers_inj_ctrl(self,value : int,flush = False):
         self.addWrite(register = self.Registers['LAYERS_INJ_CTRL'],value = value,increment = False,valueLength=1)
         if flush == True:
@@ -705,22 +721,6 @@ class main_rfg(AbstractRFG):
     
     async def read_layers_inj_wdata_raw(self, count : int = 1 ) -> bytes: 
         return  await self.syncRead(register = self.Registers['LAYERS_INJ_WDATA'],count = count, increment = False)
-        
-    
-    
-    
-    async def write_layers_sr_in(self,value : int,flush = False):
-        self.addWrite(register = self.Registers['LAYERS_SR_IN'],value = value,increment = False,valueLength=1)
-        if flush == True:
-            await self.flush()
-        
-    
-    async def read_layers_sr_in(self, count : int = 1 , targetQueue: str | None = None) -> int: 
-        return  int.from_bytes(await self.syncRead(register = self.Registers['LAYERS_SR_IN'],count = count, increment = False , targetQueue = targetQueue), 'little') 
-        
-    
-    async def read_layers_sr_in_raw(self, count : int = 1 ) -> bytes: 
-        return  await self.syncRead(register = self.Registers['LAYERS_SR_IN'],count = count, increment = False)
         
     
     

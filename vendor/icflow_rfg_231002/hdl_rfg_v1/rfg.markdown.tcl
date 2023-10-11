@@ -67,6 +67,7 @@ namespace eval icflow::rfg::markdown {
         ##########################
         foreach register $registers {
             set params          [dict get $register parameters]
+            set address         [dict get $register address]
             set name            [dict get $register name]
             set registerSize    [dict get $register size]
 
@@ -80,6 +81,10 @@ namespace eval icflow::rfg::markdown {
 
             # Basic doc for the register
             icflow::generate::writeLine $o "> $doc"
+            icflow::generate::writeEmptyLines $o 2
+
+            ## Address 
+            icflow::generate::writeLine $o "**Address**: 0x[format %x $address]"
             icflow::generate::writeEmptyLines $o 2
 
             ## Reset value

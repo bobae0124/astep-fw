@@ -124,7 +124,12 @@ module main_rfg(
     output wire                  layers_sr_out_ld1,
     output wire                  layers_sr_out_ld2,
     output wire                  layers_sr_out_ld3,
-    output wire                  layers_sr_out_ld4,
+    output wire [7:0]            layers_sr_in,
+    output wire                  layers_sr_in_rb,
+    input  wire                  layers_sr_in_sout0,
+    input  wire                  layers_sr_in_sout1,
+    input  wire                  layers_sr_in_sout2,
+    input  wire                  layers_sr_in_sout3,
     output wire [7:0]            layers_inj_ctrl,
     output wire                  layers_inj_ctrl_reset,
     output wire                  layers_inj_ctrl_suspend,
@@ -135,13 +140,6 @@ module main_rfg(
     input  wire                  layers_inj_ctrl_running,
     output wire [3:0]            layers_inj_waddr,
     output wire [7:0]            layers_inj_wdata,
-    output wire [7:0]            layers_sr_in,
-    output wire                  layers_sr_in_rb,
-    input  wire                  layers_sr_in_sout0,
-    input  wire                  layers_sr_in_sout1,
-    input  wire                  layers_sr_in_sout2,
-    input  wire                  layers_sr_in_sout3,
-    input  wire                  layers_sr_in_sout4,
     // AXIS Slave interface to read from FIFO layers_readout,
     // --------------------,
     input  wire [7:0]            layers_readout_s_axis_tdata,
@@ -243,6 +241,9 @@ module main_rfg(
     reg [7:0] layers_sr_out_reg;
     assign layers_sr_out = layers_sr_out_reg;
     
+    reg [7:0] layers_sr_in_reg;
+    assign layers_sr_in = layers_sr_in_reg;
+    
     reg [7:0] layers_inj_ctrl_reg;
     assign layers_inj_ctrl = layers_inj_ctrl_reg;
     
@@ -251,9 +252,6 @@ module main_rfg(
     
     reg [7:0] layers_inj_wdata_reg;
     assign layers_inj_wdata = layers_inj_wdata_reg;
-    
-    reg [7:0] layers_sr_in_reg;
-    assign layers_sr_in = layers_sr_in_reg;
     
     reg [7:0] layer_3_gen_ctrl_reg;
     assign layer_3_gen_ctrl = layer_3_gen_ctrl_reg;
@@ -296,13 +294,12 @@ module main_rfg(
     assign layers_sr_out_ld1 = layers_sr_out_reg[4];
     assign layers_sr_out_ld2 = layers_sr_out_reg[5];
     assign layers_sr_out_ld3 = layers_sr_out_reg[6];
-    assign layers_sr_out_ld4 = layers_sr_out_reg[7];
+    assign layers_sr_in_rb = layers_sr_in_reg[0];
     assign layers_inj_ctrl_reset = layers_inj_ctrl_reg[0];
     assign layers_inj_ctrl_suspend = layers_inj_ctrl_reg[1];
     assign layers_inj_ctrl_synced = layers_inj_ctrl_reg[2];
     assign layers_inj_ctrl_trigger = layers_inj_ctrl_reg[3];
     assign layers_inj_ctrl_write = layers_inj_ctrl_reg[4];
-    assign layers_sr_in_rb = layers_sr_in_reg[0];
     assign layer_3_gen_ctrl_frame_enable = layer_3_gen_ctrl_reg[0];
     assign io_ctrl_sample_clock_enable = io_ctrl_reg[0];
     assign io_ctrl_timestamp_clock_enable = io_ctrl_reg[1];
@@ -362,10 +359,10 @@ module main_rfg(
             layers_cfg_frame_tag_counter_reg <= 0;
             layers_cfg_nodata_continue_reg <= 8'd5;
             layers_sr_out_reg <= 0;
+            layers_sr_in_reg <= 0;
             layers_inj_ctrl_reg <= 8'b00000110;
             layers_inj_waddr_reg <= 0;
             layers_inj_wdata_reg <= 0;
-            layers_sr_in_reg <= 0;
             layers_readout_read_size_reg <= 0;
             layer_3_gen_ctrl_reg <= 0;
             layer_3_gen_frame_count_reg <= 16'd5;
@@ -385,13 +382,12 @@ module main_rfg(
             layer_2_status_reg[1] <= layer_2_status_frame_decoding;
             layer_3_status_reg[0] <= layer_3_status_interruptn;
             layer_3_status_reg[1] <= layer_3_status_frame_decoding;
-            layers_inj_ctrl_reg[5] <= layers_inj_ctrl_done;
-            layers_inj_ctrl_reg[6] <= layers_inj_ctrl_running;
             layers_sr_in_reg[1] <= layers_sr_in_sout0;
             layers_sr_in_reg[2] <= layers_sr_in_sout1;
             layers_sr_in_reg[3] <= layers_sr_in_sout2;
             layers_sr_in_reg[4] <= layers_sr_in_sout3;
-            layers_sr_in_reg[5] <= layers_sr_in_sout4;
+            layers_inj_ctrl_reg[5] <= layers_inj_ctrl_done;
+            layers_inj_ctrl_reg[6] <= layers_inj_ctrl_running;
             
             
             // Write for simple registers
@@ -541,16 +537,16 @@ module main_rfg(
                     layers_sr_out_reg[7:0] <= rfg_write_value;
                 end
                 {1'b1,8'h5f}: begin
-                    layers_inj_ctrl_reg[7:0] <= rfg_write_value;
+                    layers_sr_in_reg[7:0] <= rfg_write_value;
                 end
                 {1'b1,8'h60}: begin
-                    layers_inj_waddr_reg[3:0] <= rfg_write_value[3:0];
+                    layers_inj_ctrl_reg[7:0] <= rfg_write_value;
                 end
                 {1'b1,8'h61}: begin
-                    layers_inj_wdata_reg[7:0] <= rfg_write_value;
+                    layers_inj_waddr_reg[3:0] <= rfg_write_value[3:0];
                 end
                 {1'b1,8'h62}: begin
-                    layers_sr_in_reg[7:0] <= rfg_write_value;
+                    layers_inj_wdata_reg[7:0] <= rfg_write_value;
                 end
                 {1'b1,8'h68}: begin
                     layer_3_gen_ctrl_reg[7:0] <= rfg_write_value;
@@ -1076,15 +1072,15 @@ module main_rfg(
                     rfg_read_valid <= 1 ;
                 end
                 {1'b1,8'h5f}: begin
+                    rfg_read_value <= layers_sr_in_reg[7:0];
+                    rfg_read_valid <= 1 ;
+                end
+                {1'b1,8'h60}: begin
                     rfg_read_value <= layers_inj_ctrl_reg[7:0];
                     rfg_read_valid <= 1 ;
                 end
-                {1'b1,8'h61}: begin
-                    rfg_read_value <= layers_inj_wdata_reg[7:0];
-                    rfg_read_valid <= 1 ;
-                end
                 {1'b1,8'h62}: begin
-                    rfg_read_value <= layers_sr_in_reg[7:0];
+                    rfg_read_value <= layers_inj_wdata_reg[7:0];
                     rfg_read_valid <= 1 ;
                 end
                 {1'b1,8'h63}: begin
