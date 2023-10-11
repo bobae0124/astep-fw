@@ -45,10 +45,23 @@ Here are some typical commands to work with this repository for quick reference:
 
 Always source the load.sh script when opening the terminal, this sets up a few environment variables to ensure all the scripts work fine and the software drivers are accessible from any work folder 
 
-
 ```bash
 source load.sh
 ```
+For Windows users, you can use the **load.bat** and **load.ps1** for command prompt or power shell:
+
+Command Prompt: 
+
+```batch
+xxxx> load.bat
+```
+
+Power Shell:
+
+```powershell
+PS xxxx> load.ps1
+```
+
 
 ### Load your tools
 
