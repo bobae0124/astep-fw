@@ -14,6 +14,8 @@ class GeccoCarrierBoard(BoardDriver):
         BoardDriver.__init__(self,rfg)
         self.cards = {}
 
+    def getFPGACoreFrequency(self):
+        return 60000000
 
     def getVoltageBoard(self,slot : int ) -> VoltageBoard:
         """Create or return Voltage board for a certain slot"""

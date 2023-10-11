@@ -15,7 +15,12 @@ class BoardDriver():
         self.asics = []
 
     def open(self):
+        """Open the Register File I/O Connection to the underlying driver"""
         self.rfg.io.open()
+
+    def close(self):
+        """Close the Register File I/O Connection to the underlying driver"""
+        self.rfg.io.close()
 
     def debug_full(self):
         rfg.core.debug()
@@ -39,6 +44,10 @@ class BoardDriver():
 
     async def checkFirmwareVersionAfter(self,v):
         return await (self.readFirmwareVersion()) >= v
+
+    def getFPGACoreFrequency(self):
+        """Returns the Core Clock frequency to help clock divider configuration - this method is overriden by implementation class (Gecco or Cmod)"""
+        pass
 
     ## Gecco
     ###############
@@ -74,6 +83,13 @@ class BoardDriver():
 
     ## Layers
     ##################
+    async def configureLayerSPIFrequency(self, targetFrequencyHz : int , flush = False):
+        """Calculated required divider to reach the provided target SPI clock frequency"""
+        coreFrequency = self.getFPGACoreFrequency()
+        divider = coreFrequency / targetFrequencyHz
+        assert divider >=1
+        await self.configureLayerSPIDivider(divider,flush)
+
     async def configureLayerSPIDivider(self, divider:int , flush = False):
         await self.rfg.write_spi_layers_ckdivider(divider,flush)
 
