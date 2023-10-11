@@ -78,6 +78,7 @@ proc read_syn_ip {} {
     global firmware_dir
     global commonSrcDir
     global astep3lSrcDir
+    global target_board
 
     set projectFiles [get_files]
     ## Go through IP directories from IP project and load all the XCI files found
@@ -114,6 +115,12 @@ proc read_syn_ip {} {
             set_property generate_synth_checkpoint true $srcFile
         }
     }
+
+    ## On CMOD, update core clock to 20.00000
+    if {$target_board=="astropix-cmod"} {
+        set_property -dict [list CONFIG.CLKOUT3_REQUESTED_OUT_FREQ {20.000} ] [get_ips top_clocking_core_io_uart]
+    }
+    
 }
 
 
@@ -125,6 +132,9 @@ proc run_bit {board version defines constraints_file} {
     global firmware_dir
     global commonSrcDir
     global astep3lSrcDir
+    global target_board 
+
+    
     
 
     ## Test if in open mode, if env(OPEN) is NOT set, catch returns 1
@@ -142,10 +152,7 @@ proc run_bit {board version defines constraints_file} {
     }
 
     
-    #array set supported_boards [subst {
-    #    {astropix-nexys  {xc7a200tsbg484-1 digilentinc.com:nexys_video:part0:1.2 {RFG_FW_ID=32'h0000AB0${chipversion}} } }
-    #    {astropix-cmod   {xc7a35tcpg236-1  digilentinc.com:cmod_a7-35t:part0:1.2 {RFG_FW_ID=32'h0000AC0${chipversion}} } }
-    #}]
+    set target_board $board
     array set supported_boards [list \
         astropix-nexys  [list xc7a200tsbg484-1 digilentinc.com:nexys_video:part0:1.2 [list RFG_FW_ID=32'h0000AB0${chipversion} TARGET_NEXYS] ] \
         astropix-cmod   [list xc7a35tcpg236-1  digilentinc.com:cmod_a7-35t:part0:1.2 [list RFG_FW_ID=32'h0000AC0${chipversion} TARGET_CMOD] ] \

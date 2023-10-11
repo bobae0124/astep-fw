@@ -7,8 +7,8 @@ This page summarizes the various clocks used in the design and the reset conditi
 The clocks are generated using an MMMC resource to produce following clocks:
 
 - A core clock used for the main blocks. This clock is fast enough to handle the fastest interface of the design
-    - 80Mhz on Gecco target, the fastest I/O clock is the FTDI FIFO interface with 60Mhz. 
-    - 40Mhz is enough on CMOD to handle the Sensor Layer interface data rates
+    - 60Mhz on Gecco target, the fastest I/O clock is the FTDI FIFO interface with 60Mhz. 
+    - 20Mhz should be enough on CMOD to handle the Sensor Layer interface data rates
 - A Uart clock of 30Mhz for the UART IP block configured for 921600bps 
 - A timestamp clock of 5Mhz 
 - A sample clock of 100Mhz 
@@ -17,6 +17,7 @@ Two SPI clocks are generated through a configurable register clock divider:
 
 - One for the Layers SPI interface  
 - One for the Housekeeping external SPI ADC and DAC
+
 
 <figure markdown>
   ![block-clocks](./astep-fw-drawings.drawio)
