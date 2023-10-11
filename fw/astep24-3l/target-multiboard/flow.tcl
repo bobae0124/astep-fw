@@ -16,11 +16,14 @@ proc getResourceDirectory {} {
 }
 
 ## Directories
+#########
+
+## firmware_dir is the directory where the tcl and fpga top level is located
 global firmware_dir
 set firmware_dir [getResourceDirectory]
 puts "Firware directory: $firmware_dir"
 
-set commonSrcDir $::env(BASE)/fw/common
+set commonSrcDir [file normalize $firmware_dir/../../common]
 set astep3lSrcDir [file normalize $firmware_dir/../]
 
 set include_dirs [list $firmware_dir/src $commonSrcDir/includes]
@@ -195,7 +198,7 @@ proc run_bit {board version defines constraints_file} {
     catch {close_project}
 
     # Set board file
-    set_param board.repoPaths $::env(BASE)/vendor/digilent-vivado-boards/board_files
+    set_param board.repoPaths $firmware_dir/../../../vendor/digilent-vivado-boards/board_files
     set REPOPATH [get_param board.repoPaths]
     puts $REPOPATH
 
