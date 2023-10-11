@@ -24,6 +24,9 @@ FLAG_LIST_DESCRIPTOR = 2
 
 try:
     import ftd2xx as ftd
+except ModuleNotFoundError as e:
+        logger.error(f"FTD2XX python module is not installed: {str(e)}")
+        exit(-1)
 except OSError as e:
         logger.error(f"FTD2XX Library is not installed: {str(e)}")
         exit(-1)
