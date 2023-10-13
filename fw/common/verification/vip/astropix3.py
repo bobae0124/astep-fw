@@ -32,15 +32,17 @@ class Astropix3Model:
     ## Frame generation
     ############
 
-    async def generateTestFrame(self,length:int): 
+    async def generateTestFrame(self,length:int,framesCount: int = 1 ): 
         """Generate a Frame of a certain length with a counter as value"""
 
         print(f"Starting frame generator, queue length={self.spiSlave.misoQueue.qsize()}")
+
         ## Generate Bytes counter
-        bytes = []
-        await self.spiSlave.misoQueue.put(length | (self.chipID << 3))
-        for x in range(length):
-            await self.spiSlave.misoQueue.put(x+1)
+        for frameI in range(framesCount):
+            bytes = []
+            await self.spiSlave.misoQueue.put(length | (self.chipID << 3))
+            for x in range(length):
+                await self.spiSlave.misoQueue.put(x+1)
         
         ## Trigger interrupt
         self.interruptn.value = 0
@@ -52,10 +54,10 @@ class Astropix3Model:
         except:
             ## Clean queue
             #self.spiSlave.misoQueue._init()
-            print("Timedout finishing")
+            #print("Timedout finishing")
             for x in range(self.spiSlave.misoQueue.qsize()):
                 await self.spiSlave.misoQueue.get()
-            print("Cleared queue")
+            #print("Cleared queue")
             #await self.spiSlave.misoQueue.clear()
             #pass
             #print("Wait for done timed out")
