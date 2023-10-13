@@ -4,7 +4,7 @@ import rfg.io
 import rfg.core
 import asyncio
 
-from drivers.astropix.astropix2 import Astropix2
+from drivers.astropix.asic import Asic
 
 
 class BoardDriver():
@@ -64,7 +64,8 @@ class BoardDriver():
             self.geccoGetVoltageBoard().dacvalues =  (8, [0, 0, 1.1, 1, 0, 0, 1, 1.100])
 
         for i in range(rows):
-            asic = Astropix2(rfg = self.rfg, row = i)
+            asic = Asic(rfg = self.rfg, row = i)
+            asic.chipversion = version
             self.asics.append(asic)
             asic.num_chips = chipsPerRow
 
@@ -86,7 +87,7 @@ class BoardDriver():
     async def configureLayerSPIFrequency(self, targetFrequencyHz : int , flush = False):
         """Calculated required divider to reach the provided target SPI clock frequency"""
         coreFrequency = self.getFPGACoreFrequency()
-        divider = coreFrequency / targetFrequencyHz
+        divider = int(coreFrequency / targetFrequencyHz)
         assert divider >=1
         await self.configureLayerSPIDivider(divider,flush)
 
@@ -146,4 +147,5 @@ class BoardDriver():
     
     async def readoutReadBytes(self,count : int):
         ## Using the _raw version returns an array of bytes, while the normal method converts to int based on the number of bytes
-        return await self.rfg.read_layers_readout_raw(count = count)
+        return  await self.rfg.read_layers_readout_raw(count = count) if count > 0 else  []
+       
