@@ -2,3 +2,4 @@ nav:
     - hardware.md
     - software.md
     - tooling.md
+    - fpga_programming.md

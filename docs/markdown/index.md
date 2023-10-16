@@ -7,7 +7,7 @@ title: Home
 
 **Welcome to the ASTEP Firmware Readout repository**
 
-![Astropix Logo](/astropix_main_logo.jpeg){ align=left width="25%" }
+![Astropix Logo](./astropix_main_logo.jpeg){ align=left width="25%" }
 
 You will find here sources for the Firmware targetting Gecco Nexys Video and CMOD boards, with different configurations based on the type of Astropix Carrier boards (Single Chip V2/V3/V4 , Telescope Chain, Multi-Layer etc..)
 

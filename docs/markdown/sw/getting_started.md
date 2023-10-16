@@ -137,9 +137,9 @@ The user can also start scripts with a reset cycle to ensure you are beginning w
 await boardDriver.resetLayer(layer = 0)
 ```
 
-## Enabling Clocks 
+## Enabling / Setting up Clocks 
 
-Next, we will want to enable the Timestamp and Sample clocks. 
+Next, we will want to enable the Timestamp and Sample clocks, and configure the SPI Clock for the Layers
 
 For the sample clock, check the hardware target for the exact configuration, but by default on Gecco, the sample clock is routed to the main differential input of Astropix (v2/v3)
 
@@ -147,6 +147,16 @@ For the sample clock, check the hardware target for the exact configuration, but
 # Enable TS and Sample clock right now
 await boardDriver.enableSensorClocks(flush = True)
 ```
+
+To configure the SPI Clock, a utility method can calculate the required clock divider to specify a certain SPI clock freqency. 
+
+A value of 1 Mhz should be fine to get started:
+
+```python
+# Set the SPI Clock to 1Mhz (the value must be passed in Hz)
+await boardDriver.configureLayerSPIFrequency(1000000)
+```
+
 
 ## Chip Configuration Setup 
 
