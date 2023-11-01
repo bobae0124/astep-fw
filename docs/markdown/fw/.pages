@@ -4,5 +4,5 @@ nav:
     - clocking_reset_startup.md
     - layer_if.md
     - host_if.md
-    - configurations.md
+    - hardware_targets.md
     - main_rfg.md

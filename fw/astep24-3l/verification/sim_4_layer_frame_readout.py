@@ -49,6 +49,42 @@ async def test_layer_0_single_frame_noautoread(dut):
     assert  await driver.readoutGetBufferSize() == 12
     await Timer(50, units="us")
 
+@cocotb.test(timeout_time = 1 , timeout_unit = "ms")
+async def test_layer_0_double_frame_noautoread(dut):
+
+    ## Driver, asic, clock+reset
+    driver = astep24_3l_sim.getUARTDriver(dut)
+    asic = vip.astropix3.Astropix3Model(dut = dut, prefix = "layer_0" , chipID = 1)
+    await vip.cctb.common_clock_reset(dut)
+    await Timer(10, units="us")
+
+    ## Drive a frame from the ASIC with autoread disabled, it should timeout
+    try:
+        await with_timeout( asic.generateTestFrame(length = 5,framesCount=2),50, 'us')
+        assert True == False
+    except:
+        pass
+
+   
+    dut._log.info("Current Readout size after untapped frame: %d",await driver.readoutGetBufferSize())
+    assert  await driver.readoutGetBufferSize() == 0
+
+    ## Now Restart frame generator with a Readout in parallel
+    ## Then Write 10 NULL Bytes, which will be enought to readout the whole frame
+    generator = cocotb.start_soon(asic.generateTestFrame(length = 5,framesCount=2))
+    await Timer(1,units="us")  
+    await driver.setLayerReset(layer = 0, reset = False)
+    await driver.writeLayerBytes( layer = 0 , bytes = [0x00]*16 , flush = True)
+    await generator.join()
+
+    ## Check That two Frames were seen
+    assert  await driver.readoutGetBufferSize() == 24
+
+    ## Readout and print
+    bytes = await driver.readoutReadBytes(24)
+    for b in bytes:
+        print(f"B={hex(b)}")
+    await Timer(50, units="us")
 
 @cocotb.test(timeout_time = 0.5 , timeout_unit = "ms")
 async def test_layer_0_single_frame_autoread(dut):

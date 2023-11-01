@@ -32,7 +32,7 @@ theme:
   #custom_dir: custom_theme/
   font:
     text: Baloo Chettan 2
-  logo: astropix_main_logo.jpeg
+  logo: apix-name.png
   features:
     - navigation.expand
     - navigation.sections
