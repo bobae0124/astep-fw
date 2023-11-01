@@ -5,6 +5,7 @@ import rfg.core
 import asyncio
 
 from drivers.astropix.astropix2 import Astropix2
+from drivers.astropix.astropix3 import Astropix3
 
 
 class BoardDriver():
@@ -64,7 +65,10 @@ class BoardDriver():
             self.geccoGetVoltageBoard().dacvalues =  (8, [0, 0, 1.1, 1, 0, 0, 1, 1.100])
 
         for i in range(rows):
-            asic = Astropix2(rfg = self.rfg, row = i)
+            if version == 3:
+                asic = Astropix3(rfg = self.rfg, row = i)
+            else:
+                asic = Astropix2(rfg = self.rfg, row = i)
             self.asics.append(asic)
             asic.num_chips = chipsPerRow
 

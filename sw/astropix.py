@@ -123,7 +123,7 @@ class astropixRun:
 
         # Define YAML path variables
         pathdelim=os.path.sep #determine if Mac or Windows separators in path name
-        ymlpath="."+pathdelim+"config"+pathdelim+yaml+".yml"
+        ymlpath=os.getcwd()+pathdelim+"scripts"+pathdelim+"config"+pathdelim+yaml+".yml"
 
         #Get config values from YAML and set chip properties
         try:
