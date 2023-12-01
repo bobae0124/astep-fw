@@ -13,19 +13,35 @@ class BoardDriver():
         self.rfg = rfg
         self.houseKeeping = drivers.astep.housekeeping.Housekeeping(rfg)
         self.asics = []
+        
+        # Synchronisation Utils
+        ########
+
+        ## Opened Event -> Set/unset by close/open
+        ## Useful to start or stop tasks dependent on open/close state of the driver
+        self.openedEvent = asyncio.Event()
 
     def open(self):
         """Open the Register File I/O Connection to the underlying driver"""
         self.rfg.io.open()
+        self.openedEvent.set()
 
     def close(self):
         """Close the Register File I/O Connection to the underlying driver"""
+        self.openedEvent.clear()
         self.rfg.io.close()
+
+    async def waitOpened(self):
+        await self.openedEvent.wait()
+
+    def isOpened(self) -> bool: 
+        return self.openedEvent.is_set()
 
     def debug_full(self):
         rfg.core.debug()
 
-    def flush():
+    def flush(self):
+        """Flushed the RFG instance, use to be sure no bytes are pending writting"""
         self.rfg.flush()
 
     async def readFirmwareVersion(self):
@@ -38,7 +54,7 @@ class BoardDriver():
 
     async def readFirmwareIDName(self):
         """"""
-        boards  =  {0xab01: 'Neys GECCO Astropix v2',0xab02: 'Neys GECCO Astropix v3'}
+        boards  =  {0xab02: 'Neys GECCO Astropix v2',0xab03: 'Neys GECCO Astropix v3',0xac03:"CMOD Astropix v3"}
         boardID =  await (self.readFirmwareID())
         return boards.get(boardID,"Firmware ID unknown: {0}".format(hex(boardID)))
 
@@ -58,6 +74,19 @@ class BoardDriver():
 
     ## Chips
     ################
+    async def setupASICSAuto(self, configFile : str ):
+
+        #assert version >=2 and version < 4 , "Only Astropix 2 and 3 Supported"
+        self.asics.clear()
+        asic = Asic(rfg = self.rfg, row = 0)
+        asic.chipversion = (await self.readFirmwareID()) & 0x0F
+        asic.load_conf_from_yaml(configFile)
+        self.asics.append(asic)
+
+        return asic
+
+        
+
     def setupASICS(self,version : int , rows: int = 1 , chipsPerRow:int = 1 , configFile : str | None = None ):
         assert version >=2 and version < 4 , "Only Astropix 2 and 3 Supported"
         if version == 2: 
@@ -80,7 +109,32 @@ class BoardDriver():
         """Writes the I/O Control register to enable both Timestamp and Sample clock outputs"""
         await self.rfg.write_io_ctrl(0x03,flush = flush)
 
+    async def getIOControlRegister(self):
+        return await self.rfg.read_io_ctrl()
 
+    async def ioSetSampleClock(self,enable:bool,flush:bool = False):
+        v = await self.rfg.read_io_ctrl()
+        if enable: v|=0x1 
+        else: v &= ~(0x1)
+        await self.rfg.write_io_ctrl(v,flush) 
+    
+    async def ioSetTimestampClock(self,enable:bool,flush:bool = False):
+        v = await self.rfg.read_io_ctrl()
+        if enable: v|=0x2 
+        else: v &= ~(0x2)
+        await self.rfg.write_io_ctrl(v,flush) 
+    
+    async def ioSetSampleClockSingleEnded(self,enable:bool,flush:bool = False):
+        v = await self.rfg.read_io_ctrl()
+        if enable: v|=0x4 
+        else: v &= ~(0x4)
+        await self.rfg.write_io_ctrl(v,flush) 
+
+    async def ioSetInjectionToGeccoInjBoard(self,enable:bool,flush:bool = False):
+        v = await self.rfg.read_io_ctrl()
+        if enable: v|=0x8 
+        else: v &= ~(0x8)
+        await self.rfg.write_io_ctrl(v,flush) 
 
     ## Layers
     ##################
@@ -105,22 +159,36 @@ class BoardDriver():
         await self.setLayerReset(layer = layer, reset = False , flush = True )
 
     
-    async def setLayerReset(self,layer:int, reset : bool, disable_autoread : int  = 1, flush = False):
+    async def setLayerReset(self,layer:int, reset : bool, disable_autoread : bool  = True, modify : bool = False, flush = False):
         """Asserts/Deasserts the Reset output for the given layer
 
         Args:
             disable_autoread (int): By default 1, disables the automatic layer readout upon interruptn=0 condition
+            modify (bool): Reads the Control register first and only change the required bits
             flush (bool): Write the register right away
         
         """
         regval = 0xff if reset is True else 0x00
-        if not reset: 
-            regval = regval | ( disable_autoread << 2 )
+        if modify is True:
+            regval =  await getattr(self.rfg, f"read_layer_{layer}_cfg_ctrl")()
+        
+        if reset is True:
+            regval |= (1<<1)
+        else:
+            regval &= ~(1<<1)
+
+        if disable_autoread is True:
+            regval |= (1<<2)
+        else:
+            regval &= ~(1<<2)
+
+        #if not reset: 
+        #    regval = regval | ( disable_autoread << 2 )
         await getattr(self.rfg, f"write_layer_{layer}_cfg_ctrl")(regval,flush)
       
 
     async def holdLayer(self,layer:int,hold:bool = True,flush:bool = False):
-        """Asserts/Deasserts the hold signal for the given layer"""
+        """Asserts/Deasserts the hold signal for the given layer - This method reads the ctrl register and modifies it"""
         ctrl = await getattr(self.rfg, f"read_layer_{layer}_cfg_ctrl")()
         if hold:
             ctrl |= 1 
@@ -138,6 +206,22 @@ class BoardDriver():
     async def getLayerStatIDLECounter(self,layer:int):
         return await getattr(self.rfg, f"read_layer_{layer}_stat_idle_counter")()
 
+    async def getLayerStatFRAMECounter(self,layer:int):
+        return await getattr(self.rfg, f"read_layer_{layer}_stat_frame_counter")()
+
+    async def getLayerStatus(self,layer:int):
+        return await getattr(self.rfg, f"read_layer_{layer}_status")()
+
+    async def getLayerControl(self,layer:int):
+        return await getattr(self.rfg, f"read_layer_{layer}_cfg_ctrl")()
+
+    async def resetLayerStatCounters(self,layer:int):
+        await getattr(self.rfg, f"write_layer_{layer}_stat_frame_counter")(0,False)
+        await getattr(self.rfg, f"write_layer_{layer}_stat_idle_counter")(0,True)
+
+    async def getLayerMISOBytesCount(self,layer:int):
+        """Returns the number of bytes in the Slave Out Bytes Buffer"""
+        return await getattr(self.rfg, f"read_layer_{layer}_mosi_write_size")()
 
     ## Readout
     ################
