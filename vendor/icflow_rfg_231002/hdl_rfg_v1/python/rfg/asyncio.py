@@ -3,10 +3,21 @@ import threading
 
 ## Low Level utils
 ##################
+#rfgLock : asyncio.Lock | None = None 
+rfgLock = asyncio.Lock()
+
+def initIOLock():
+    #rfgLock = asyncio.Lock()
+    #print("Init Lock is: "+str(rfgLock))
+    return getIOLock()
+
+def getIOLock() -> asyncio.Lock:
+    #print("Lock is: "+str(rfgLock))
+    return rfgLock
 
 loops = {}
 
-def asyncWorker(name:str, loop : asyncio.AbstractEventLoop, startedBarrier: threading.Barrier, coro : asyncio.coroutine):
+def asyncWorker(name:str, loop : asyncio.AbstractEventLoop, startedBarrier: threading.Barrier, coro):
     #new_loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
     
@@ -15,11 +26,13 @@ def asyncWorker(name:str, loop : asyncio.AbstractEventLoop, startedBarrier: thre
     #asyncio.run(coro)
 
     try:
-        
-        loop.create_task(coro)
         startedBarrier.wait()
-        loop.run_forever()
-        print("Stopped I/O Loop")
+        loop.run_until_complete(coro)
+        
+        #mainTask = loop.create_task(coro)
+        #startedBarrier.wait()
+        #loop.run_forever()
+        #print("Stopped I/O Loop")
         loop.close()
         #new_loop.run_until_complete(coro)
     except e:
@@ -29,7 +42,7 @@ def asyncWorker(name:str, loop : asyncio.AbstractEventLoop, startedBarrier: thre
     #print("Thread done")
     #return
 
-def startNewEventLoop(name:str,coro : asyncio.coroutine):
+def startNewEventLoop(name:str,coro ):
     """Start provided coroutine in a new Thread with a new event loop"""
     new_loop = asyncio.new_event_loop()
     startedBarrier = threading.Barrier(2, timeout=5)
@@ -38,24 +51,24 @@ def startNewEventLoop(name:str,coro : asyncio.coroutine):
     loops[name]["thread"] = th
     th.start()
     startedBarrier.wait()
-    print("Finished Thread for "+name)
+    #print("Finished Thread for "+name)
 
 
 ## I/O Event Loop
 #####################
-def startIOLoop(mainCoro : asyncio.coroutine ):
-    startNewEventLoop("io",mainCoro)
+def startIOLoop(coro ):
+    startNewEventLoop("io",coro)
     pass
 
 def stopIOLoop():
     loops["io"]["loop"].stop()
     pass
 
-def scheduleIOTask(taskCoro : asyncio.coroutine ):
-    loops["io"]["loop"].create_task(taskCoro)
+def scheduleIOTask(coro ):
+    loops["io"]["loop"].create_task(coro)
 
 ## UI Loop
 ###############
-def startUILoop(mainCoro : asyncio.coroutine ):
-    startNewEventLoop("ui",mainCoro)
+def startUILoop(coro):
+    startNewEventLoop("ui",coro)
     pass
