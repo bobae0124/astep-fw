@@ -1,0 +1,15 @@
+bitstring~=3.1
+tqdm~=4.64
+pyyaml~=6.0
+pyserial
+ttkwidgets
+sv-ttk
+ftd2xx
+aioconsole
+aiofiles
+pandas
+regex
+pyside6
+pyqtgraph
+matplotlib
+pycairo
