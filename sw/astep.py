@@ -14,6 +14,7 @@ import regex as re
 import time
 import yaml
 import os
+import binascii
 
 from core.decode import Decode
 import drivers.boards
@@ -402,11 +403,22 @@ class astepRun:
 
 
 ############################ Decoder ##############################
+    async def setup_readout(self, layer:int):
+        #Take take layer out of reset and hold, enable "FW-driven readout"
+        await self.boardDriver.setLayerReset(layer = layer , reset = False , disable_autoread  = 0, flush = True )
+        await self.boardDriver.holdLayer(layer = layer , hold = False , flush = True ) 
+   
     async def get_readout(self, counts:int = 4096):
         bufferSize = await(self.boardDriver.readoutGetBufferSize())
         readout = await(self.boardDriver.readoutReadBytes(counts))
         return bufferSize, readout
-  
+   
+    async def print_status_reg(self):
+        status = await(self.boardDriver.rfg.read_layer_0_status())
+        ctrl = await(self.boardDriver.rfg.read_layer_0_cfg_ctrl())
+        print(f"Layer Status:  {hex(status)},interruptn={status & 0x1},decoding={(status >> 1) & 0x1},reset={(ctrl>>1) & 0x1},hold={(ctrl) & 0x1},buffer={await (self.boardDriver.readoutGetBufferSize())}")
+        #logger.info(f"Layer Status:  {hex(status)},interruptn={status & 0x1},decoding={(status >> 1) & 0x1},reset={(ctrl>>1) & 0x1},hold={(ctrl) & 0x1},buffer={await (self.boardDriver.readoutGetBufferSize())}")
+
     """
     def get_FW_readout(self):
         readout = self.nexys.read_spi_fifo()
@@ -420,8 +432,8 @@ class astepRun:
         readout = self.nexys.read_spi_fifo()
         return readout
 
-
-    def decode_readout(self, readout:bytearray, i:int, printer: bool = True):
+    """
+    def decode_readout(self, readout:bytearray, i:int, printer: bool = True, nmb_bytes:int = 11):
         #Decodes readout
 
         #Required argument:
@@ -435,36 +447,40 @@ class astepRun:
 
         #!!! Warning, richard 11/10/23 -> The Astep FW returns all bits properly ordered, don't reverse bits when using this firmware!
 
-        list_hits = self.decode.hits_from_readoutstream(readout)
+        #list_hits = self.decode.hits_from_readoutstream(readout)
+        list_hits = [readout[i:i+nmb_bytes] for i in range(0,len(readout),nmb_bytes)]
         hit_list = []
         for hit in list_hits:
             # Generates the values from the bitstream
+            if sum(hit) == 1020: #HARDCODED MAX BUFFER - WILL NEED TO REVISIT
+                continue 
             try:
-                id          = int(hit[0]) >> 3
-                payload     = int(hit[0]) & 0b111
-                location    = int(hit[1])  & 0b111111
-                col         = 1 if (int(hit[1]) >> 7 ) & 1 else 0
-                timestamp   = int(hit[2])
-                tot_msb     = int(hit[3]) & 0b1111
-                tot_lsb     = int(hit[4])   
+                id          = int(hit[2]) >> 3
+                payload     = int(hit[2]) & 0b111
+                location    = int(hit[3])  & 0b111111
+                col         = 1 if (int(hit[3]) >> 7 ) & 1 else 0
+                timestamp   = int(hit[4])
+                tot_msb     = int(hit[5]) & 0b1111
+                tot_lsb     = int(hit[6])   
                 tot_total   = (tot_msb << 8) + tot_lsb
             except IndexError: #hit cut off at end of stream
                 id, payload, location, col = -1, -1, -1, -1
                 timestamp, tot_msb, tot_lsb, tot_total = -1, -1, -1, -1
 
-            wrong_id        = 0 if (id) == 0 else '\x1b[0;31;40m{}\x1b[0m'.format(id)
-            wrong_payload   = 4 if (payload) == 4 else'\x1b[0;31;40m{}\x1b[0m'.format(payload)   
-
-                
+            #wrong_id        = 0 if (id) == 0 else '\x1b[0;31;40m{}\x1b[0m'.format(id)
+            #wrong_payload   = 4 if (payload) == 4 else'\x1b[0;31;40m{}\x1b[0m'.format(payload)   
             
             # will give terminal output if desiered
             if printer:
                 print(
-                f"{i} Header: ChipId: {wrong_id}\tPayload: {wrong_payload}\t"
+                f"{i} Header: {int(hit[0])}\t {int(hit[1])}\n"
+                #f"ChipId: {wrong_id}\tPayload: {wrong_payload}\t"
+                f"ChipId: {id}\tPayload: {payload}\t"
                 f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
-                f"Timestamp: {timestamp}\t"
-                f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us)"
-            )
+                f"TS: {timestamp}\t"
+                f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us)\n"
+                f"Trailing: {int(hit[7])}\t{int(hit[8])}\t{int(hit[9])}\t{int(hit[10])}"           
+                )
             # hits are sored in dictionary form
             # Look into dataframe
             hits = {
@@ -485,6 +501,7 @@ class astepRun:
         # Much simpler to convert to df in the return statement vs df.concat
         return pd.DataFrame(hit_list)
 
+    """
     # To be called when initalizing the asic, clears the FPGAs memory 
     def dump_fpga(self):
         #Reads out hit buffer and disposes of the output. Does not return or take arguments. 
