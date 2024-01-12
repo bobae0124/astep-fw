@@ -30,14 +30,14 @@ class astepRun:
     # Init just opens the chip and gets the handle. After this runs
     # asic_config also needs to be called to set it up. Seperating these 
     # allows for simpler specifying of values. 
-    def __init__(self, chipversion=2, clock_period_ns = 5, inject:int = None, offline:bool=False):
+    def __init__(self, chipversion=3, clock_period_ns = 5, inject:int = None, SR:bool=True):
         """
         Initalizes astropix object. 
         No required arguments
         Optional:
         clock_period_ns:int - period of main clock in ns
         inject:bool - if set to True will enable injection for the whole array.
-        offline:bool - if True, do not try to interface with chip
+        SR:bool - if True, configure with shift registers. If False, configure with SPI
         """
 
         # _asic_start tracks if the inital configuration has been run on the ASIC yet.
@@ -45,20 +45,17 @@ class astepRun:
         # to put in custom configurations and allows for less writing to the chip,
         # only doing it once at init or when settings need to be changed as opposed to 
         # each time a parameter is changed.
+        self._asic_start = False
 
-        if offline:
-            logger.info("Creating object for offline analysis")
-        else:
-            self._asic_start = False
-
-            # Start putting the variables in for use down the line
-            if inject is None:
-                inject = (None, None)
-            self.injection_col = inject[1]
-            self.injection_row = inject[0]
+        # Start putting the variables in for use down the line
+        if inject is None:
+            inject = (None, None)
+        self.injection_col = inject[1]
+        self.injection_row = inject[0]
 
         self.sampleclock_period_ns = clock_period_ns
         self.chipversion = chipversion
+        self.SR = SR #define how to configure. If True, shift registers. If False, SPI
         # Creates objects used later on
         self.decode = Decode(clock_period_ns)
 
@@ -175,23 +172,19 @@ class astepRun:
         logger.info("ASIC SUCCESSFULLY CONFIGURED")
 
     #Interface with asic.py 
-    async def enable_pixel(self, col: int, row: int):
+    async def enable_pixel(self, row: int, col: int):
        self.asic.enable_pixel(col, row)
        await self.asic_update()
-
-    """
-    #Turn on injection of different pixel than the one used in _init_
-    def enable_injection(self, col:int, row:int, inplace:bool=True):
-        self.asic.enable_inj_col(col, inplace)
-        self.asic.enable_inj_row(row, inplace)
-    """
 
     # The method to write data to the asic. Called whenever somthing is changed
     # or after a group of changes are done. Taken straight from asic.py.
     async def asic_update(self):
         """This method resets the chip then writes the configuration"""
         await self.boardDriver.resetLayer(layer = 0 )
-        await self.boardDriver.getAsic(row = 0).writeConfigSR()
+        if self.SR:
+            await self.boardDriver.getAsic(row = 0).writeConfigSR()
+        else:
+            await self.boardDriver.getAsic(row = 0).writeConfigSPI()            
 
 
     # Methods to update the internal variables. Please don't do it manually
@@ -228,6 +221,28 @@ class astepRun:
 
 
 ################## Voltageboard Methods ############################
+    async def init_voltages_integrated(self):
+        """
+            blpix:              [10, 568] #BL
+            thpix:              [10, 682] #th
+            vcasc2:             [10, 625]
+            nu1:                [10, 512] #0.9
+            thpmos:             [10, 682]
+            vinj:               [10, 171]
+        """
+        vboard_Vth = 1.15
+        vboard_Vthpmos = 1.15
+        vboard_BL = 1
+        vboard_VCasc2 = 1.1
+        vboard_vinj = 0.3
+        #below not in yml
+        vboard_Vminus = 0.7
+        v_vdda = 1.8
+        v_vdd33 = 2.7
+
+        await self.asic.set_internal_vdac('thpix', vboard_Vth)
+        await self.asic.set_internal_vdac('thpmos', vboard_Vthpmos)
+        await self.asic.set_internal_vdac('vinj', vboard_vinj)
 
 # Here we intitalize the 8 DAC voltageboard in slot 4. 
     async def init_voltages(self, slot: int = 4, vcal:float = .989, vsupply: float = 2.7, vthreshold:float = None, dacvals: tuple[int, list[float]] = None):
@@ -269,7 +284,6 @@ class astepRun:
                 dacvals[1][-1] = vthreshold
 
         # Voltage Board is provided by the board Driver
-        # Old:  Voltageboard(self.handle, slot, dacvals)
         self.vboard = self.boardDriver.geccoGetVoltageBoard()
         self.vboard.dacvalues = dacvals
         # Set calibrated values
@@ -294,25 +308,13 @@ class astepRun:
         pulseperset: int
         dac_config:tuple[int, list[float]]: injdac settings. Must be fully specified if set. 
         """
-
-        # Default configuration for the dac
-        # 0.3 is (default) injection voltage
-        # 3 is slot number for inj board
-        default_injdac = (8,[0.3, 0.0])
-
-        
+      
         # Some fault tolerance
         try:
             self._voltages_exist
         except Exception:
             raise RuntimeError("init_voltages must be called before init_injection!")
-        # Sets the dac_setup if it isn't specified
-        if dac_config is None:
-            dac_settings = default_injdac
-        else:
-            dac_settings = dac_config
 
-        # The dac_config takes presedence over a specified threshold.
         if (inj_voltage is not None) and (dac_config is None):
             # elifs check to ensure we are not injecting a negative value because we don't have that ability
             if inj_voltage < 0:
@@ -321,30 +323,19 @@ class astepRun:
                 logger.warning("Cannot inject more than 1800mV, will use defaults")
                 inj_voltage = 300 #Sets to 300 mV
 
-            inj_voltage = inj_voltage / 1000
-            dac_settings[1][0] = inj_voltage
-
+        if inj_voltage:
+            #Update vdac value from yml (v3)
+            vinj_vdac = inj_voltage / 1.8 * 1023. / 1000. #convert inj_voltage in mV to V
+            await self.update_asic_config(vdac_cfg={'vinj':int(vinj_vdac)})
+        
         # Injection Board is provided by the board Driver
         # The Injection Board provides an underlying Voltage Board
         self.injector = self.boardDriver.geccoGetInjectionBoard()
-        self.inj_volts = self.injector.voltageBoard
-
-        # Create the object!
-        #self.inj_volts = Voltageboard(self.handle, slot, dac_settings)
-        # set the parameters
-        self.inj_volts.dacvalues = dac_settings
-        self.inj_volts.vcal = self.vboard.vcal
-        self.inj_volts.vsupply = self.vboard.vsupply
-        await self.inj_volts.update()
-        
-        # Now to configure the actual injection thing
-        #self.injector = Injectionboard(self.handle, onchip=onchip)
-        # Now to configure it. above are the values from the original scripting.
         self.injector.period = inj_period
         self.injector.clkdiv = clkdiv
         self.injector.initdelay = initdelay
         self.injector.cycle = cycle
-        self.injector.pulsesperset = pulseperset       
+        self.injector.pulsesperset = pulseperset                  
 
     # These start and stop injecting voltage. Fairly simple.
     async def start_injection(self):
@@ -419,20 +410,6 @@ class astepRun:
         print(f"Layer Status:  {hex(status)},interruptn={status & 0x1},decoding={(status >> 1) & 0x1},reset={(ctrl>>1) & 0x1},hold={(ctrl) & 0x1},buffer={await (self.boardDriver.readoutGetBufferSize())}")
         #logger.info(f"Layer Status:  {hex(status)},interruptn={status & 0x1},decoding={(status >> 1) & 0x1},reset={(ctrl>>1) & 0x1},hold={(ctrl) & 0x1},buffer={await (self.boardDriver.readoutGetBufferSize())}")
 
-    """
-    def get_FW_readout(self):
-        readout = self.nexys.read_spi_fifo()
-        return readout
-
-    def get_SW_readout(self, bufferlength:int = 20):
-        #Reads hit buffer.
-        #bufferlength:int - length of buffer to write. Multiplied by 8 to give number of bytes
-        #Returns bytearray
-        self.nexys.write_spi_bytes(bufferlength)
-        readout = self.nexys.read_spi_fifo()
-        return readout
-
-    """
     def decode_readout(self, readout:bytearray, i:int, printer: bool = True, nmb_bytes:int = 11):
         #Decodes readout
 
@@ -472,15 +449,25 @@ class astepRun:
             
             # will give terminal output if desiered
             if printer:
-                print(
-                f"{i} Header: {int(hit[0])}\t {int(hit[1])}\n"
-                #f"ChipId: {wrong_id}\tPayload: {wrong_payload}\t"
-                f"ChipId: {id}\tPayload: {payload}\t"
-                f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
-                f"TS: {timestamp}\t"
-                f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us)\n"
-                f"Trailing: {int(hit[7])}\t{int(hit[8])}\t{int(hit[9])}\t{int(hit[10])}"           
-                )
+                try:
+                  print(
+                    f"{i} Header: {int(hit[0])}\t {int(hit[1])}\n"
+                    f"ChipId: {id}\tPayload: {payload}\t"
+                    f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
+                    f"TS: {timestamp}\t"
+                    f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us)\n"
+                    f"Trailing: {int(hit[7])}\t{int(hit[8])}\t{int(hit[9])}\t{int(hit[10])}"           
+                    )
+                except IndexError:
+                  print(
+                    f"{i} Header: {int(hit[0])}\t {int(hit[1])}\n"
+                    f"ChipId: {id}\tPayload: {payload}\t"
+                    f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
+                    f"TS: {timestamp}\t"
+                    f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us)\n"
+                    f"SHORT HIT"           
+                    )
+
             # hits are sored in dictionary form
             # Look into dataframe
             hits = {

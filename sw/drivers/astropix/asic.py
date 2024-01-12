@@ -242,6 +242,22 @@ class Asic():
         """
         for key in self.asic_config['recconfig']:
             self.asic_config['recconfig'][key][1] = 0b001_11111_11111_11111_11111_11111_11111_11110
+    
+    def set_internal_vdac(self, dac: str, voltage: float, nbits: int = 10) -> None:
+        """Set integrated VDAC voltage
+
+        :param dac: Name of dac
+        :param voltage: Voltage from 0 to 1.8
+        :param nbits: VDAC resolution
+        """
+        vdda = 1.8
+        
+        if dac in self.asic_config['vdacs'] and 0 <= voltage <= 1.8:
+            dacval = voltage * vdda / 2**nbits
+            self.asic_config['vdacs'][dac] = dacval
+            logger.debug('Set internal vdac: %s to %d V (dacval: %d)', dac, voltage, dacval)
+        else:
+            logger.warning('Can not set internal vdac: %s to %d V!', dac, voltage)
 
 
     @staticmethod
