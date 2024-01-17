@@ -117,10 +117,12 @@ class astepRun:
         await self.boardDriver.configureLayerSPIFrequency(targetFrequencyHz = spiFreq , flush = True)
         logger.info(f"SPI clock set to {spiFreq}Hz ({spiFreq/1000000:.2f})MHz")
 
+    async def asic_configure(self):
+        await self.asic_update()
+
 ##################### ASIC METHODS FOR USERS #########################
 
     # Method to initalize the asic. This is taking the place of asic.py. 
-    # All of the interfacing is handeled through asic_update
     async def asic_init(self, yaml:str = None, dac_setup: dict = None, bias_setup:dict = None, analog_col:int = None, rows:int = 1, chipsPerRow:int = 1):
         """
         self.asic_init() - initalize the asic configuration. Must be called first
@@ -153,7 +155,7 @@ class astepRun:
         # asic_update is called
 
         #Override yaml if arguments were given in run script
-        await self.update_asic_config(bias_setup, dac_setup)
+        #await self.update_asic_config(bias_setup, dac_setup)
 
         # Set analog output
         if (analog_col is not None) and (analog_col <= self.asic._num_cols):
@@ -166,18 +168,19 @@ class astepRun:
             self.asic.enable_inj_col(self.injection_col, inplace=False)
             self.asic.enable_inj_row(self.injection_row, inplace=False)
 
+        """
         # Load config it to the chip
         logger.info("LOADING TO ASIC...")
         await self.asic_update()
         logger.info("ASIC SUCCESSFULLY CONFIGURED")
+        """
 
     #Interface with asic.py 
     async def enable_pixel(self, row: int, col: int):
        self.asic.enable_pixel(col, row)
-       await self.asic_update()
+       #await self.asic_update()
 
-    # The method to write data to the asic. Called whenever somthing is changed
-    # or after a group of changes are done. Taken straight from asic.py.
+    # The method to write data to the asic. 
     async def asic_update(self):
         """This method resets the chip then writes the configuration"""
         await self.boardDriver.resetLayer(layer = 0 )
@@ -209,7 +212,7 @@ class astepRun:
             else: 
                 logger.info("update_asic_config() got no arguments, nothing to do.")
                 return None
-            await self.asic_update()
+            #await self.asic_update()
         else: raise RuntimeError("Asic has not been initalized")
 
     def close_connection(self) -> None :
@@ -221,30 +224,14 @@ class astepRun:
 
 
 ################## Voltageboard Methods ############################
-    async def init_voltages_integrated(self):
-        """
-            blpix:              [10, 568] #BL
-            thpix:              [10, 682] #th
-            vcasc2:             [10, 625]
-            nu1:                [10, 512] #0.9
-            thpmos:             [10, 682]
-            vinj:               [10, 171]
-        """
-        vboard_Vth = 1.15
-        vboard_Vthpmos = 1.15
-        vboard_BL = 1
-        vboard_VCasc2 = 1.1
-        vboard_vinj = 0.3
-        #below not in yml
-        vboard_Vminus = 0.7
-        v_vdda = 1.8
-        v_vdd33 = 2.7
+    def get_internal_vdac(self, v_in, v_ref:float = 1.8, nbits:float = 10):
+        return int(v_in * 2**nbits / v_ref)
+        
+    async def update_pixThreshold(self, vThresh:int): #V in mV
+        dacThresh = self.get_internal_vdac(vThresh/1000.) #convert from mV to V
+        await self.update_asic_config(vdac_cfg={'thpix':dacThresh})
 
-        await self.asic.set_internal_vdac('thpix', vboard_Vth)
-        await self.asic.set_internal_vdac('thpmos', vboard_Vthpmos)
-        await self.asic.set_internal_vdac('vinj', vboard_vinj)
-
-# Here we intitalize the 8 DAC voltageboard in slot 4. 
+    # Here we intitalize the 8 DAC voltageboard in slot 4. 
     async def init_voltages(self, slot: int = 4, vcal:float = .989, vsupply: float = 2.7, vthreshold:float = None, dacvals: tuple[int, list[float]] = None):
         """
         Configures the voltage board
@@ -294,7 +281,7 @@ class astepRun:
         await self.vboard.update()
 
     # Setup Injections
-    async def init_injection(self, slot: int = 3, inj_voltage:float = None, inj_period:int = 100, clkdiv:int = 300, initdelay: int = 100, cycle: float = 0, pulseperset: int = 1, dac_config:tuple[int, list[float]] = None):
+    async def init_injection(self, inj_voltage:float = None, inj_period:int = 100, clkdiv:int = 300, initdelay: int = 100, cycle: float = 0, pulseperset: int = 1, dac_config:tuple[int, list[float]] = None):
         """
         Configure injections
         No required arguments. No returns.
@@ -309,12 +296,14 @@ class astepRun:
         dac_config:tuple[int, list[float]]: injdac settings. Must be fully specified if set. 
         """
       
+        """
         # Some fault tolerance
         try:
             self._voltages_exist
         except Exception:
             raise RuntimeError("init_voltages must be called before init_injection!")
-
+        """
+        
         if (inj_voltage is not None) and (dac_config is None):
             # elifs check to ensure we are not injecting a negative value because we don't have that ability
             if inj_voltage < 0:
@@ -324,9 +313,8 @@ class astepRun:
                 inj_voltage = 300 #Sets to 300 mV
 
         if inj_voltage:
-            #Update vdac value from yml (v3)
-            vinj_vdac = inj_voltage / 1.8 * 1023. / 1000. #convert inj_voltage in mV to V
-            await self.update_asic_config(vdac_cfg={'vinj':int(vinj_vdac)})
+            #Update vdac value from yml 
+            await self.update_asic_config(vdac_cfg={'vinj':self.get_internal_vdac(inj_voltage/1000.)})
         
         # Injection Board is provided by the board Driver
         # The Injection Board provides an underlying Voltage Board
@@ -390,7 +378,7 @@ class astepRun:
                 arrayconfig[key]=self.asic.asic_config['recconfig'][key][1]
 
         # This is not a nice line, but its the most efficent way to get all the values in the same place.
-        return f"Digital: {digitalconfig}\n" +f"Biasblock: {biasconfig}\n" + f"iDAC: {idacconfig}\n"+ f"Receiver: {arrayconfig}\n " + vdac_str
+        return f"Digital: {digitalconfig}\n" +f"Biasblock: {biasconfig}\n" + f"iDAC: {idacconfig}\n"+ vdac_str + f"\n Receiver: {arrayconfig}" 
 
 
 ############################ Decoder ##############################
@@ -424,12 +412,11 @@ class astepRun:
 
         #!!! Warning, richard 11/10/23 -> The Astep FW returns all bits properly ordered, don't reverse bits when using this firmware!
 
-        #list_hits = self.decode.hits_from_readoutstream(readout)
         list_hits = [readout[i:i+nmb_bytes] for i in range(0,len(readout),nmb_bytes)]
         hit_list = []
         for hit in list_hits:
             # Generates the values from the bitstream
-            if sum(hit) == 1020: #HARDCODED MAX BUFFER - WILL NEED TO REVISIT
+            if (sum(hit) == 1020) or (int(hit[0])+int(hit[1]) == 510): #HARDCODED MAX BUFFER or 'HIT' OF ONLY 1'S- WILL NEED TO REVISIT
                 continue 
             try:
                 id          = int(hit[2]) >> 3

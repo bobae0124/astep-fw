@@ -16,7 +16,7 @@ logging.getLogger().addHandler(fh)
 logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
-pixel = [0, 10]
+pixel = [0, 15]
 
 print("creating object")
 astro = astepRun(inject=pixel)
@@ -35,29 +35,35 @@ async def main():
     await astro.asic_init(yaml="test_quadchip", analog_col=pixel[1])
     print(f"Header: {astro.get_log_header()}")
 
-    #for GECCO only
-    print("initializing voltage")
-    await astro.init_voltages(vthreshold=100) ## th in mV
+    #print("initializing voltage")
+    await astro.init_voltages() ## th in mV
 
     print("FUNCTIONALITY CHECK")
     await astro.functionalityCheck(holdBool=True)
 
+    print("update threshold")
+    await astro.update_pixThreshold(100)
+
     print("enable pixel")
     await astro.enable_pixel(pixel[0], pixel[1])  
 
+    print("init injection")
+    await astro.init_injection(inj_voltage=300)
+
+    print("final configs")
+    print(f"Header: {astro.get_log_header()}")
+    await astro.asic_configure()
+    
     print("setup readout")
     #pass layer number
     await astro.setup_readout(0) 
-
-    print("init injection")
-    await astro.init_injection()
 
     print("start injection")
     await astro.start_injection()
 
     t0 = time.time()
     inc = -2
-    while (time.time() < t0+2):
+    while (time.time() < t0+5):
         
         buff, readout = await(astro.get_readout())
         if buff>4:
