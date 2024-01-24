@@ -8,6 +8,7 @@ from os.path import isfile, join
 
 import threading
 
+import time
 from time import sleep
 import queue
 
@@ -60,6 +61,24 @@ def uiOpenConfigFile():
     window.configLoadedRows.setText(f"{asic.num_rows}")
     window.configLoadedColumns.setText(f"{asic.num_cols}")
     window.configLoadedChipVersion.setText(f"{asic.chipversion}")
+
+
+def uiReadoutBufferDump():
+    """This method dumps the readot buffer to file, in blocks of 11 bytes as it is an expected frame length (Chip Frame + FPGA framing)"""
+    fileName = "readout-dump-"+ time.strftime("%Y%m%d-%H%M%S") + ".raw"
+    numberOfBytes = onIO(window.boardDriver.readoutGetBufferSize())
+    if numberOfBytes > 0:
+        readBytes = onIO(window.boardDriver.readoutReadBytes(count = numberOfBytes))
+        bitfile = open(fileName,'w')
+        bitfile.write(f"Size={hex(numberOfBytes)}\n")
+
+        n = 11 
+        split = [readBytes[i:i + n] for i in range(0, len(readBytes), n)] 
+        
+        for chunck in split:
+            bitfile.write(''.join('{:02X}'.format(a) for a in chunck))
+            bitfile.write("\n")
+        bitfile.close()
 
 class FunWinWorker(QRunnable):
 
@@ -215,6 +234,7 @@ def mainUI():
         layerUI.requestUpdateStats.connect(uiRequestUpdate)
     
     ## Connect Signals
+    #############
     window.updateLayerStatsButton.clicked.connect(uiRequestUpdate)
     # v =  True if state is QtCore.Qt.Checked.value else False; 
     window.ioSampleClockEnBox.stateChanged.connect(lambda state,window=window: onIO(window.boardDriver.ioSetSampleClock(True if state is QtCore.Qt.Checked.value else False,True)))
@@ -224,7 +244,11 @@ def mainUI():
 
     window.configFileOpenButton.clicked.connect(uiOpenConfigFile)
 
+    ## Readout Dump
+    window.readoutBufferDump.clicked.connect(uiReadoutBufferDump)
+
     ## Run and stop after window closed
+    ############
     window.show()
 
     ## Open Startup thread and regular updating
