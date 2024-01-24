@@ -224,6 +224,13 @@
                </property>
               </widget>
              </item>
+             <item row="0" column="2">
+              <widget class="QPushButton" name="readoutBufferDump">
+               <property name="text">
+                <string>Dump To File</string>
+               </property>
+              </widget>
+             </item>
             </layout>
            </widget>
           </item>
