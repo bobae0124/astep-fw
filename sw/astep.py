@@ -382,9 +382,9 @@ class astepRun:
 
 
 ############################ Decoder ##############################
-    async def setup_readout(self, layer:int):
+    async def setup_readout(self, layer:int, dis_autoread:int = 0):
         #Take take layer out of reset and hold, enable "FW-driven readout"
-        await self.boardDriver.setLayerReset(layer = layer , reset = False , disable_autoread  = 0, flush = True )
+        await self.boardDriver.setLayerReset(layer = layer , reset = False , disable_autoread  = dis_autoread, flush = True )
         await self.boardDriver.holdLayer(layer = layer , hold = False , flush = True ) 
    
     async def get_readout(self, counts:int = 4096):
