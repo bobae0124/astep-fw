@@ -35,15 +35,7 @@ class GeccoCarrierBoard(BoardDriver):
             self.cards[slot] = vb
             return vb
 
-    def selectUARTIO(self):
-        import drivers.astep.serial
-        port = drivers.astep.serial.selectFirstLinuxFTDIPort()
-        if port:
-            self.rfg.withUARTIO(port.device)
-            return self
-
-        else:
-            raise RuntimeError("No Serial Port available")
+    
 
     def selectFTDIFifoIO(self):
         import rfg.io.ftdi

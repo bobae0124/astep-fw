@@ -44,6 +44,13 @@ def getGeccoDriver():
 
     return boardDriver
 
+def getCMODDriver():
+    import drivers.gecco
+    firmwareRF  = rfg.discovery.loadOneFSPRFGOrFail()
+    boardDriver = drivers.gecco.CMODBoard(firmwareRF)
+    
+    return boardDriver
+
 def getGeccoNODriver():
     return getGeccoDriver()
 
@@ -52,3 +59,10 @@ def getGeccoUARTDriver():
 
 def getGeccoFTDIDriver():
     return getGeccoDriver().selectFTDIFifoIO()
+
+
+def getCMODUartDriver():
+    return getCMODDriver().selectUARTIO()
+
+def getCMODSPIDriver():
+    raise NotImplementedError
