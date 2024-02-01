@@ -16,14 +16,38 @@ If you are using a Gecco board, you have to ensure the FPGA is flashed with a fi
 - Which Chip Carrier Board is connected: V2/V3/V4 , Telescope ... ? 
 - Which signal types the Configuration and clock signals to the carriers are expected to be: LVDS or Single ended CMOS. 
 
-Consult the [Configuration Summary Page](../fw/configurations.md) to check your hardware.
+Consult the [Configuration Summary Page](../hardware_targets/overview.md) to check your hardware.
+
+## Prepare the terminal environment 
+
+The **sw/** folder contains a set of modules providing the python API to work with the firmware (config, readout etc..). To allow flexibility, it is recommenced to setup the terminal environment to add the **sw/** folder to the **PYTHONPATH** variable. This way any python **import** requiring a driver present in this repository will work out of the box.
+
+On Linux: 
+
+```bash 
+# load.sh is located in the root of the repository
+source load.sh 
+```
+
+On Windows CMD: 
+
+```bat 
+# load.sh is located in the root of the repository
+.\load.bat
+```
+
+On Windows PowerShell: 
+
+```bat 
+# load.sh is located in the root of the repository
+.\load.ps1
+```
 
 ## Choose a work folder for your scripts 
 
 To work on python scripts, you can place your scripts directly in the **sw/** folder, and install a virtual environment there. There is a basic requirements.txt file provided which should cover the basic needs. 
 
-However, if you have setup your environment properly and the **PYTHONPATH** variable includes the **sw/** folder, you can work from any other folder. 
-Just make sure to install the dependencies provided in the requirements.txt file in your virtual environment
+However, if you have sourced the load script, your environment  is setup properly and the **PYTHONPATH** variable includes the **sw/** folder. You can then work from any other folder, just make sure to install the dependencies provided in the requirements.txt file in your virtual environment
 
 ## Opening a Board Driver
 

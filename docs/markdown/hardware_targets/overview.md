@@ -1,4 +1,4 @@
-# Hardware Targets 
+# Hardware Targets Overview
 
 The ASTEP Firmware is designed to target two hardware platforms for the moment: 
 
@@ -16,7 +16,7 @@ Both hardware platforms feature one or more adapter board that can provide follo
 - CMOD Flight Configuration: An FPGA Board provides connections for all 3 QuadChip Layers, power inputs and the Flight Computer
 
 <figure markdown>
-  ![block-hw-targets](./astep-fw-drawings.drawio)
+  ![block-hw-targets](../fw/astep-fw-drawings.drawio)
   <figcaption>Simplified overview of various hardware configurations</figcaption>
 </figure>
 
@@ -53,8 +53,5 @@ This table summarizes the combination of defines that make sense
 | CONFIG_SE                                 | CMOD  | Single Ended         | N/A  |
 
 
-## Firmware Building 
-
-The firmware Vivado Project is setup using a TCL script that sets the defines 
 
 ## Gecco: Shift Register Single Ended / Differential
