@@ -139,7 +139,7 @@ proc run_bit {board version defines constraints_file} {
 
     ## Test if in open mode, if env(OPEN) is NOT set, catch returns 1
     set openMode [expr [catch {set ::env(OPEN)}] == 1 ? 0 : 1]
-    set supported_chipversions [list 2 3]
+    set supported_chipversions [list 2 3 4]
     set supported_defines [list SCLOCK_SE_DIFF CONFIG_SE TELESCOPE SINGLE_LAYER]
 
     ## Check chip version
@@ -277,7 +277,8 @@ proc run_bit {board version defines constraints_file} {
         route_design
         report_utilization -file "reports/report_utilization.$design_name.log"
         report_timing      -file "reports/report_timing.$design_name.log"
-
+        report_timing_summary -file "reports/report_timing_summary.$design_name.log"
+        
         set_property BITSTREAM.GENERAL.COMPRESS TRUE [current_design] 
         write_bitstream -force -bin_file bitstreams/${design_name}_${buildVersion} 
         if {$board=="astropix-cmod"} {
