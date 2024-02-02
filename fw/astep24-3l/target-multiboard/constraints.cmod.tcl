@@ -53,8 +53,11 @@ set_property -dict { PACKAGE_PIN A14   IOSTANDARD LVCMOS33 } [get_ports { ext_sp
 set_property -dict { PACKAGE_PIN J3    IOSTANDARD LVCMOS33 } [get_ports { ext_spi_adc_csn  }]; #IO_L7P_T1_AD6P_35 Sch=pio[10]
 set_property -dict { PACKAGE_PIN J1    IOSTANDARD LVCMOS33 } [get_ports { ext_spi_dac_csn }]; #IO_L3N_T0_DQS_AD5N_35 Sch=pio[11] 
 #set_property -dict { PACKAGE_PIN K2    IOSTANDARD LVCMOS33 } [get_ports { NC pio11 }]; #IO_L5P_T0_AD13P_35 Sch=pio[12] NC
+
 set_property -dict { PACKAGE_PIN L1    IOSTANDARD LVCMOS33 } [get_ports { cold_resn  }]; #IO_L6N_T0_VREF_35 Sch=pio[13]
 set_property -dict { PACKAGE_PIN L2    IOSTANDARD LVCMOS33 } [get_ports { warm_resn }]; #IO_L5N_T0_AD13N_35 Sch=pio[14]
+set_property PULLUP true [get_ports {cold_resn warm_resn}]
+
 set_property -dict { PACKAGE_PIN M1    IOSTANDARD LVCMOS33 } [get_ports { spi_mosi }]; #IO_L9N_T1_DQS_AD7N_35 Sch=pio[17]
 set_property -dict { PACKAGE_PIN N3    IOSTANDARD LVCMOS33 } [get_ports { spi_miso }]; #IO_L12P_T1_MRCC_35 Sch=pio[18]
 set_property -dict { PACKAGE_PIN P3    IOSTANDARD LVCMOS33 } [get_ports { spi_clk }]; #IO_L12N_T1_MRCC_35 Sch=pio[19]
@@ -133,3 +136,8 @@ set_property -dict { PACKAGE_PIN J17   IOSTANDARD LVCMOS33 } [get_ports { uart_t
 #set_property -dict { PACKAGE_PIN P19   IOSTANDARD LVCMOS33 } [get_ports { RamOEn     }]; #IO_L10P_T1_D14_14 Sch=sram-oe
 #set_property -dict { PACKAGE_PIN R19   IOSTANDARD LVCMOS33 } [get_ports { RamWEn     }]; #IO_L10N_T1_D15_14 Sch=sram-we
 #set_property -dict { PACKAGE_PIN N19   IOSTANDARD LVCMOS33 } [get_ports { RamCEn     }]; #IO_L9N_T1_DQS_D13_14 Sch=sram-ce
+
+
+## Configuration options, can be used for all designs
+set_property CONFIG_VOLTAGE 3.3 [current_design]
+set_property CFGBVS VCCO [current_design]
