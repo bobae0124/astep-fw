@@ -19,7 +19,8 @@ The CMOD target is build to match the requirements of the FPGA Board:
 ## Reset and Clocking
 
 - The CMOD firmware uses the clocking scheme provided by the CMOD board
-- There are two negative active resets wired to the CMOD, which are by default active (pull-down) to ensure the FPGA board stays as quiet as possible until the host starts the subsystems:
+- There are two negative active resets wired to the CMOD, which are by default inactive (pull-up) - it might be worth changing this behavior or pulling them down externally later to ensure the FPGA board stays as quiet as possible until the host starts the subsystems.
+- Reset descriptions:
     - Cold Reset: This reset line will reset the firmware completely, including the clocks
     - Warm Reset: This resets only the core logic, without stopping clocks. It can be used to issue a quick reset if needed. 
 
