@@ -21,16 +21,20 @@ class BoardDriver():
         ## Useful to start or stop tasks dependent on open/close state of the driver
         self.openedEvent = asyncio.Event()
 
-    def selectUARTIO(self):
+    def selectUARTIO(self,portPath : str | None = None ):
         """This method is common to all targets now, because all targets have a USB-UART Converter available"""
-        import drivers.astep.serial
-        port = drivers.astep.serial.selectFirstLinuxFTDIPort()
-        if port:
-            self.rfg.withUARTIO(port.device)
-            return self
-
+        if (portPath == None):
+            import drivers.astep.serial
+            port = drivers.astep.serial.selectFirstLinuxFTDIPort()
+            if port:
+                self.rfg.withUARTIO(port.device)
+                return self
+            else:
+                raise RuntimeError("No Serial Port could be listed")
         else:
-            raise RuntimeError("No Serial Port available")
+            self.rfg.withUARTIO(portPath)
+            return self
+        
 
     def open(self):
         """Open the Register File I/O Connection to the underlying driver"""
