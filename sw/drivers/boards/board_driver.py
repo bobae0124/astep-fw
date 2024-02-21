@@ -21,6 +21,21 @@ class BoardDriver():
         ## Useful to start or stop tasks dependent on open/close state of the driver
         self.openedEvent = asyncio.Event()
 
+    def selectUARTIO(self,portPath : str | None = None ):
+        """This method is common to all targets now, because all targets have a USB-UART Converter available"""
+        if (portPath == None):
+            import drivers.astep.serial
+            port = drivers.astep.serial.selectFirstLinuxFTDIPort()
+            if port:
+                self.rfg.withUARTIO(port.device)
+                return self
+            else:
+                raise RuntimeError("No Serial Port could be listed")
+        else:
+            self.rfg.withUARTIO(portPath)
+            return self
+        
+
     def open(self):
         """Open the Register File I/O Connection to the underlying driver"""
         self.rfg.io.open()
@@ -54,7 +69,7 @@ class BoardDriver():
 
     async def readFirmwareIDName(self):
         """"""
-        boards  =  {0xab02: 'Neys GECCO Astropix v2',0xab03: 'Neys GECCO Astropix v3',0xac03:"CMOD Astropix v3"}
+        boards  =  {0xab02: 'Nexys GECCO Astropix v2',0xab03: 'Nexys GECCO Astropix v3',0xac03:"CMOD Astropix v3"}
         boardID =  await (self.readFirmwareID())
         return boards.get(boardID,"Firmware ID unknown: {0}".format(hex(boardID)))
 
