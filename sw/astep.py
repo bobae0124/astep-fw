@@ -168,13 +168,6 @@ class astepRun:
             self.asic.enable_inj_col(self.injection_col, inplace=False)
             self.asic.enable_inj_row(self.injection_row, inplace=False)
 
-        """
-        # Load config it to the chip
-        logger.info("LOADING TO ASIC...")
-        await self.asic_update()
-        logger.info("ASIC SUCCESSFULLY CONFIGURED")
-        """
-
     #Interface with asic.py 
     async def enable_pixel(self, row: int, col: int):
        self.asic.enable_pixel(col, row)
@@ -231,13 +224,11 @@ class astepRun:
         dacThresh = self.get_internal_vdac(vThresh/1000.) #convert from mV to V
         await self.update_asic_config(vdac_cfg={'thpix':dacThresh})
 
-    # Here we intitalize the 8 DAC voltageboard in slot 4. 
-    async def init_voltages(self, slot: int = 4, vcal:float = .989, vsupply: float = 2.7, vthreshold:float = None, dacvals: tuple[int, list[float]] = None):
+    async def init_voltages(self, vcal:float = .989, vsupply: float = 2.7, vthreshold:float = None, dacvals: tuple[int, list[float]] = None):
         """
         Configures the voltage board
         No required parameters. No return.
 
-        slot:int = 4 - Position of voltage board
         vcal:float = 0.908 - Calibration of the voltage rails
         vsupply = 2.7 - Supply Voltage
         vthreshold:float = None - ToT threshold value. Takes precedence over dacvals if set. UNITS: mV
@@ -281,12 +272,11 @@ class astepRun:
         await self.vboard.update()
 
     # Setup Injections
-    async def init_injection(self, inj_voltage:float = None, inj_period:int = 100, clkdiv:int = 300, initdelay: int = 100, cycle: float = 0, pulseperset: int = 1, dac_config:tuple[int, list[float]] = None):
+    async def init_injection(self, inj_voltage:float = None, inj_period:int = 100, clkdiv:int = 300, initdelay: int = 100, cycle: float = 0, pulseperset: int = 1, dac_config:tuple[int, list[float]] = None, onchip:bool = True):
         """
         Configure injections
         No required arguments. No returns.
         Optional Arguments:
-        slot: int - Location of the injection module
         inj_voltage: float - Injection Voltage. Range from 0 to 1.8. If dac_config is set inj_voltage will be overwritten
         inj_period: int
         clkdiv: int
@@ -294,14 +284,6 @@ class astepRun:
         cycle: float
         pulseperset: int
         dac_config:tuple[int, list[float]]: injdac settings. Must be fully specified if set. 
-        """
-      
-        """
-        # Some fault tolerance
-        try:
-            self._voltages_exist
-        except Exception:
-            raise RuntimeError("init_voltages must be called before init_injection!")
         """
         
         if (inj_voltage is not None) and (dac_config is None):
@@ -318,12 +300,24 @@ class astepRun:
         
         # Injection Board is provided by the board Driver
         # The Injection Board provides an underlying Voltage Board
+        
         self.injector = self.boardDriver.geccoGetInjectionBoard()
+        if not onchip:
+            await self.boardDriver.ioSetInjectionToGeccoInjBoard(enable = True, flush = True)
+            self.injectorBoard = self.injector.vBoard
+            self.injectorBoard.dacvalues = (8, [inj_voltage/1000.,0.0]) #defaults from Nicolas
+            self.injectorBoard.vcal = self.vboard.vcal
+            self.injectorBoard.vsupply = self.vboard.vsupply
+            await self.injectorBoard.update()
+        else:
+            await self.boardDriver.ioSetInjectionToGeccoInjBoard(enable = False, flush = True)
+        
         self.injector.period = inj_period
         self.injector.clkdiv = clkdiv
         self.injector.initdelay = initdelay
         self.injector.cycle = cycle
-        self.injector.pulsesperset = pulseperset                  
+        self.injector.pulsesperset = pulseperset     
+                 
 
     # These start and stop injecting voltage. Fairly simple.
     async def start_injection(self):

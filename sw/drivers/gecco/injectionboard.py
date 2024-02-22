@@ -40,7 +40,8 @@ class InjectionBoard(GeccoCard):
     """
 
     def __init__(self,rfg,slot:int,registerNamePrefix = "LAYERS_INJ") -> None:
-        GeccoCard.__init__(self, rfg,slot)
+        
+        GeccoCard.__init__(self, rfg, slot)
 
         self._period = 0
         self._cycle = 0
@@ -55,7 +56,7 @@ class InjectionBoard(GeccoCard):
         self._rfgWdataRegister = self._rfg.Registers[f"{registerNamePrefix}_WDATA"]
 
         ## Injection Board is physically a VoltageBoard with 3 Dacs on the Gecco
-        self.voltageBoard = VoltageBoard(rfg = self._rfg, slot = slot)
+        self.vBoard = VoltageBoard(rfg = self._rfg, slot = slot)
 
    
 
