@@ -347,26 +347,7 @@ class Asic():
 
         return bitvector    
 
-    def readback_asic(self):
-        asicbits = self.gen_asic_pattern(self.gen_asic_vector(), True, readback_mode = True)
-        print(asicbits)
-        self.nexys.write(asicbits)
-
-    def asic_update(self):
-        """
-        Remakes configbits and writes to asic. 
-        Takes no input and does not return
-        """
-        if self._chipversion == 1:
-            dummybits = self.gen_asic_pattern(BitArray(uint=0, length=245), True) # Not needed for v2
-            self.nexys.write(dummybits)
-
-        # Write config
-        asicbits = self.nexys.gen_asic_pattern(self.gen_asic_vector(), True)
-        for value in asicbits:
-            self.nexys.write(value)
-        logger.info("Wrote configbits successfully")
-
+ 
     ## SR Update
     async def writeConfigSR(self,ckdiv = 8 , limit : int | None = None ):
         """This method writes the Config bits through the register file bits (SIN,CK1,CK2, LOAD)
