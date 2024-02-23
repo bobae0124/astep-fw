@@ -324,7 +324,15 @@ class astropixRun:
         # Injection Board is provided by the board Driver
         # The Injection Board provides an underlying Voltage Board
         self.injector = self.boardDriver.geccoGetInjectionBoard()
-        self.inj_volts = self.injector.voltageBoard
+        if not onchip:
+            await self.boardDriver.ioSetInjectionToGeccoInjBoard(enable = True, flush = True)
+            self.injectorBoard = self.injector.vBoard
+            self.injectorBoard.dacvalues = (8, [inj_voltage/1000.,0.0]) #defaults from Nicolas
+            self.injectorBoard.vcal = self.vboard.vcal
+            self.injectorBoard.vsupply = self.vboard.vsupply
+            await self.injectorBoard.update()
+        else:
+            await self.boardDriver.ioSetInjectionToGeccoInjBoard(enable = False, flush = True)
 
         # Create the object!
         #self.inj_volts = Voltageboard(self.handle, slot, dac_settings)
