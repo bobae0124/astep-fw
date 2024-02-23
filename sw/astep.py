@@ -302,7 +302,6 @@ class astepRun:
         # The Injection Board provides an underlying Voltage Board
         
         self.injector = self.boardDriver.geccoGetInjectionBoard()
-        """
         if not onchip:
             await self.boardDriver.ioSetInjectionToGeccoInjBoard(enable = True, flush = True)
             self.injectorBoard = self.injector.vBoard
@@ -312,7 +311,6 @@ class astepRun:
             await self.injectorBoard.update()
         else:
             await self.boardDriver.ioSetInjectionToGeccoInjBoard(enable = False, flush = True)
-        """
 
         self.injector.period = inj_period
         self.injector.clkdiv = clkdiv

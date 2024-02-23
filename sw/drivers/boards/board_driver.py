@@ -122,7 +122,8 @@ class BoardDriver():
 
     async def enableSensorClocks(self,flush:bool = False):
         """Writes the I/O Control register to enable both Timestamp and Sample clock outputs"""
-        await self.rfg.write_io_ctrl(0x03,flush = flush)
+        await self.ioSetSampleClock(enable=True, flush=flush)
+        await self.ioSetTimestampClock( enable=True, flush=flush)
 
     async def getIOControlRegister(self):
         return await self.rfg.read_io_ctrl()
