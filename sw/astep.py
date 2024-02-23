@@ -302,6 +302,7 @@ class astepRun:
         # The Injection Board provides an underlying Voltage Board
         
         self.injector = self.boardDriver.geccoGetInjectionBoard()
+        """
         if not onchip:
             await self.boardDriver.ioSetInjectionToGeccoInjBoard(enable = True, flush = True)
             self.injectorBoard = self.injector.vBoard
@@ -311,7 +312,8 @@ class astepRun:
             await self.injectorBoard.update()
         else:
             await self.boardDriver.ioSetInjectionToGeccoInjBoard(enable = False, flush = True)
-        
+        """
+
         self.injector.period = inj_period
         self.injector.clkdiv = clkdiv
         self.injector.initdelay = initdelay
@@ -517,3 +519,10 @@ class astepRun:
         # Reads the Frame Counter register for the layer 0 
         framesCount = await self.boardDriver.rfg.read_layer_0_stat_frame_counter()
         print(f"Actual Frame counter: {framesCount}")
+
+    async def checkInjBits(self):
+        io_ctrl_val = await self.boardDriver.rfg.read_io_ctrl()
+        print(f"io_ctrl value = {io_ctrl_val} = {bin(io_ctrl_val)}")
+
+        layers_inj_val = await self.boardDriver.rfg.read_layers_inj_ctrl()
+        print(f"layers_inj value = {layers_inj_val} = {bin(layers_inj_val)}")

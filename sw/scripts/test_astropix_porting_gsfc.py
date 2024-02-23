@@ -48,7 +48,9 @@ async def main():
     await astro.enable_pixel(pixel[0], pixel[1])  
 
     print("init injection")
+    await astro.checkInjBits()
     await astro.init_injection(inj_voltage=300)
+    await astro.checkInjBits()
 
     print("final configs")
     print(f"Header: {astro.get_log_header()}")
@@ -63,10 +65,11 @@ async def main():
 
     t0 = time.time()
     inc = -2
-    while (time.time() < t0+5):
+    while (time.time() < t0+15):
         
         buff, readout = await(astro.get_readout())
-        if buff>4:
+        #if buff>4:
+        if not sum(readout[0:2])==510: #avoid printing out if first 2 bytes are "ff ff" (string is just full of ones)
             inc += 1
             if inc<0:
                 continue
