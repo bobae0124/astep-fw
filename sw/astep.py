@@ -13,7 +13,7 @@ import pandas as pd
 import regex as re
 import time
 import yaml
-import os
+import os, sys
 import binascii
 
 from core.decode import Decode
@@ -123,7 +123,7 @@ class astepRun:
 ##################### ASIC METHODS FOR USERS #########################
 
     # Method to initalize the asic. This is taking the place of asic.py. 
-    async def asic_init(self, yaml:str = None, dac_setup: dict = None, bias_setup:dict = None, analog_col:int = None, rows:int = 1, chipsPerRow:int = 1):
+    async def asic_init(self, yaml:str = None, rows:int = 1, chipsPerRow:int = 1, analog_col = None):
         """
         self.asic_init() - initalize the asic configuration. Must be called first
         Positional arguments: None
@@ -144,12 +144,14 @@ class astepRun:
         try:
             ## Init asic
             self.boardDriver.setupASICS(version = self.chipversion, rows = rows, chipsPerRow = chipsPerRow , configFile = ymlpath )
-            ## Configure all chips the SAME WAY - will want to update
+            asics = []
+            ## Get asic for each row aka each daisy chain
             for r in range(rows):
-                self.asic = self.boardDriver.getAsic(row = r-1)
+                #self.asic = self.boardDriver.getAsic(row = r-1)
+                asics.append(self.boardDriver.getAsic(row = r-1))
         except Exception:
             logger.error('Must pass a configuration file in the form of *.yml')
-            raise Error('Must pass a configuration file in the form of *.yml')
+            sys.exit(1)
         #Config stored in dictionary self.asic_config . This is used for configuration in asic_update. 
         #If any changes are made, make change to self.asic_config so that it is reflected on-chip when 
         # asic_update is called
@@ -158,10 +160,16 @@ class astepRun:
         #await self.update_asic_config(bias_setup, dac_setup)
 
         # Set analog output
-        if (analog_col is not None) and (analog_col <= self.asic._num_cols):
-            logger.info(f"enabling analog output in column {analog_col}")
-            print("enabling analog out")
-            self.asic.enable_ampout_col(analog_col, inplace=False)
+        if analog_col is not None:
+            #asics[analog_col[0]].enable_ampout_col(analog_col[1], inplace=False)
+
+            try:
+                #Enable analog pixel from given chip in the daisy chain
+                logger.info(f"enabling analog output in column {analog_col[1]} of chip {analog_col[0]}")
+                asics[analog_col[0]].enable_ampout_col(analog_col[1], inplace=False)
+            except IndexError:
+                logger.error(f"Cannot enable analog pixel in chip {analog_col[0]} - chip does not exist")
+                sys.exit(1)
 
         # Turns on injection if so desired 
         if self.injection_col is not None:
