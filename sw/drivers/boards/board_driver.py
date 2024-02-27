@@ -156,7 +156,7 @@ class BoardDriver():
     async def configureLayerSPIFrequency(self, targetFrequencyHz : int , flush = False):
         """Calculated required divider to reach the provided target SPI clock frequency"""
         coreFrequency = self.getFPGACoreFrequency()
-        divider = int(coreFrequency / targetFrequencyHz)
+        divider = int( coreFrequency / (2 * targetFrequencyHz))
         assert divider >=1
         await self.configureLayerSPIDivider(divider,flush)
 
