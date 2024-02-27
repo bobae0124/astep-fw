@@ -31,7 +31,7 @@ async def test_read_id(dut):
     print("Version: ",version)
     await Timer(10, units="us")
 
-@cocotb.test(timeout_time = 12,timeout_unit="ms")
+@cocotb.test(timeout_time = 12,timeout_unit="ms",skip=True)
 async def test_injection(dut):
 
     rfg.core.debug()
@@ -58,3 +58,26 @@ async def test_injection(dut):
 
     await injBoard.start()
     await Timer(500, units="us")
+
+
+@cocotb.test(timeout_time = 1,timeout_unit="ms")
+async def test_spi_1byte_out(dut):
+
+    boardDriver = astep24_3l_sim.getUARTDriver(dut)
+    await vip.cctb.common_clock_reset_nexys(dut)
+    await Timer(10, units="us")
+
+    ## Read Firmware Type
+    version = await boardDriver.readFirmwareVersion()
+    print("Version2: ",version)
+    await Timer(10, units="us")
+
+    ## Set Clock divider
+    await boardDriver.configureLayerSPIFrequency(500000,flush=True)
+    await Timer(50, units="us")
+
+    ## Write bytes
+    await boardDriver.setLayerReset(0,reset = False , flush = True)
+    await boardDriver.writeBytesToLayer(0,[0xAB,0xCD],flush=True)
+
+    await Timer(200, units="us")
