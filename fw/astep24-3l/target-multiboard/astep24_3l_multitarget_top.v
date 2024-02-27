@@ -267,6 +267,7 @@ module astep24_3l_multitarget_top (
     // If Gecco Injection is selected (i.e Injection goes to Injection Card), then disable direct chip injection
     // Only possible on nexys
     wire layers_inj_internal;
+    wire io_ctrl_gecco_inj_enable;
     `ifdef TARGET_NEXYS
     assign layers_inj = layers_inj_internal & !io_ctrl_gecco_inj_enable;
     `else
@@ -291,7 +292,7 @@ module astep24_3l_multitarget_top (
     assign layer_0_spi_right_miso = 2'b00;
 
     wire warm_resn = cpu_resetn;
-    wire cold_resn = !btnc;
+    wire cold_resn = !btnc; // Buttons on nexys pressed are 1, so cold_resn is 0 when btn is 1
 
 
     `elsif TARGET_CMOD
