@@ -19,15 +19,19 @@ class SimBoard(BoardDriver):
         BoardDriver.__init__(self,rfg)
 
 
-    def getVoltageBoard(self,slot : int ):
+    def getVoltageBoard(self,slot : int = 0 ):
         vb = VoltageBoard(rfg = self.rfg, slot = slot)
         vb.vsupply  = 2.7
         vb.vcal     = .989
         return vb
 
-    def getInjectionBoard(self,slot : int ):
+    def getInjectionBoard(self,slot : int = 1):
         ib = InjectionBoard(rfg = self.rfg, slot = slot)
+        ib.voltageBoard = None
         return ib
+
+    def getFPGACoreFrequency(self):
+        return 60000000
 
 def getUARTDriver(dut):
 
