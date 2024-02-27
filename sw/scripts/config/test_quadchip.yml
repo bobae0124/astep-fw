@@ -14,8 +14,8 @@
 #
 ---
 astropix3:
-    telescope:
-        nchips: 1
+    chain:
+        length: 1
     geometry:
         cols: 35
         rows: 35
