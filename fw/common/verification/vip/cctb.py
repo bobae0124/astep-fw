@@ -44,6 +44,7 @@ async def common_system_clock(dut):
     
 async def common_clock_reset_nexys(dut):
     cocotb.start_soon(Clock(dut.sysclk, 10, units='ns').start())
+    dut.btnc.value = 0 # Btn pressed is 1
     dut.cpu_resetn.value = 0
     await Timer(1, units="us")
     dut.cpu_resetn.value = 1
