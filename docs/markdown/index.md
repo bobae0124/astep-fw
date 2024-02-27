@@ -7,7 +7,7 @@ title: Home
 
 **Welcome to the ASTEP Firmware Readout repository**
 
-![Astropix Logo](./astropix_main_logo.jpeg){ align=left width="25%" }
+![Astropix Logo](./astropix_main_logo.jpeg){ align=left width="150px" }
 
 You will find here sources for the Firmware targetting Gecco Nexys Video and CMOD boards, with different configurations based on the type of Astropix Carrier boards (Single Chip V2/V3/V4 , Telescope Chain, Multi-Layer etc..)
 
@@ -30,3 +30,14 @@ Important information:
 - Changes:
     - Firmware: Added Internal Pull-up to cold_resn and warm_resn to ensure Firmware is active on boot. This can be changed in the future, or the reset can be pulled-down externally, for example on the Beagle Board interface cape.
     - Software: Started adding API interface to open connection to CMOD, still untested, expect some fixes needed
+
+
+## Branch Naming and Meaning
+
+
+At the moment, the branching strategy is as following: 
+
+- **main**: This is the officially up to date branch 
+- **dev_xxx**: Dev branches for individual or institutions working on tests. Branch out of main and merge from main whenever possible.
+
+There are no official supported releases of Software or Hardware for now, so no associated tagging/branching strategy for now.
