@@ -1,9 +1,8 @@
 """
-Central module of astropix. This incorporates all of the various modules from the original 'module' directory backend (now 'core')
+Central module of astropix for use with A-STEP FW. Built from astropix.py wrapper. This incorporates all of the various modules from the original 'module' directory backend (now 'core')
 The class methods of all the other modules/cores are inherited here. 
 
-Author: Autumn Bauman
-Maintained by: Amanda Steinhebel, amanda.l.steinhebel@nasa.gov
+Author:  Amanda Steinhebel, amanda.l.steinhebel@nasa.gov
 """
 # Needed modules. They all import their own suppourt libraries, 
 # and eventually there will be a list of which ones are needed to run
@@ -15,6 +14,7 @@ import regex as re
 import time
 import yaml
 import os
+import binascii
 
 from core.decode import Decode
 import drivers.boards
@@ -25,19 +25,19 @@ from drivers.astropix.asic import Asic
 import logging
 logger = logging.getLogger(__name__)
 
-class astropixRun:
+class astepRun:
 
     # Init just opens the chip and gets the handle. After this runs
     # asic_config also needs to be called to set it up. Seperating these 
     # allows for simpler specifying of values. 
-    def __init__(self, chipversion=2, clock_period_ns = 5, inject:int = None, offline:bool=False):
+    def __init__(self, chipversion=3, clock_period_ns = 5, inject:int = None, SR:bool=True):
         """
         Initalizes astropix object. 
         No required arguments
         Optional:
         clock_period_ns:int - period of main clock in ns
         inject:bool - if set to True will enable injection for the whole array.
-        offline:bool - if True, do not try to interface with chip
+        SR:bool - if True, configure with shift registers. If False, configure with SPI
         """
 
         # _asic_start tracks if the inital configuration has been run on the ASIC yet.
@@ -45,20 +45,17 @@ class astropixRun:
         # to put in custom configurations and allows for less writing to the chip,
         # only doing it once at init or when settings need to be changed as opposed to 
         # each time a parameter is changed.
+        self._asic_start = False
 
-        if offline:
-            logger.info("Creating object for offline analysis")
-        else:
-            self._asic_start = False
-
-            # Start putting the variables in for use down the line
-            if inject is None:
-                inject = (None, None)
-            self.injection_col = inject[1]
-            self.injection_row = inject[0]
+        # Start putting the variables in for use down the line
+        if inject is None:
+            inject = (None, None)
+        self.injection_col = inject[1]
+        self.injection_row = inject[0]
 
         self.sampleclock_period_ns = clock_period_ns
         self.chipversion = chipversion
+        self.SR = SR #define how to configure. If True, shift registers. If False, SPI
         # Creates objects used later on
         self.decode = Decode(clock_period_ns)
 
@@ -70,17 +67,18 @@ class astropixRun:
         logger.info("Opened FPGA, testing...")
         await self._test_io()
         logger.info("FPGA test successful.")
+        
+        # This method asserts the reset signal for .5s by default then deasserts it
+        await self.boardDriver.resetLayer(layer = 0)
 
 ##################### YAML INTERACTIONS #########################
 #reading done in core/asic.py
 #writing done here
-
+    """
     def write_conf_to_yaml(self, filename:str = None):
-        """
-        Write ASIC config to yaml
-        :param chipversion: chip version
-        :param filename: Name of yml file in config folder
-        """
+        #Write ASIC config to yaml
+        #:param chipversion: chip version
+        #:param filename: Name of yml file in config folder
 
         dicttofile ={self.asic.chip:
             {
@@ -102,19 +100,36 @@ class astropixRun:
             except yaml.YAMLError as exc:
                 logger.error(exc)
         
+    """
+##################### FW INTERFACING #########################
+    # Method to enable timestamp and sample clocks, and configure SPI clock for the layers (if necessary)
+    async def setup_clocks(self) -> None:
+        # Enable TS and Sample clock
+        await self.boardDriver.enableSensorClocks(flush = True)
+        logger.info("Timestamp and SPI clocks enabled")
+
+    async def enable_spi(self, spiFreq:int = 1000000) -> None :
+        """
+        Sets the Clocks divider for the SPI clock.
+        Sets the clock to 1Mhz by default
+        """
+        # Set the SPI Clock to 1Mhz (the value must be passed in Hz)
+        await self.boardDriver.configureLayerSPIFrequency(targetFrequencyHz = spiFreq , flush = True)
+        logger.info(f"SPI clock set to {spiFreq}Hz ({spiFreq/1000000:.2f})MHz")
+
+    async def asic_configure(self):
+        await self.asic_update()
 
 ##################### ASIC METHODS FOR USERS #########################
 
     # Method to initalize the asic. This is taking the place of asic.py. 
-    # All of the interfacing is handeled through asic_update
-    async def asic_init(self, yaml:str = None, dac_setup: dict = None, bias_setup:dict = None, blankmask:bool = False, analog_col:int = None):
+    async def asic_init(self, yaml:str = None, dac_setup: dict = None, bias_setup:dict = None, analog_col:int = None, rows:int = 1, chipsPerRow:int = 1):
         """
         self.asic_init() - initalize the asic configuration. Must be called first
         Positional arguments: None
         Optional:
         dac_setup: dict - dictionary of values passed to the configuration. Only needs values diffent from defaults
         bias_setup: dict - dict of values for the bias configuration Only needs key/vals for changes from default
-        blankmask: bool - Create a blank mask (everything disabled). Pixels can be enabled manually 
         analog_col: int - Sets a column to readout analog data from. 
         """
 
@@ -123,15 +138,15 @@ class astropixRun:
 
         # Define YAML path variables
         pathdelim=os.path.sep #determine if Mac or Windows separators in path name
-        ymlpath="."+pathdelim+"config"+pathdelim+yaml+".yml"
+        ymlpath=os.getcwd()+pathdelim+"scripts"+pathdelim+"config"+pathdelim+yaml+".yml"
 
         #Get config values from YAML and set chip properties
         try:
             ## Init asic
-            self.boardDriver.setupASICS(version = self.chipversion, rows = 1 , configFile = ymlpath )
-            #self.asic = Asic(rfg = self.boardDriver.rfg)
-            self.asic = self.boardDriver.getAsic(row = 0)
-            #self.asic.load_conf_from_yaml(self.chipversion, ymlpath)
+            self.boardDriver.setupASICS(version = self.chipversion, rows = rows, chipsPerRow = chipsPerRow , configFile = ymlpath )
+            ## Configure all chips the SAME WAY - will want to update
+            for r in range(rows):
+                self.asic = self.boardDriver.getAsic(row = r-1)
         except Exception:
             logger.error('Must pass a configuration file in the form of *.yml')
             raise Error('Must pass a configuration file in the form of *.yml')
@@ -140,11 +155,12 @@ class astropixRun:
         # asic_update is called
 
         #Override yaml if arguments were given in run script
-        await self.update_asic_config(bias_setup, dac_setup)
+        #await self.update_asic_config(bias_setup, dac_setup)
 
         # Set analog output
         if (analog_col is not None) and (analog_col <= self.asic._num_cols):
             logger.info(f"enabling analog output in column {analog_col}")
+            print("enabling analog out")
             self.asic.enable_ampout_col(analog_col, inplace=False)
 
         # Turns on injection if so desired 
@@ -152,39 +168,30 @@ class astropixRun:
             self.asic.enable_inj_col(self.injection_col, inplace=False)
             self.asic.enable_inj_row(self.injection_row, inplace=False)
 
-        # Load config it to the chip
-        logger.info("LOADING TO ASIC...")
-        await self.asic_update()
-        logger.info("ASIC SUCCESSFULLY CONFIGURED")
-
     #Interface with asic.py 
-    def enable_pixel(self, col: int, row: int, inplace:bool=True):
-       self.asic.enable_pixel(col, row, inplace)
+    async def enable_pixel(self, row: int, col: int):
+       self.asic.enable_pixel(col, row)
+       #await self.asic_update()
 
-    #Turn on injection of different pixel than the one used in _init_
-    def enable_injection(self, col:int, row:int, inplace:bool=True):
-        self.asic.enable_inj_col(col, inplace)
-        self.asic.enable_inj_row(row, inplace)
-
-    # The method to write data to the asic. Called whenever somthing is changed
-    # or after a group of changes are done. Taken straight from asic.py.
+    # The method to write data to the asic. 
     async def asic_update(self):
         """This method resets the chip then writes the configuration"""
         await self.boardDriver.resetLayer(layer = 0 )
-        await self.boardDriver.getAsic(row = 0).writeConfigSR()
-        #self.asic.asic_update()
+        if self.SR:
+            await self.boardDriver.getAsic(row = 0).writeConfigSR()
+        else:
+            await self.boardDriver.getAsic(row = 0).writeConfigSPI()            
 
 
     # Methods to update the internal variables. Please don't do it manually
     # This updates the dac config
     async def update_asic_config(self, bias_cfg:dict = None, idac_cfg:dict = None, vdac_cfg:dict = None, analog_col:int=None):
-        """
-        Updates and writes confgbits to asic
+        #Updates and writes confgbits to asic
 
-        bias_cfg:dict - Updates the bias settings. Only needs key/value pairs which need updated
-        idac_cfg:dict - Updates iDAC settings. Only needs key/value pairs which need updated
-        vdac_cfg:dict - Updates vDAC settings. Only needs key/value pairs which need updated
-        """
+        #bias_cfg:dict - Updates the bias settings. Only needs key/value pairs which need updated
+        #idac_cfg:dict - Updates iDAC settings. Only needs key/value pairs which need updated
+        #vdac_cfg:dict - Updates vDAC settings. Only needs key/value pairs which need updated
+        
         if self._asic_start:
             if bias_cfg is not None:
                 for key in bias_cfg:
@@ -198,23 +205,8 @@ class astropixRun:
             else: 
                 logger.info("update_asic_config() got no arguments, nothing to do.")
                 return None
-            await self.asic_update()
+            #await self.asic_update()
         else: raise RuntimeError("Asic has not been initalized")
-
-    async def enable_spi(self) -> None :
-        """
-        Sets the Clocks divider for the SPI clock.
-        Sets the clock to 1Mhz by default
-        """
-        await self.boardDriver.configureLayerSPIFrequency(targetFrequencyHz = 1000000 , flush = True)
-        #await self.boardDriver.configureLayerSPIDivider(divider = 255 , flush = True)
-        #self.nexys.spi_enable()
-        #self.nexys.spi_reset()
-        # Set SPI clockdivider
-        # freq = 100 MHz/spi_clkdiv
-        #self.nexys.spi_clkdiv = 255
-        #self.nexys.send_routing_cmd()
-        logger.info("SPI ENABLED")
 
     def close_connection(self) -> None :
         """
@@ -225,14 +217,18 @@ class astropixRun:
 
 
 ################## Voltageboard Methods ############################
+    def get_internal_vdac(self, v_in, v_ref:float = 1.8, nbits:float = 10):
+        return int(v_in * 2**nbits / v_ref)
+        
+    async def update_pixThreshold(self, vThresh:int): #V in mV
+        dacThresh = self.get_internal_vdac(vThresh/1000.) #convert from mV to V
+        await self.update_asic_config(vdac_cfg={'thpix':dacThresh})
 
-# Here we intitalize the 8 DAC voltageboard in slot 4. 
-    async def init_voltages(self, slot: int = 4, vcal:float = .989, vsupply: float = 2.7, vthreshold:float = None, dacvals: tuple[int, list[float]] = None):
+    async def init_voltages(self, vcal:float = .989, vsupply: float = 2.7, vthreshold:float = None, dacvals: tuple[int, list[float]] = None):
         """
         Configures the voltage board
         No required parameters. No return.
 
-        slot:int = 4 - Position of voltage board
         vcal:float = 0.908 - Calibration of the voltage rails
         vsupply = 2.7 - Supply Voltage
         vthreshold:float = None - ToT threshold value. Takes precedence over dacvals if set. UNITS: mV
@@ -266,7 +262,6 @@ class astropixRun:
                 dacvals[1][-1] = vthreshold
 
         # Voltage Board is provided by the board Driver
-        # Old:  Voltageboard(self.handle, slot, dacvals)
         self.vboard = self.boardDriver.geccoGetVoltageBoard()
         self.vboard.dacvalues = dacvals
         # Set calibrated values
@@ -277,12 +272,11 @@ class astropixRun:
         await self.vboard.update()
 
     # Setup Injections
-    async def init_injection(self, slot: int = 3, inj_voltage:float = None, inj_period:int = 100, clkdiv:int = 300, initdelay: int = 100, cycle: float = 0, pulseperset: int = 1, dac_config:tuple[int, list[float]] = None, onchip: bool = False):
+    async def init_injection(self, inj_voltage:float = None, inj_period:int = 100, clkdiv:int = 300, initdelay: int = 100, cycle: float = 0, pulseperset: int = 1, dac_config:tuple[int, list[float]] = None, onchip:bool = True):
         """
         Configure injections
         No required arguments. No returns.
         Optional Arguments:
-        slot: int - Location of the injection module
         inj_voltage: float - Injection Voltage. Range from 0 to 1.8. If dac_config is set inj_voltage will be overwritten
         inj_period: int
         clkdiv: int
@@ -291,25 +285,7 @@ class astropixRun:
         pulseperset: int
         dac_config:tuple[int, list[float]]: injdac settings. Must be fully specified if set. 
         """
-
-        # Default configuration for the dac
-        # 0.3 is (default) injection voltage
-        # 3 is slot number for inj board
-        default_injdac = (8,[0.3, 0.0])
-
         
-        # Some fault tolerance
-        try:
-            self._voltages_exist
-        except Exception:
-            raise RuntimeError("init_voltages must be called before init_injection!")
-        # Sets the dac_setup if it isn't specified
-        if dac_config is None:
-            dac_settings = default_injdac
-        else:
-            dac_settings = dac_config
-
-        # The dac_config takes presedence over a specified threshold.
         if (inj_voltage is not None) and (dac_config is None):
             # elifs check to ensure we are not injecting a negative value because we don't have that ability
             if inj_voltage < 0:
@@ -318,11 +294,13 @@ class astropixRun:
                 logger.warning("Cannot inject more than 1800mV, will use defaults")
                 inj_voltage = 300 #Sets to 300 mV
 
-            inj_voltage = inj_voltage / 1000
-            dac_settings[1][0] = inj_voltage
-
+        if inj_voltage:
+            #Update vdac value from yml 
+            await self.update_asic_config(vdac_cfg={'vinj':self.get_internal_vdac(inj_voltage/1000.)})
+        
         # Injection Board is provided by the board Driver
         # The Injection Board provides an underlying Voltage Board
+        
         self.injector = self.boardDriver.geccoGetInjectionBoard()
         if not onchip:
             await self.boardDriver.ioSetInjectionToGeccoInjBoard(enable = True, flush = True)
@@ -334,22 +312,12 @@ class astropixRun:
         else:
             await self.boardDriver.ioSetInjectionToGeccoInjBoard(enable = False, flush = True)
 
-        # Create the object!
-        #self.inj_volts = Voltageboard(self.handle, slot, dac_settings)
-        # set the parameters
-        self.inj_volts.dacvalues = dac_settings
-        self.inj_volts.vcal = self.vboard.vcal
-        self.inj_volts.vsupply = self.vboard.vsupply
-        await self.inj_volts.update()
-        
-        # Now to configure the actual injection thing
-        #self.injector = Injectionboard(self.handle, onchip=onchip)
-        # Now to configure it. above are the values from the original scripting.
         self.injector.period = inj_period
         self.injector.clkdiv = clkdiv
         self.injector.initdelay = initdelay
         self.injector.cycle = cycle
-        self.injector.pulsesperset = pulseperset       
+        self.injector.pulsesperset = pulseperset     
+                 
 
     # These start and stop injecting voltage. Fairly simple.
     async def start_injection(self):
@@ -372,21 +340,18 @@ class astropixRun:
 ########################### Input and Output #############################
     # This method checks the chip to see if a hit has been logged
 
+    """
     def hits_present(self):
-        """
-        Looks at interrupt
-        Returns bool, True if present
-        """
+        #Looks at interrupt, Returns bool, True if present
         if (int.from_bytes(self.nexys.read_register(70),"big") == 0):
             return True
         else:
             return False
-
+    """
     def get_log_header(self):
-        """
-        Returns header for use in a log file with all settings.
-        """
+        #Returns header for use in a log file with all settings.
         #Get config dictionaries from yaml
+
         vdac_str=""
         digitalconfig = {}
         for key in self.asic.asic_config['digitalconfig']:
@@ -407,74 +372,83 @@ class astropixRun:
                 arrayconfig[key]=self.asic.asic_config['recconfig'][key][1]
 
         # This is not a nice line, but its the most efficent way to get all the values in the same place.
-        return f"Digital: {digitalconfig}\n" +f"Biasblock: {biasconfig}\n" + f"iDAC: {idacconfig}\n"+ f"Receiver: {arrayconfig}\n " + vdac_str
-
+        return f"Digital: {digitalconfig}\n" +f"Biasblock: {biasconfig}\n" + f"iDAC: {idacconfig}\n"+ vdac_str + f"\n Receiver: {arrayconfig}" 
 
 
 ############################ Decoder ##############################
-    # This function generates a list of the hits in the stream. Retuerns a bytearray
+    async def setup_readout(self, layer:int, dis_autoread:int = 0):
+        #Take take layer out of reset and hold, enable "FW-driven readout"
+        await self.boardDriver.setLayerReset(layer = layer , reset = False , disable_autoread  = dis_autoread, flush = True )
+        await self.boardDriver.holdLayer(layer = layer , hold = False , flush = True ) 
+   
+    async def get_readout(self, counts:int = 4096):
+        bufferSize = await(self.boardDriver.readoutGetBufferSize())
+        readout = await(self.boardDriver.readoutReadBytes(counts))
+        return bufferSize, readout
+   
+    async def print_status_reg(self):
+        status = await(self.boardDriver.rfg.read_layer_0_status())
+        ctrl = await(self.boardDriver.rfg.read_layer_0_cfg_ctrl())
+        print(f"Layer Status:  {hex(status)},interruptn={status & 0x1},decoding={(status >> 1) & 0x1},reset={(ctrl>>1) & 0x1},hold={(ctrl) & 0x1},buffer={await (self.boardDriver.readoutGetBufferSize())}")
+        #logger.info(f"Layer Status:  {hex(status)},interruptn={status & 0x1},decoding={(status >> 1) & 0x1},reset={(ctrl>>1) & 0x1},hold={(ctrl) & 0x1},buffer={await (self.boardDriver.readoutGetBufferSize())}")
 
-    def get_FW_readout(self):
-        readout = self.nexys.read_spi_fifo()
-        return readout
+    def decode_readout(self, readout:bytearray, i:int, printer: bool = True, nmb_bytes:int = 11):
+        #Decodes readout
 
-    def get_readout(self, bufferlength:int = 20):
-        """
-        Reads hit buffer.
-        bufferlength:int - length of buffer to write. Multiplied by 8 to give number of bytes
-        Returns bytearray
-        """
-        self.nexys.write_spi_bytes(bufferlength)
-        readout = self.nexys.read_spi_fifo()
-        return readout
+        #Required argument:
+        #readout: Bytearray - readout from sensor, not the printed Hex values
+        #i: int - Readout number
 
+        #Optional:
+        #printer: bool - Print decoded output to terminal
 
-    def decode_readout(self, readout:bytearray, i:int, printer: bool = True):
-        """
-        Decodes readout
+        #Returns dataframe
 
-        Required argument:
-        readout: Bytearray - readout from sensor, not the printed Hex values
-        i: int - Readout number
+        #!!! Warning, richard 11/10/23 -> The Astep FW returns all bits properly ordered, don't reverse bits when using this firmware!
 
-        Optional:
-        printer: bool - Print decoded output to terminal
-
-        Returns dataframe
-
-        !!! Warning, richard 11/10/23 -> The Astep FW returns all bits properly ordered, don't reverse bits when using this firmware!
-        """
-
-        list_hits = self.decode.hits_from_readoutstream(readout)
+        list_hits = [readout[i:i+nmb_bytes] for i in range(0,len(readout),nmb_bytes)]
         hit_list = []
         for hit in list_hits:
             # Generates the values from the bitstream
+            if (sum(hit) == 1020) or (int(hit[0])+int(hit[1]) == 510): #HARDCODED MAX BUFFER or 'HIT' OF ONLY 1'S- WILL NEED TO REVISIT
+                continue 
             try:
-                id          = int(hit[0]) >> 3
-                payload     = int(hit[0]) & 0b111
-                location    = int(hit[1])  & 0b111111
-                col         = 1 if (int(hit[1]) >> 7 ) & 1 else 0
-                timestamp   = int(hit[2])
-                tot_msb     = int(hit[3]) & 0b1111
-                tot_lsb     = int(hit[4])   
+                id          = int(hit[2]) >> 3
+                payload     = int(hit[2]) & 0b111
+                location    = int(hit[3])  & 0b111111
+                col         = 1 if (int(hit[3]) >> 7 ) & 1 else 0
+                timestamp   = int(hit[4])
+                tot_msb     = int(hit[5]) & 0b1111
+                tot_lsb     = int(hit[6])   
                 tot_total   = (tot_msb << 8) + tot_lsb
             except IndexError: #hit cut off at end of stream
                 id, payload, location, col = -1, -1, -1, -1
                 timestamp, tot_msb, tot_lsb, tot_total = -1, -1, -1, -1
 
-            wrong_id        = 0 if (id) == 0 else '\x1b[0;31;40m{}\x1b[0m'.format(id)
-            wrong_payload   = 4 if (payload) == 4 else'\x1b[0;31;40m{}\x1b[0m'.format(payload)   
-
-                
+            #wrong_id        = 0 if (id) == 0 else '\x1b[0;31;40m{}\x1b[0m'.format(id)
+            #wrong_payload   = 4 if (payload) == 4 else'\x1b[0;31;40m{}\x1b[0m'.format(payload)   
             
             # will give terminal output if desiered
             if printer:
-                print(
-                f"{i} Header: ChipId: {wrong_id}\tPayload: {wrong_payload}\t"
-                f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
-                f"Timestamp: {timestamp}\t"
-                f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us)"
-            )
+                try:
+                  print(
+                    f"{i} Header: {int(hit[0])}\t {int(hit[1])}\n"
+                    f"ChipId: {id}\tPayload: {payload}\t"
+                    f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
+                    f"TS: {timestamp}\t"
+                    f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us)\n"
+                    f"Trailing: {int(hit[7])}\t{int(hit[8])}\t{int(hit[9])}\t{int(hit[10])}"           
+                    )
+                except IndexError:
+                  print(
+                    f"{i} Header: {int(hit[0])}\t {int(hit[1])}\n"
+                    f"ChipId: {id}\tPayload: {payload}\t"
+                    f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
+                    f"TS: {timestamp}\t"
+                    f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us)\n"
+                    f"SHORT HIT"           
+                    )
+
             # hits are sored in dictionary form
             # Look into dataframe
             hits = {
@@ -495,16 +469,13 @@ class astropixRun:
         # Much simpler to convert to df in the return statement vs df.concat
         return pd.DataFrame(hit_list)
 
+    """
     # To be called when initalizing the asic, clears the FPGAs memory 
     def dump_fpga(self):
-        """
-        Reads out hit buffer and disposes of the output.
-
-        Does not return or take arguments. 
-        """
+        #Reads out hit buffer and disposes of the output. Does not return or take arguments. 
         readout = self.get_readout()
         del readout
-
+    """
 
 ###################### INTERNAL METHODS ###########################
 
@@ -529,3 +500,27 @@ class astropixRun:
     def _wait_progress(self, seconds:int):
         for _ in tqdm(range(seconds), desc=f'Wait {seconds} s'):
             time.sleep(1)
+
+    async def functionalityCheck(self, holdBool:bool = True):
+        #Take take layer out of reset
+        await self.boardDriver.setLayerReset(layer = 0 , reset = False , flush = True)
+        #By default, keep layer in hold
+        await self.boardDriver.holdLayer(layer = 0 , hold = holdBool , flush = True )  
+
+        # Write 16 NULL bytes to the sensor
+        await self.boardDriver.writeBytesToLayer(layer = 0 , bytes = [0x00]*16)
+
+        # Reads the Idle counter  register for the layer 0
+        idleCount = await self.boardDriver.rfg.read_layer_0_stat_idle_counter()
+        print(f"Actual IDLE counter: {idleCount}")
+
+        # Reads the Frame Counter register for the layer 0 
+        framesCount = await self.boardDriver.rfg.read_layer_0_stat_frame_counter()
+        print(f"Actual Frame counter: {framesCount}")
+
+    async def checkInjBits(self):
+        io_ctrl_val = await self.boardDriver.rfg.read_io_ctrl()
+        print(f"io_ctrl value = {io_ctrl_val} = {bin(io_ctrl_val)}")
+
+        layers_inj_val = await self.boardDriver.rfg.read_layers_inj_ctrl()
+        print(f"layers_inj value = {layers_inj_val} = {bin(layers_inj_val)}")
