@@ -439,10 +439,9 @@ class astepRun:
 
 
 ############################ Decoder ##############################
-    async def setup_readout(self, layer:int, dis_autoread:int = 0):
+    async def setup_readout(self, layer:int, autoread:int = 1):
         #Take take layer out of reset and hold, enable "FW-driven readout"
-        await self.boardDriver.setLayerReset(layer = layer , reset = False , disable_autoread  = dis_autoread, flush = True )
-        await self.boardDriver.holdLayer(layer = layer , hold = False , flush = True ) 
+        await self.boardDriver.setLayerConfig(layer = layer , reset = False , autoread  = autoread, hold=False, flush = True )
    
     async def get_readout(self, counts:int = 4096):
         bufferSize = await(self.boardDriver.readoutGetBufferSize())
@@ -565,10 +564,8 @@ class astepRun:
             time.sleep(1)
 
     async def functionalityCheck(self, holdBool:bool = True):
-        #Take take layer out of reset
-        await self.boardDriver.setLayerReset(layer = 0 , reset = False , flush = True)
-        #By default, keep layer in hold
-        await self.boardDriver.holdLayer(layer = 0 , hold = holdBool , flush = True )  
+        #Take take layer out of reset but keep in hold
+        await self.boardDriver.setLayerConfig(layer = 0 , reset = False , hold = holdBool, autoread = False , flush = True)
 
         # Write 16 NULL bytes to the sensor
         await self.boardDriver.writeBytesToLayer(layer = 0 , bytes = [0x00]*16)

@@ -5,7 +5,7 @@ import rfg.core
 import asyncio
 
 from drivers.astropix.asic import Asic
-
+from deprecated import deprecated
 
 class BoardDriver():
 
@@ -157,8 +157,8 @@ class BoardDriver():
     async def configureLayerSPIFrequency(self, targetFrequencyHz : int , flush = False):
         """Calculated required divider to reach the provided target SPI clock frequency"""
         coreFrequency = self.getFPGACoreFrequency()
-        divider = int(coreFrequency / targetFrequencyHz)
-        assert divider >=1
+        divider = int( coreFrequency / (2 * targetFrequencyHz))
+        assert divider >=1 and divider <=255 , (f"Divider {divider} is too high, min. clock frequency: {int(coreFrequency/2/255)}")
         await self.configureLayerSPIDivider(divider,flush)
 
     async def configureLayerSPIDivider(self, divider:int , flush = False):
@@ -174,7 +174,7 @@ class BoardDriver():
         await asyncio.sleep(waitTime)
         await self.setLayerReset(layer = layer, reset = False , flush = True )
 
-    
+    @deprecated("Please use clearer setLayerConfig method")
     async def setLayerReset(self,layer:int, reset : bool, disable_autoread : bool  = True, modify : bool = False, flush = False):
         """Asserts/Deasserts the Reset output for the given layer
 
@@ -201,7 +201,29 @@ class BoardDriver():
         #if not reset: 
         #    regval = regval | ( disable_autoread << 2 )
         await getattr(self.rfg, f"write_layer_{layer}_cfg_ctrl")(regval,flush)
+    
+    async def setLayerConfig(self,layer:int, reset : bool, autoread : bool   , hold:bool , flush = False):
+        """Modified the layer confi with provided bools
+
+        Args:
+            disable_autoread (int): By default 1, disables the automatic layer readout upon interruptn=0 condition
+            modify (bool): Reads the Control register first and only change the required bits
+            flush (bool): Write the register right away
+        
+        """
+        regval =  await getattr(self.rfg, f"read_layer_{layer}_cfg_ctrl")()
       
+        if reset is True:
+            regval |= (1<<1)
+        else:
+            regval &= ~(1<<1)
+
+        if autoread is False:
+            regval |= (1<<2)
+        else:
+            regval &= ~(1<<2)
+
+        await getattr(self.rfg, f"write_layer_{layer}_cfg_ctrl")(regval,flush)
 
     async def holdLayer(self,layer:int,hold:bool = True,flush:bool = False):
         """Asserts/Deasserts the hold signal for the given layer - This method reads the ctrl register and modifies it"""

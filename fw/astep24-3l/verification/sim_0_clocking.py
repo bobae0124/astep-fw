@@ -78,3 +78,21 @@ async def test_buffers_reset(dut):
     dut.warm_resn.value =1
     
     await Timer(50, units="us")
+
+@cocotb.test(timeout_time = 1,timeout_unit="ms")
+async def test_spi_divider_api(dut):
+  
+    ## Get Target Driver
+    boardDriver = astep24_3l_sim.getUARTDriver(dut)
+
+    ## Clock/Reset
+    await vip.cctb.common_clock_reset(dut)
+    await Timer(10, units="us")
+
+    ## Set Clock divider
+    await boardDriver.configureLayerSPIFrequency(2000000,flush=True)
+    await Timer(50, units="us")
+
+    ## Set Clock divider
+    await boardDriver.configureLayerSPIFrequency(500000,flush=True)
+    await Timer(50, units="us")
