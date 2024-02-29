@@ -57,7 +57,7 @@ async def main():
     
     print("setup readout")
     #pass layer number
-    await astro.setup_readout(0, dis_autoread=1) #disable autoread
+    await astro.setup_readout(0, autoread=0) #disable autoread
 
     #print("start injection")
     #await astro.start_injection()
