@@ -23,7 +23,7 @@ astro = astepRun(inject=pixel)
 
 async def main():
     print("opening fpga")
-    await astro.open_fpga()
+    await astro.open_fpga(cmod=False, uart=False)
 
     print("setup clocks")
     await astro.setup_clocks()

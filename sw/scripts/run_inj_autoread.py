@@ -17,13 +17,14 @@ logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 pixel = [0, 15]
+cmod = False
 
 print("creating object")
 astro = astepRun(inject=pixel)
 
 async def main():
     print("opening fpga")
-    await astro.open_fpga()
+    await astro.open_fpga(cmod=cmod, uart=False)
 
     print("setup clocks")
     await astro.setup_clocks()
@@ -35,8 +36,9 @@ async def main():
     await astro.asic_init(yaml="test_quadchip", analog_col=pixel[1])
     print(f"Header: {astro.get_log_header()}")
 
-    #print("initializing voltage")
-    await astro.init_voltages() ## th in mV
+    if not cmod:
+        print("initializing voltage")
+        await astro.init_voltages() ## th in mV
 
     print("FUNCTIONALITY CHECK")
     await astro.functionalityCheck(holdBool=True)
@@ -48,9 +50,7 @@ async def main():
     await astro.enable_pixel(pixel[0], pixel[1])  
 
     print("init injection")
-    await astro.checkInjBits()
     await astro.init_injection(inj_voltage=300)
-    await astro.checkInjBits()
 
     print("final configs")
     print(f"Header: {astro.get_log_header()}")
