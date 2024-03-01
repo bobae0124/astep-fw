@@ -10,11 +10,8 @@ from typing import Dict
 from bitstring import BitArray
 from tqdm import tqdm
 import pandas as pd
-import regex as re
 import time
-import yaml
-import os
-import binascii
+import os, sys
 
 from core.decode import Decode
 import drivers.boards
@@ -47,14 +44,18 @@ class astepRun:
         # only doing it once at init or when settings need to be changed as opposed to 
         # each time a parameter is changed.
         self._asic_start = False
+        self.asics = []
 
         self._geccoBoard = None
 
         # Start putting the variables in for use down the line
         if inject is None:
             inject = (None, None)
-        self.injection_col = inject[1]
-        self.injection_row = inject[0]
+            self.injection_layer = -1
+        self.injection_col = inject[3]
+        self.injection_row = inject[2]
+        self.injection_chip = inject[1]
+        self.injection_layer = inject[0]
 
         self.sampleclock_period_ns = clock_period_ns
         self.chipversion = chipversion
@@ -130,13 +131,13 @@ class astepRun:
         await self.boardDriver.configureLayerSPIFrequency(targetFrequencyHz = spiFreq , flush = True)
         logger.info(f"SPI clock set to {spiFreq}Hz ({spiFreq/1000000:.2f})MHz")
 
-    async def asic_configure(self):
-        await self.asic_update()
+    async def asic_configure(self, layer:int):
+        await self.asic_update(layer)
 
 ##################### ASIC METHODS FOR USERS #########################
 
     # Method to initalize the asic. This is taking the place of asic.py. 
-    async def asic_init(self, yaml:str = None, dac_setup: dict = None, bias_setup:dict = None, analog_col:int = None, rows:int = 1, chipsPerRow:int = 1):
+    async def asic_init(self, yaml:str = None, rows:int = 1, chipsPerRow:int = 1, analog_col = None):
         """
         self.asic_init() - initalize the asic configuration. Must be called first
         Positional arguments: None
@@ -157,50 +158,70 @@ class astepRun:
         try:
             ## Init asic
             self.boardDriver.setupASICS(version = self.chipversion, rows = rows, chipsPerRow = chipsPerRow , configFile = ymlpath )
-            ## Configure all chips the SAME WAY - will want to update
+            ## Get asic for each row aka each daisy chain
             for r in range(rows):
-                self.asic = self.boardDriver.getAsic(row = r-1)
+                self.asics.append(self.boardDriver.getAsic(row = r-1))
         except Exception:
             logger.error('Must pass a configuration file in the form of *.yml')
-            raise Error('Must pass a configuration file in the form of *.yml')
-        #Config stored in dictionary self.asic_config . This is used for configuration in asic_update. 
-        #If any changes are made, make change to self.asic_config so that it is reflected on-chip when 
-        # asic_update is called
+            sys.exit(1)
 
-        #Override yaml if arguments were given in run script
-        #await self.update_asic_config(bias_setup, dac_setup)
+        # Test to see whether the yml file can be read
+        try:
+            self.asics[0].disable_pixel(0,0,0)
+            self.asics[0].enable_pixel(0,0,0)
+        except KeyError: #could not find expected dictionary in yml file
+            logger.error(f"Configure file of unexpected form. Make sure proper entries (esp. config -> config_0) and try again")
+            sys.exit(1)
 
         # Set analog output
-        if (analog_col is not None) and (analog_col <= self.asic._num_cols):
-            logger.info(f"enabling analog output in column {analog_col}")
-            print("enabling analog out")
-            self.asic.enable_ampout_col(analog_col, inplace=False)
+        try:
+            ana_layer = analog_col[0]
+            ana_chip = analog_col[1]
+            ana_col = analog_col[2]
+        except IndexError:
+            logger.error("To enable analog output, must pass the layer, chip, and column values")
+            sys.exit(1)
+        if analog_col is not None:
+            try:
+                #Enable analog pixel from given chip in the daisy chain
+                logger.info(f"enabling analog output in column {ana_col} of chip {ana_chip} in layer {ana_layer}")
+                self.asics[ana_layer].enable_ampout_col(ana_chip, ana_col, inplace=False)
+            except IndexError:
+                logger.error(f"Cannot enable analog pixel in chip {analog_col[0]} - chip does not exist")
+                sys.exit(1)
 
         # Turns on injection if so desired 
-        if self.injection_col is not None:
-            self.asic.enable_inj_col(self.injection_col, inplace=False)
-            self.asic.enable_inj_row(self.injection_row, inplace=False)
+        if self.injection_chip > -1:
+            self.asics[self.injection_layer].enable_inj_col(self.injection_chip, self.injection_col, inplace=False)
+            self.asics[self.injection_layer].enable_inj_row(self.injection_chip, self.injection_row, inplace=False)
 
     #Interface with asic.py 
-    async def enable_pixel(self, row: int, col: int):
-       self.asic.enable_pixel(col, row)
-       #await self.asic_update()
+    async def enable_pixel(self, layer:int, chip:int, row: int, col: int):
+       self.asics[layer].enable_pixel(layer, chip, col, row)
 
     # The method to write data to the asic. 
-    async def asic_update(self):
+    async def asic_update(self, layer):
         """This method resets the chip then writes the configuration"""
-        await self.boardDriver.resetLayer(layer = 0 )
+        await self.boardDriver.resetLayer(layer = layer )
         if self.SR:
-            await self.boardDriver.getAsic(row = 0).writeConfigSR()
-        else:
-            await self.boardDriver.getAsic(row = 0).writeConfigSPI()            
+            try:
+                await self.boardDriver.getAsic(row = layer).writeConfigSR()
+            except OverflowError:
+                logger.error(f"Tried to configure an array that is not connected! Code thinks there should be {self.asics[layer].num_chips} chips. Check chipsPerRow from asic_init")
+                sys.exit(1)
+        else:     
+            try:
+                await self.boardDriver.getAsic(row = layer).writeConfigSPI()
+            except OverflowError:
+                logger.error("Tried to configure an array that is not connected! Check chipsPerRow from asic_init")
+                sys.exit(1)      
 
 
     # Methods to update the internal variables. Please don't do it manually
     # This updates the dac config
-    async def update_asic_config(self, bias_cfg:dict = None, idac_cfg:dict = None, vdac_cfg:dict = None, analog_col:int=None):
+    async def update_asic_config(self, layer:int, chip:int, bias_cfg:dict = None, idac_cfg:dict = None, vdac_cfg:dict = None):
         #Updates and writes confgbits to asic
-
+        #layer, chip indicate which layer and chip in the daisy chain to update
         #bias_cfg:dict - Updates the bias settings. Only needs key/value pairs which need updated
         #idac_cfg:dict - Updates iDAC settings. Only needs key/value pairs which need updated
         #vdac_cfg:dict - Updates vDAC settings. Only needs key/value pairs which need updated
@@ -208,13 +229,13 @@ class astepRun:
         if self._asic_start:
             if bias_cfg is not None:
                 for key in bias_cfg:
-                    self.asic.asic_config['biasconfig'][key][1]=bias_cfg[key]
+                    self.asic[layer].asic_config[f'config_{chip}']['biasconfig'][key][1]=bias_cfg[key]
             if idac_cfg is not None:
                 for key in idac_cfg:
-                    self.asic.asic_config['idacs'][key][1]=idac_cfg[key]
+                    self.asic[layer].asic_config[f'config_{chip}']['idacs'][key][1]=idac_cfg[key]
             if vdac_cfg is not None:
                 for key in vdac_cfg:
-                    self.asic.asic_config['vdacs'][key][1]=vdac_cfg[key]
+                    self.asics[layer].asic_config[f'config_{chip}']['vdacs'][key][1]=vdac_cfg[key]
             else: 
                 logger.info("update_asic_config() got no arguments, nothing to do.")
                 return None
@@ -233,9 +254,10 @@ class astepRun:
     def get_internal_vdac(self, v_in, v_ref:float = 1.8, nbits:float = 10):
         return int(v_in * 2**nbits / v_ref)
         
-    async def update_pixThreshold(self, vThresh:int): #V in mV
+    async def update_pixThreshold(self, layer:int, chip:int, vThresh:int): 
+        #vThresh = comparator threshold provided in mV
         dacThresh = self.get_internal_vdac(vThresh/1000.) #convert from mV to V
-        await self.update_asic_config(vdac_cfg={'thpix':dacThresh})
+        await self.update_asic_config(layer, chip, vdac_cfg={'thpix':dacThresh})
 
     async def init_voltages(self, vcal:float = .989, vsupply: float = 2.7, vthreshold:float = None, dacvals: tuple[int, list[float]] = None):
         """
@@ -290,10 +312,12 @@ class astepRun:
         await self.vboard.update()
 
     # Setup Injections
-    async def init_injection(self, inj_voltage:float = None, inj_period:int = 100, clkdiv:int = 300, initdelay: int = 100, cycle: float = 0, pulseperset: int = 1, dac_config:tuple[int, list[float]] = None, onchip:bool = True):
+    async def init_injection(self, layer:int, chip:int, inj_voltage:float = None, inj_period:int = 100, clkdiv:int = 300, initdelay: int = 100, cycle: float = 0, pulseperset: int = 1, dac_config:tuple[int, list[float]] = None, onchip:bool = True):
         """
         Configure injections
-        No required arguments. No returns.
+        Required Arguments:
+        layer: int - layer/row of chips
+        chip: int - which chip in the daisy chain to inject into
         Optional Arguments:
         inj_voltage: float - Injection Voltage. Range from 0 to 1.8. If dac_config is set inj_voltage will be overwritten
         inj_period: int
@@ -302,6 +326,7 @@ class astepRun:
         cycle: float
         pulseperset: int
         dac_config:tuple[int, list[float]]: injdac settings. Must be fully specified if set. 
+        onchip: bool (generate signal on chip or on GECCO card)
         """
         
         # Check the required HW is available
@@ -319,7 +344,7 @@ class astepRun:
 
         if inj_voltage:
             #Update vdac value from yml 
-            await self.update_asic_config(vdac_cfg={'vinj':self.get_internal_vdac(inj_voltage/1000.)})
+            await self.update_asic_config(layer, chip, vdac_cfg={'vinj':self.get_internal_vdac(inj_voltage/1000.)})
         
         # Injection Board is provided by the board Driver
         # The Injection Board provides an underlying Voltage Board
@@ -341,6 +366,44 @@ class astepRun:
         self.injector.cycle = cycle
         self.injector.pulsesperset = pulseperset     
                  
+    async def update_injection(self, layer:int, chip:int, inj_voltage:float = None, inj_period:int = None, clkdiv:int = None, initdelay: int = None, cycle: float = None, pulseperset: int = None):
+        """
+        Update injections after injector object is created
+        Required Arguments:
+        layer: int - layer/row of chips
+        chip: int - which chip in the daisy chain to inject into
+        Optional Arguments:
+        inj_voltage: float - Injection Voltage. Range from 0 to 1.8. If dac_config is set inj_voltage will be overwritten
+        inj_period: int
+        clkdiv: int
+        initdelay: int
+        cycle: float
+        pulseperset: int
+        """
+        
+        if inj_voltage is not None:
+            # elifs check to ensure we are not injecting a negative value because we don't have that ability
+            if inj_voltage < 0:
+                raise ValueError("Cannot inject a negative voltage!")
+            elif inj_voltage > 1800:
+                logger.warning("Cannot inject more than 1800mV, will use defaults")
+                inj_voltage = 300 #Sets to 300 mV
+
+        if inj_voltage:
+            #Update vdac value from yml 
+            await self.update_asic_config(layer, chip, vdac_cfg={'vinj':self.get_internal_vdac(inj_voltage/1000.)})
+
+        if inj_period and inj_period!=self.injector.period:
+            self.injector.period = inj_period
+        if clkdiv and clkdiv!=self.injector.clkdiv:
+            self.injector.clkdiv = clkdiv
+        if initdelay and initdelay!=self.injector.initdelay:
+            self.injector.initdelay = initdelay
+        if cycle and cycle!=self.injector.cycle:
+            self.injector.cycle = cycle
+        if pulseperset and pulseperset!=self.injector.pulseperset:
+            self.injector.pulseperset = pulseperset
+        
 
     # These start and stop injecting voltage. Fairly simple.
     async def start_injection(self):
@@ -371,28 +434,28 @@ class astepRun:
         else:
             return False
     """
-    def get_log_header(self):
+    def get_log_header(self, layer:int,chip:int):
         #Returns header for use in a log file with all settings.
         #Get config dictionaries from yaml
 
         vdac_str=""
         digitalconfig = {}
-        for key in self.asic.asic_config['digitalconfig']:
-                digitalconfig[key]=self.asic.asic_config['digitalconfig'][key][1]
+        for key in self.asics[layer].asic_config[f'config_{chip}']['digitalconfig']:
+                digitalconfig[key]=self.asics[layer].asic_config[f'config_{chip}']['digitalconfig'][key][1]
         biasconfig = {}
-        for key in self.asic.asic_config['biasconfig']:
-                biasconfig[key]=self.asic.asic_config['biasconfig'][key][1]
+        for key in self.asics[layer].asic_config[f'config_{chip}']['biasconfig']:
+                biasconfig[key]=self.asics[layer].asic_config[f'config_{chip}']['biasconfig'][key][1]
         idacconfig = {}
-        for key in self.asic.asic_config['idacs']:
-                idacconfig[key]=self.asic.asic_config['idacs'][key][1]
+        for key in self.asics[layer].asic_config[f'config_{chip}']['idacs']:
+                idacconfig[key]=self.asics[layer].asic_config[f'config_{chip}']['idacs'][key][1]
         if self.chipversion>2:
             vdacconfig = {}
-            for key in self.asic.asic_config['vdacs']:
-                    vdacconfig[key]=self.asic.asic_config['vdacs'][key][1]
+            for key in self.asics[layer].asic_config[f'config_{chip}']['vdacs']:
+                    vdacconfig[key]=self.asics[layer].asic_config[f'config_{chip}']['vdacs'][key][1]
             vdac_str=f"vDAC: {vdacconfig}\n"
         arrayconfig = {}
-        for key in self.asic.asic_config['recconfig']:
-                arrayconfig[key]=self.asic.asic_config['recconfig'][key][1]
+        for key in self.asics[layer].asic_config[f'config_{chip}']['recconfig']:
+                arrayconfig[key]=self.asics[layer].asic_config[f'config_{chip}']['recconfig'][key][1]
 
         # This is not a nice line, but its the most efficent way to get all the values in the same place.
         return f"Digital: {digitalconfig}\n" +f"Biasblock: {biasconfig}\n" + f"iDAC: {idacconfig}\n"+ vdac_str + f"\n Receiver: {arrayconfig}" 
