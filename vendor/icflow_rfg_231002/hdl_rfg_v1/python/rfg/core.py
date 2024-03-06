@@ -1,7 +1,9 @@
 
 import logging
+import math
+import asyncio
+
 from enum import Enum
-import asyncio 
 
 logger = logging.getLogger(__name__)
 
@@ -85,18 +87,35 @@ class AbstractRFG:
             for cmd in self.commands:
                 if cmd.write:
                     logger.debug("Adding Write with value of %d bytes,increment=%s", len(cmd.values),cmd.addressIncrement)
-                    if cmd.addressIncrement:
-                        bytes.append(0x05)
-                    else:
-                        bytes.append(0x01)
-                    bytes.append(cmd.register.value)
-                    bytes.append(cmd.length.to_bytes(byteorder="little",length=2)[0])
-                    bytes.append(cmd.length.to_bytes(byteorder="little",length=2)[1])
                     
-                    for v in cmd.values:
-                        bV = v.to_bytes(byteorder="little",length=1)[0]
-                        #logger.debug("-> byte %x", bV)
-                        bytes.append(bV)
+                    ## Writes Might be longer than the 65536 limit (2 bytes length)
+                    ## It is considered safe in this version to split into multiple writes
+                    requiredWrites = int(math.ceil((len(cmd.values)/65535.0)))
+                    remainingBytes = len(cmd.values)
+                    for i in range(requiredWrites):
+                        
+                        offset = i * 65535
+                        length = remainingBytes if remainingBytes <= 65535 else 65535
+                        values = cmd.values[offset:length]
+                        remainingBytes -= length 
+
+                        logger.debug(f"- Write part {i}/{requiredWrites},offset={offset},length={length}")
+                        
+
+                        if cmd.addressIncrement:
+                            bytes.append(0x05)
+                        else:
+                            bytes.append(0x01)
+                        bytes.append(cmd.register.value)
+                        #bytes.append(cmd.length.to_bytes(byteorder="little",length=2)[0])
+                        #bytes.append(cmd.length.to_bytes(byteorder="little",length=2)[1])
+                        bytes.append(length.to_bytes(byteorder="little",length=2)[0])
+                        bytes.append(length.to_bytes(byteorder="little",length=2)[1])
+                        
+                        for v in values:
+                            bV = v.to_bytes(byteorder="little",length=1)[0]
+                            #logger.debug("-> byte %x", bV)
+                            bytes.append(bV)
                 else:
                     if cmd.addressIncrement:
                         bytes.append(0x06)
