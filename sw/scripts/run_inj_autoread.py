@@ -76,7 +76,7 @@ async def main():
             hit = readout[:buff]
             print(binascii.hexlify(hit))
             #print(hex(readout[:buff]))
-            astro.decode_readout(hit, inc) 
+            astro.decode_readout_autoread(hit, inc) 
         
         #await(astro.print_status_reg())
 

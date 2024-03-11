@@ -35,7 +35,7 @@ async def main():
     await astro.asic_init(yaml="test_quadchip", analog_col=pixel[1])
     print(f"Header: {astro.get_log_header()}")
 
-    #print("initializing voltage")
+    print("initializing voltage")
     await astro.init_voltages() ## th in mV
 
     print("FUNCTIONALITY CHECK")
@@ -85,8 +85,10 @@ async def main():
 
     print("read out buffer")
     buff, readout = await(astro.get_readout())
-    print(binascii.hexlify(readout))
+    readout_data = readout[:buff]
+    print(binascii.hexlify(readout_data))
     print(f"{buff} bytes in buffer")
+    astro.decode_readout(readout_data, 0)
 
 
 asyncio.run(main())
