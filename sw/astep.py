@@ -491,11 +491,11 @@ class astepRun:
         while b<len(readout):
             packet_len = int(readout[b])
             if packet_len>16:
-                print("Probably didn't find a hit here - go to next byte")
+                logger.debug("Probably didn't find a hit here - go to next byte")
                 b+=1
             else: #got a hit
                 list_hits.append(readout[b:b+packet_len+1])
-                #print(f"found hit {binascii.hexlify(readout[b:b+packet_len+1])}")
+                #logger.debug(f"found hit {binascii.hexlify(readout[b:b+packet_len+1])}")
                 b += packet_len+1
 
         #decode hit contents

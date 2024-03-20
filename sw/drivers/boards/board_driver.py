@@ -202,7 +202,7 @@ class BoardDriver():
         #    regval = regval | ( disable_autoread << 2 )
         await getattr(self.rfg, f"write_layer_{layer}_cfg_ctrl")(regval,flush)
     
-    async def setLayerConfig(self,layer:int, reset : bool, autoread : bool   , hold:bool , flush = False):
+    async def setLayerConfig(self,layer:int, reset : bool, autoread : bool, hold:bool , flush = False):
         """Modified the layer confi with provided bools
 
         Args:
