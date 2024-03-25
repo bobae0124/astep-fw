@@ -11,7 +11,7 @@ from bitstring import BitArray
 from tqdm import tqdm
 import pandas as pd
 import time
-import os, sys
+import os, sys, binascii
 
 from core.decode import Decode
 import drivers.boards
@@ -173,8 +173,8 @@ class astepRun:
                 #Enable analog pixel from given chip in the daisy chain
                 logger.info(f"enabling analog output in column {ana_col} of chip {ana_chip} in layer {ana_layer}")
                 self.asics[ana_layer].enable_ampout_col(ana_chip, ana_col, inplace=False)
-            except IndexError:
-                logger.error(f"Cannot enable analog pixel in chip {analog_col[0]} - chip does not exist")
+            except (IndexError, KeyError):
+                logger.error(f"Cannot enable analog pixel in chip {ana_chip} - chip does not exist")
                 sys.exit(1)
 
         # Turns on injection if so desired 
