@@ -454,8 +454,8 @@ class astepRun:
         print(f"Layer Status:  {hex(status)},interruptn={status & 0x1},decoding={(status >> 1) & 0x1},reset={(ctrl>>1) & 0x1},hold={(ctrl) & 0x1},buffer={await (self.boardDriver.readoutGetBufferSize())}")
         #logger.info(f"Layer Status:  {hex(status)},interruptn={status & 0x1},decoding={(status >> 1) & 0x1},reset={(ctrl>>1) & 0x1},hold={(ctrl) & 0x1},buffer={await (self.boardDriver.readoutGetBufferSize())}")
 
-    def decode_readout(self, readout:bytearray, i:int, printer: bool = True, nmb_bytes:int = 11):
-        #Decodes readout
+    def decode_readout_autoread(self, readout:bytearray, i:int, printer: bool = True, nmb_bytes:int = 11):
+        #Decodes streamed readout for when 'autoread' is enabled
 
         #Required argument:
         #readout: Bytearray - readout from sensor, not the printed Hex values
@@ -499,7 +499,7 @@ class astepRun:
                     f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
                     f"TS: {timestamp}\t"
                     f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us)\n"
-                    f"Trailing: {int(hit[7])}\t{int(hit[8])}\t{int(hit[9])}\t{int(hit[10])}"           
+                    f"Trailing: {int(hit[7])}\t{int(hit[8])}\t{int(hit[9])}\t{int(hit[10])}\n"           
                     )
                 except IndexError:
                   print(
@@ -525,6 +525,94 @@ class astepRun:
                 'tot_total': tot_total,
                 'tot_us': ((tot_total * self.sampleclock_period_ns)/1000.0),
                 'hittime': time.time()
+                }
+            hit_list.append(hits)
+
+        # Much simpler to convert to df in the return statement vs df.concat
+        return pd.DataFrame(hit_list)
+    
+    def decode_readout(self, readout:bytearray, i:int, printer: bool = True, nmb_bytes:int = 11):
+        #Decodes readout
+
+        #Required argument:
+        #readout: Bytearray - readout from sensor, not the printed Hex values
+        #i: int - Readout number
+
+        #Optional:
+        #printer: bool - Print decoded output to terminal
+
+        #Returns dataframe
+
+        #!!! Warning, richard 11/10/23 -> The Astep FW returns all bits properly ordered, don't reverse bits when using this firmware!
+
+        #list_hits = [readout[i:i+nmb_bytes] for i in range(0,len(readout),nmb_bytes)]
+        list_hits =[]
+        hit_list = []
+
+        #Break full readout into separate data packets as defined by how many bytes are contained in each hit from the FW, use to fill array 'list_hits'
+        b=0
+        while b<len(readout):
+            packet_len = int(readout[b])
+            if packet_len>16:
+                logger.debug("Probably didn't find a hit here - go to next byte")
+                b+=1
+            else: #got a hit
+                list_hits.append(readout[b:b+packet_len+1])
+                #logger.debug(f"found hit {binascii.hexlify(readout[b:b+packet_len+1])}")
+                b += packet_len+1
+
+        #decode hit contents
+        for hit in list_hits:
+            # Generates the values from the bitstream
+            #if (sum(hit) == 1020) or (int(hit[0])+int(hit[1]) == 510): #HARDCODED MAX BUFFER or 'HIT' OF ONLY 1'S- WILL NEED TO REVISIT
+            #    continue 
+            try:
+                id          = int(hit[2]) >> 3
+                payload     = int(hit[2]) & 0b111
+                location    = int(hit[3])  & 0b111111
+                col         = 1 if (int(hit[3]) >> 7 ) & 1 else 0
+                timestamp   = int(hit[4])
+                tot_msb     = int(hit[5]) & 0b1111
+                tot_lsb     = int(hit[6])   
+                tot_total   = (tot_msb << 8) + tot_lsb
+            except IndexError: #hit cut off at end of stream
+                id, payload, location, col = -1, -1, -1, -1
+                timestamp, tot_msb, tot_lsb, tot_total = -1, -1, -1, -1
+            
+            # print decoded info in terminal if desiered
+            if printer:
+                try:
+                  print(
+                    f"{i} Packet len: {int(hit[0])}\t Layer ID: {int(hit[1])}\n"
+                    f"ChipId: {id}\tPayload: {payload}\t"
+                    f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
+                    f"TS: {timestamp}\t"
+                    f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us)\n"
+                    f"FPGA TS: {binascii.hexlify(hit[7:11])}\n"           
+                    )
+                except IndexError:
+                  print(
+                    #f"{i} Header: {int(hit[0])}\t {int(hit[1])}\n"
+                    #f"ChipId: {id}\tPayload: {payload}\t"
+                    #f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
+                    #f"TS: {timestamp}\t"
+                    #f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us)\n"
+                    f"HIT TOO SHORT TO BE DECODED - {binascii.hexlify(hit)}"           
+                    )
+
+            # hits are sored in dictionary form
+            hits = {
+                'readout': i,
+                'Chip ID': id,
+                'payload': payload,
+                'location': location,
+                'isCol': (True if col else False),
+                'timestamp': timestamp,
+                'tot_msb': tot_msb,
+                'tot_lsb': tot_lsb,
+                'tot_total': tot_total,
+                'tot_us': ((tot_total * self.sampleclock_period_ns)/1000.0),
+                'fpga_ts': binascii.hexlify(hit[7:11])
                 }
             hit_list.append(hits)
 
