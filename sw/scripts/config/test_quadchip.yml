@@ -4,10 +4,12 @@
 # It is important, that the order of configbits under the config section, corresponds to the actual order in the chip
 #
 # astropix<version>:
+#   chain:
+#        length: <number of chips in daisy chain>
 #   geometry:
 #       cols: <number of cols>
 #       rows: <number of rows>
-#   config:
+#   config_*:
 #       <group-name>:
 #           <configbit-name>: [<number of bits>, <value>]
 #   ...
