@@ -184,7 +184,7 @@ class astepRun:
 
     #Interface with asic.py 
     async def enable_pixel(self, layer:int, chip:int, row: int, col: int):
-       self.asics[layer].enable_pixel(layer, chip, col, row)
+       self.asics[layer].enable_pixel(chip, col, row)
 
     # The method to write data to the asic. 
     async def asic_update(self, layer):
