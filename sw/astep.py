@@ -440,6 +440,10 @@ class astepRun:
 
 ############################ Decoder ##############################
     async def setup_readout(self, layer:int, autoread:int = 1):
+        #Clear FPGA buffer
+        await self.boardDriver.setLayerConfig(layer = layer , reset = False , autoread = False, hold = True, flush = True)
+        time.sleep(3)
+        await(self.boardDriver.readoutReadBytes(4096))
         #Take take layer out of reset and hold, enable "FW-driven readout"
         await self.boardDriver.setLayerConfig(layer = layer , reset = False , autoread  = autoread, hold=False, flush = True )
    
