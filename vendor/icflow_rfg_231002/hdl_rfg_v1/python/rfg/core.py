@@ -96,10 +96,10 @@ class AbstractRFG:
                         
                         offset = i * 65535
                         length = remainingBytes if remainingBytes <= 65535 else 65535
-                        values = cmd.values[offset:length]
+                        values = cmd.values[offset:offset+length]
                         remainingBytes -= length 
 
-                        logger.debug(f"- Write part {i}/{requiredWrites},offset={offset},length={length}")
+                        logger.debug(f"- Write part {i}/{requiredWrites},offset={offset},length={length},values array length={len(values)}")
                         
 
                         if cmd.addressIncrement:
