@@ -372,7 +372,7 @@ class Asic():
 
             # SIN (bit 3 in register)
             sinValue = (1 if bit == True else 0) << 2
-            self.rfg.addWrite(register = targetRegister, value = sinValue)
+            self.rfg.addWrite(register = targetRegister, value = sinValue, repeat = ckdiv) #ensure SIN has higher delay than CLK1 to avoid setup violation / incorrect sampling
 
             # CK1
             self.rfg.addWrite(register = targetRegister, value = sinValue | 0x1 , repeat = ckdiv)
