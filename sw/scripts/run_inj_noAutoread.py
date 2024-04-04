@@ -33,7 +33,7 @@ async def main():
     await astro.enable_spi()
     
     print("initializing asic")
-    await astro.asic_init(yaml="test_quadchip", analog_col=[layer, chip ,pixel[3]])
+    await astro.asic_init(yaml="test_quadchip_new", analog_col=[layer, chip ,pixel[3]], chipsPerRow=1)
     print(f"Header: {astro.get_log_header(layer, chip)}")
 
     print("initializing voltage")
