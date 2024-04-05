@@ -60,7 +60,7 @@ astropix3:
 
         vdacs:
             blpix:              [10, 568]
-            thpix:              [10, 57]
+            thpix:              [10, 62]
             vcasc2:             [10, 625]
             nu1:                [10, 512]
             thpmos:             [10, 682]
@@ -141,7 +141,7 @@ astropix3:
 
         vdacs:
             blpix:              [10, 568]
-            thpix:              [10, 57]
+            thpix:              [10, 682]
             vcasc2:             [10, 625]
             nu1:                [10, 512]
             thpmos:             [10, 682]
@@ -222,7 +222,7 @@ astropix3:
 
         vdacs:
             blpix:              [10, 568]
-            thpix:              [10, 57]
+            thpix:              [10, 682]
             vcasc2:             [10, 625]
             nu1:                [10, 512]
             thpmos:             [10, 682]
@@ -303,7 +303,7 @@ astropix3:
 
         vdacs:
             blpix:              [10, 568]
-            thpix:              [10, 57]
+            thpix:              [10, 682]
             vcasc2:             [10, 625]
             nu1:                [10, 512]
             thpmos:             [10, 682]

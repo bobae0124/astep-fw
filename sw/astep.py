@@ -244,7 +244,8 @@ class astepRun:
     async def update_pixThreshold(self, layer:int, chip:int, vThresh:int): 
         #vThresh = comparator threshold provided in mV
         dacThresh = self.get_internal_vdac(vThresh/1000.) #convert from mV to V
-        await self.update_asic_config(layer, chip, vdac_cfg={'thpix':dacThresh})
+        dacBL = self.asics[layer].asic_config[f'config_{chip}']['vdacs']['blpix'][1]
+        await self.update_asic_config(layer, chip, vdac_cfg={'thpix':dacBL+dacThresh})
 
     async def init_voltages(self, vcal:float = .989, vsupply: float = 2.7, vthreshold:float = None, dacvals: tuple[int, list[float]] = None):
         """
