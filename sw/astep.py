@@ -13,7 +13,6 @@ import pandas as pd
 import time
 import os, sys, binascii
 
-from core.decode import Decode
 import drivers.boards
 
 from drivers.astropix.asic import Asic
@@ -57,8 +56,6 @@ class astepRun:
         self.sampleclock_period_ns = clock_period_ns
         self.chipversion = chipversion
         self.SR = SR #define how to configure. If True, shift registers. If False, SPI
-        # Creates objects used later on
-        self.decode = Decode(clock_period_ns)
 
 
     async def open_fpga(self):
@@ -316,8 +313,8 @@ class astepRun:
             # elifs check to ensure we are not injecting a negative value because we don't have that ability
             if inj_voltage < 0:
                 raise ValueError("Cannot inject a negative voltage!")
-            elif inj_voltage > 1800:
-                logger.warning("Cannot inject more than 1800mV, will use defaults")
+            elif inj_voltage > 800:
+                logger.warning("Cannot inject more than 800mV, will use defaults")
                 inj_voltage = 300 #Sets to 300 mV
 
         if inj_voltage:
@@ -436,7 +433,7 @@ class astepRun:
                 arrayconfig[key]=self.asics[layer].asic_config[f'config_{chip}']['recconfig'][key][1]
 
         # This is not a nice line, but its the most efficent way to get all the values in the same place.
-        return f"Digital: {digitalconfig}\n" +f"Biasblock: {biasconfig}\n" + f"iDAC: {idacconfig}\n"+ vdac_str + f"\n Receiver: {arrayconfig}" 
+        return f"Digital: {digitalconfig}\n" +f"Biasblock: {biasconfig}\n" + f"iDAC: {idacconfig}\n"+ vdac_str + f"Receiver: {arrayconfig}" 
 
 
 ############################ Decoder ##############################
@@ -593,7 +590,7 @@ class astepRun:
                     f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
                     f"TS: {timestamp}\t"
                     f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us)\n"
-                    f"FPGA TS: {binascii.hexlify(hit[7:11])} ({int.from_bytes(hit[7:11], sys.byteorder)})\n"           
+                    f"FPGA TS: {binascii.hexlify(hit[7:11])} ({int.from_bytes(hit[7:11], 'little')})\n"           
                     )
                 except IndexError:
                   print(
