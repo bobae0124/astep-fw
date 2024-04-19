@@ -262,8 +262,9 @@ class Asic():
         try:
             return BitArray(uint=value, length=nbits)
         except ValueError:
-            logger.error('Allowed Values 0 - %d', 2**nbits-1)
-            return None
+            logger.error('Bad setting - Allowed Values 0 - %d', 2**nbits-1)
+            #return None
+            sys.exit(1)
 
     def load_conf_from_yaml(self, filename: str, **kwargs) -> None:
         """Load ASIC config from yaml
