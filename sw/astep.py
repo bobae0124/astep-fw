@@ -14,6 +14,7 @@ import time
 import os, sys, binascii
 
 import drivers.boards
+import drivers.astep.serial
 
 from drivers.astropix.asic import Asic
 
@@ -44,6 +45,8 @@ class astepRun:
         self._asic_start = False
         self.asics = []
 
+        self._geccoBoard = None
+
         # Start putting the variables in for use down the line
         if inject is None:
             inject = (None, None)
@@ -58,9 +61,19 @@ class astepRun:
         self.SR = SR #define how to configure. If True, shift registers. If False, SPI
 
 
-    async def open_fpga(self):
+    async def open_fpga(self, cmod:bool, uart:bool): 
         """Create the Board Driver, open a connection to the hardware and performs a read test"""
-        self.boardDriver = drivers.boards.getGeccoFTDIDriver()
+        if cmod and uart:
+            self.boardDriver = drivers.boards.getCMODUartDriver(drivers.astep.serial.getFirstCOMPort())
+        elif cmod and not uart:
+            self.boardDriver = drivers.boards.getCMODDriver()
+        elif not cmod and uart:
+            self.boardDriver = drivers.boards.getGeccoUARTDriver(drivers.astep.serial.getFirstCOMPort())
+        elif not cmod and not uart:
+            self.boardDriver = drivers.boards.getGeccoFTDIDriver()
+
+        self._geccoBoard = True if not cmod else False
+
         self.boardDriver.open()
         logger.info("Opened FPGA, testing...")
         await self._test_io()
@@ -257,6 +270,11 @@ class astepRun:
         # The default values to pass to the voltage dac. Last value in list is threshold voltage, default 100mV or 1.1
         # Included in YAML for v3 (not v2)
 
+        # Check the required HW is available
+        if not self._geccoBoard:
+            logger.erorr("No GECCO board configured, so a voltageboard cannot be configured. Check FPGA settings.")
+            raise
+
         # From nicholas's beam_test.py:
         # 1=thpmos (comparator threshold voltage), 3 = Vcasc2, 4=BL, 7=Vminuspix, 8=Thpix 
         if self.chipversion == 2:
@@ -309,6 +327,11 @@ class astepRun:
         onchip: bool (generate signal on chip or on GECCO card)
         """
         
+        # Check the required HW is available
+        if not self._geccoBoard:
+            logger.erorr("No GECCO board configured, so an injectionboard cannot be configured. Check FPGA settings.")
+            raise        
+
         if (inj_voltage is not None) and (dac_config is None):
             # elifs check to ensure we are not injecting a negative value because we don't have that ability
             if inj_voltage < 0:
