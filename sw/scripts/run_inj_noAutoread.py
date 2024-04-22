@@ -37,13 +37,13 @@ async def main():
     print(f"Header: {astro.get_log_header(layer, chip)}")
 
     print("initializing voltage")
-    await astro.init_voltages() ## th in mV
+    await astro.init_voltages(vthreshold=100) ## th in mV
 
     print("FUNCTIONALITY CHECK")
     await astro.functionalityCheck(holdBool=True)
 
-    print("update threshold")
-    await astro.update_pixThreshold(layer, chip, 100)
+    #print("update threshold")
+    #await astro.update_pixThreshold(layer, chip, 100)
 
     print("enable pixel")
     await astro.enable_pixel(layer, chip, pixel[2], pixel[3])  
