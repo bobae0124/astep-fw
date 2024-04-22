@@ -320,31 +320,20 @@ class Asic():
         """
         bitvector = BitArray()
 
-        #if self.num_chips > 1:
         for chip in range(self.num_chips-1, -1, -1): #configure far end of daisy chain first
             for key in self.asic_config[f'config_{chip}']:
-                for values in self.asic_config[f'config_{chip}'][key].values():
-                    bitvector.append(self.__int2nbit(values[1], values[0]))
-
-            if not msbfirst:
-                bitvector.reverse()
-
-            logger.info("Generated chip_%d config successfully!", chip)
-        """
-        else:
-            for key in self.asic_config:
-                for values in self.asic_config[key].values():
+                for values in self.asic_config[f'config_{chip}'][key].values(): 
                     if(key=='vdacs'):
                         bitvector_vdac_reversed = BitArray(self.__int2nbit(values[1], values[0]))
                         bitvector_vdac_reversed.reverse()
                         bitvector.append(bitvector_vdac_reversed)
                     else:
-                        print(values)
                         bitvector.append(self.__int2nbit(values[1], values[0]))
 
             if not msbfirst:
                 bitvector.reverse()
-        """
+
+            logger.info("Generated chip_%d config successfully!", chip)
 
         logger.debug(bitvector)
 
