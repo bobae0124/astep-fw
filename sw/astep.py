@@ -6,8 +6,6 @@ Author:  Amanda Steinhebel, amanda.l.steinhebel@nasa.gov
 """
 # Needed modules. They all import their own suppourt libraries, 
 # and eventually there will be a list of which ones are needed to run
-from typing import Dict
-from bitstring import BitArray
 from tqdm import tqdm
 import pandas as pd
 import time
