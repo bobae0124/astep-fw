@@ -18,13 +18,14 @@ logger = logging.getLogger(__name__)
 
 layer, chip = 0,0
 pixel = [layer, chip, 0, 15] #layer, chip, row, column
+cmod = False
 
 print("creating object")
 astro = astepRun(inject=pixel)
 
 async def main():
     print("opening fpga")
-    await astro.open_fpga()
+    await astro.open_fpga(cmod=cmod, uart=False)
 
     print("setup clocks")
     await astro.setup_clocks()
@@ -36,8 +37,9 @@ async def main():
     await astro.asic_init(yaml="test_quadchip", analog_col=[layer, chip ,pixel[3]], chipsPerRow = 1)
     print(f"Header: {astro.get_log_header(layer, chip)}") #give layer, chip
 
-    print("initializing voltage")
-    await astro.init_voltages() ## th in mV
+    if not cmod:
+        print("initializing voltage")
+        await astro.init_voltages() ## th in mV
 
     print("FUNCTIONALITY CHECK")
     await astro.functionalityCheck(holdBool=True)
