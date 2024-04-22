@@ -48,11 +48,13 @@ class astepRun:
         # Start putting the variables in for use down the line
         if inject is None:
             inject = (None, None)
-            self.injection_layer = -1
-        self.injection_col = inject[3]
-        self.injection_row = inject[2]
-        self.injection_chip = inject[1]
-        self.injection_layer = inject[0]
+            self._injection = False
+        else:
+            self._injection=True
+            self.injection_col = inject[3]
+            self.injection_row = inject[2]
+            self.injection_chip = inject[1]
+            self.injection_layer = inject[0]
 
         self.sampleclock_period_ns = clock_period_ns
         self.chipversion = chipversion
@@ -137,9 +139,10 @@ class astepRun:
         self.asic_init() - initalize the asic configuration. Must be called first
         Positional arguments: None
         Optional:
-        dac_setup: dict - dictionary of values passed to the configuration. Only needs values diffent from defaults
-        bias_setup: dict - dict of values for the bias configuration Only needs key/vals for changes from default
-        analog_col: int - Sets a column to readout analog data from. 
+        yaml:str - Name of yml file with configuration values
+        rows:int - Number of SPI busses / ASIC objects to create
+        chipsPerRow:int - Number of arrays per SPI bus, must all be equal
+        analog_col: list[int] - Define layer, chip, col (in that order) of pixel to enable analog output (only one per row) 
         """
 
         # Now that the asic has been initalized we can go and make this true
@@ -186,7 +189,7 @@ class astepRun:
                 sys.exit(1)
 
         # Turns on injection if so desired 
-        if self.injection_chip > -1:
+        if self._injection:
             self.asics[self.injection_layer].enable_inj_col(self.injection_chip, self.injection_col, inplace=False)
             self.asics[self.injection_layer].enable_inj_row(self.injection_chip, self.injection_row, inplace=False)
 
