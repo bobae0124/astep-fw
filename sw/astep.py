@@ -64,7 +64,8 @@ class astepRun:
     async def open_fpga(self, cmod:bool, uart:bool): 
         """Create the Board Driver, open a connection to the hardware and performs a read test"""
         if cmod and uart:
-            self.boardDriver = drivers.boards.getCMODUartDriver(drivers.astep.serial.getFirstCOMPort())
+            #self.boardDriver = drivers.boards.getCMODUartDriver(drivers.astep.serial.getFirstCOMPort())
+            self.boardDriver = drivers.boards.getCMODUartDriver("COM4")
         elif cmod and not uart:
             self.boardDriver = drivers.boards.getCMODDriver()
         elif not cmod and uart:
@@ -273,7 +274,7 @@ class astepRun:
 
         # Check the required HW is available
         if not self._geccoBoard:
-            logger.erorr("No GECCO board configured, so a voltageboard cannot be configured. Check FPGA settings.")
+            logger.error("No GECCO board configured, so a voltageboard cannot be configured. Check FPGA settings.")
             raise
 
         # From nicholas's beam_test.py:
@@ -330,7 +331,7 @@ class astepRun:
         
         # Check the required HW is available
         if not self._geccoBoard:
-            logger.erorr("No GECCO board configured, so an injectionboard cannot be configured. Check FPGA settings.")
+            logger.error("No GECCO board configured, so an injectionboard cannot be configured. Check FPGA settings.")
             raise        
 
         if (inj_voltage is not None) and (dac_config is None):
