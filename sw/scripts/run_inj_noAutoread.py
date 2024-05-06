@@ -16,11 +16,19 @@ logging.getLogger().addHandler(fh)
 logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
+#######################################################
+############## USER DEFINED VARIABLES #################
 layer, chip = 0,0
 pixel = [layer, chip, 0, 15] #layer, chip, row, column
+configViaSR = True #if False, config with SPI
+inj_voltage = 600 #injection amplitude in mV
+threshold = 200 #global comparator threshold level in mV
+runTime = 5 #duration of run in s
+#######################################################
+
 
 print("creating object")
-astro = astepRun(inject=pixel)
+astro = astepRun(inject=pixel,SR=configViaSR)
 
 async def main():
     print("opening fpga")
@@ -33,11 +41,11 @@ async def main():
     await astro.enable_spi()
     
     print("initializing asic")
-    await astro.asic_init(yaml="test_quadchip_new", analog_col=[layer, chip ,pixel[3]], chipsPerRow=1)
+    await astro.asic_init(yaml="test_quadchip_new", analog_col=[layer, chip ,pixel[3]], chipsPerRow=2)
     print(f"Header: {astro.get_log_header(layer, chip)}")
 
     print("initializing voltage")
-    await astro.init_voltages(vthreshold=100) ## th in mV
+    await astro.init_voltages(vthreshold=threshold) ## th in mV
 
     print("FUNCTIONALITY CHECK")
     await astro.functionalityCheck(holdBool=True)
@@ -49,18 +57,21 @@ async def main():
     await astro.enable_pixel(layer, chip, pixel[2], pixel[3])  
 
     print("init injection")
-    await astro.init_injection(layer, chip, inj_voltage=300)
+    await astro.init_injection(layer, chip, inj_voltage=inj_voltage)
 
     print("final configs")
-    print(f"Header: {astro.get_log_header(layer, chip)}")
-    await astro.asic_configure(layer)
+    for l in range(layer+1):
+        print(f"Header: {astro.get_log_header(l, chip)}")
+        await astro.asic_configure(l)
     
-    print("setup readout")
-    #pass layer number
-    await astro.setup_readout(layer, autoread=0) #disable autoread
+        print("setup readout")
+        #pass layer number
+        await astro.setup_readout(layer, autoread=0) #disable autoread
 
     print("start injection")
+    await astro.checkInjBits()
     await astro.start_injection()
+    await astro.checkInjBits()
 
     """
     t0 = time.time()
@@ -79,9 +90,11 @@ async def main():
         
         #await(astro.print_status_reg())
     """
-    astro._wait_progress(5)
+    astro._wait_progress(runTime)
     print("stop injection")
+    await astro.checkInjBits()
     await astro.stop_injection()
+    await astro.checkInjBits()
 
 
     print("read out buffer")
