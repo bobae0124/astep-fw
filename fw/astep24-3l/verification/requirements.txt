@@ -2,4 +2,4 @@ cocotbext-uart
 pytest
 bitstring~=3.1
 PyYAML
-
+Deprecated
