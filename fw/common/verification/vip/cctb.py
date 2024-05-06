@@ -50,8 +50,14 @@ async def common_clock_reset_nexys(dut):
     dut.cpu_resetn.value = 1
     await Timer(100, units="us")
 
-
-
+async def common_clock_reset_cmod(dut):
+    cocotb.start_soon(Clock(dut.sysclk, 10, units='ns').start())
+    dut.warm_resn.value = 0
+    dut.cold_resn.value = 0
+    await Timer(1, units="us")
+    dut.warm_resn.value = 1
+    dut.cold_resn.value = 1
+    await Timer(100, units="us")
 
 async def common_clock_reset(dut):
     cocotb.start_soon(Clock(dut.sysclk, 10, units='ns').start())
