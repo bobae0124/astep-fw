@@ -348,8 +348,8 @@ class astepRun:
             await self.update_asic_config(layer, chip, vdac_cfg={'vinj':self.get_internal_vdac(inj_voltage/1000.)})
 
         #self._geccoBoard = False
-        print("INJ_WDATA BEFORE CONF")
-        print(await self.boardDriver.rfg.read_layers_inj_wdata(1024))
+        #print("INJ_WDATA BEFORE CONF")
+        #print(await self.boardDriver.rfg.read_layers_inj_wdata(1024))
 
         if self._geccoBoard:
             # Injection Board is provided by the board Driver
@@ -425,8 +425,8 @@ class astepRun:
         # Check the required HW is available
         if self._geccoBoard:
             await self.injector.start()
-            print("INJ_WDATA AFTER START")
-            print(await self.boardDriver.rfg.read_layers_inj_wdata(1024))
+            #print("INJ_WDATA AFTER START")
+            #print(await self.boardDriver.rfg.read_layers_inj_wdata(1024))
         else:
             print("STARTING WITH REGISTERS")
             layers_inj_val = await self.boardDriver.rfg.read_layers_inj_ctrl()
@@ -442,8 +442,8 @@ class astepRun:
         Takes no arguments and no return
         """
         # Check the required HW is available
-        if  self._geccoBoard:
-             await self.injector.stop()
+        if self._geccoBoard:
+            await self.injector.stop()
         else:
             print("STOPPING WITH REGISTERS")
             layers_inj_val = await self.boardDriver.rfg.read_layers_inj_ctrl()
