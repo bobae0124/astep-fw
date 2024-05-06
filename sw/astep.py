@@ -275,7 +275,7 @@ class astepRun:
         # Check the required HW is available
         if not self._geccoBoard:
             logger.error("No GECCO board configured, so a voltageboard cannot be configured. Check FPGA settings.")
-            raise
+            raise RuntimeError("No GECCO board configured, so a voltageboard cannot be configured. Check FPGA settings.")
 
         # From nicholas's beam_test.py:
         # 1=thpmos (comparator threshold voltage), 3 = Vcasc2, 4=BL, 7=Vminuspix, 8=Thpix 
@@ -328,11 +328,12 @@ class astepRun:
         dac_config:tuple[int, list[float]]: injdac settings. Must be fully specified if set. 
         onchip: bool (generate signal on chip or on GECCO card)
         """
-        
+        """
         # Check the required HW is available
         if not self._geccoBoard:
             logger.error("No GECCO board configured, so an injectionboard cannot be configured. Check FPGA settings.")
             raise        
+        """
 
         if (inj_voltage is not None) and (dac_config is None):
             # elifs check to ensure we are not injecting a negative value because we don't have that ability
@@ -345,27 +346,37 @@ class astepRun:
         if inj_voltage:
             #Update vdac value from yml 
             await self.update_asic_config(layer, chip, vdac_cfg={'vinj':self.get_internal_vdac(inj_voltage/1000.)})
-        
-        # Injection Board is provided by the board Driver
-        # The Injection Board provides an underlying Voltage Board
-        
-        self.injector = self.boardDriver.geccoGetInjectionBoard()
-        if not onchip:
-            await self.boardDriver.ioSetInjectionToGeccoInjBoard(enable = True, flush = True)
-            self.injectorBoard = self.injector.vBoard
-            self.injectorBoard.dacvalues = (8, [inj_voltage/1000.,0.0]) #defaults from Nicolas
-            self.injectorBoard.vcal = self.vboard.vcal
-            self.injectorBoard.vsupply = self.vboard.vsupply
-            await self.injectorBoard.update()
+
+        #self._geccoBoard = False
+        print("INJ_WDATA BEFORE CONF")
+        print(await self.boardDriver.rfg.read_layers_inj_wdata(1024))
+
+        if self._geccoBoard:
+            # Injection Board is provided by the board Driver
+            # The Injection Board provides an underlying Voltage Board
+            self.injector = self.boardDriver.geccoGetInjectionBoard()
+            if not onchip:
+                await self.boardDriver.ioSetInjectionToGeccoInjBoard(enable = True, flush = True)
+                self.injectorBoard = self.injector.vBoard
+                self.injectorBoard.dacvalues = (8, [inj_voltage/1000.,0.0]) #defaults from Nicolas
+                self.injectorBoard.vcal = self.vboard.vcal
+                self.injectorBoard.vsupply = self.vboard.vsupply
+                await self.injectorBoard.update()
+            else:
+                await self.boardDriver.ioSetInjectionToGeccoInjBoard(enable = False, flush = True)
+
+            self.injector.period = inj_period
+            self.injector.clkdiv = clkdiv
+            self.injector.initdelay = initdelay
+            self.injector.cycle = cycle
+            self.injector.pulsesperset = pulseperset 
         else:
+            #Injection provided through integrated features on chip
+            print("SET INJ WITH REGISTERS")
             await self.boardDriver.ioSetInjectionToGeccoInjBoard(enable = False, flush = True)
 
-        self.injector.period = inj_period
-        self.injector.clkdiv = clkdiv
-        self.injector.initdelay = initdelay
-        self.injector.cycle = cycle
-        self.injector.pulsesperset = pulseperset     
-                 
+        #self._geccoBoard = False
+
     async def update_injection(self, layer:int, chip:int, inj_voltage:float = None, inj_period:int = None, clkdiv:int = None, initdelay: int = None, cycle: float = None, pulseperset: int = None):
         """
         Update injections after injector object is created
@@ -405,13 +416,24 @@ class astepRun:
             self.injector.pulseperset = pulseperset
         
 
-    # These start and stop injecting voltage. Fairly simple.
+    # These start and stop injecting voltage. 
     async def start_injection(self):
         """
         Starts Injection.
         Takes no arguments and no return
         """
-        await self.injector.start()
+        # Check the required HW is available
+        if self._geccoBoard:
+            await self.injector.start()
+            print("INJ_WDATA AFTER START")
+            print(await self.boardDriver.rfg.read_layers_inj_wdata(1024))
+        else:
+            print("STARTING WITH REGISTERS")
+            layers_inj_val = await self.boardDriver.rfg.read_layers_inj_ctrl()
+            if layers_inj_val>0: #injection not running
+                await self.boardDriver.rfg.write_layers_inj_ctrl(0b0)
+                await self.boardDriver.rfg.write_layers_inj_ctrl(0b1)
+                await self.boardDriver.rfg.write_layers_inj_ctrl(0b0)
         logger.info("Began injection")
 
     async def stop_injection(self):
@@ -419,7 +441,15 @@ class astepRun:
         Stops Injection.
         Takes no arguments and no return
         """
-        await self.injector.stop()
+        # Check the required HW is available
+        if  self._geccoBoard:
+             await self.injector.stop()
+        else:
+            print("STOPPING WITH REGISTERS")
+            layers_inj_val = await self.boardDriver.rfg.read_layers_inj_ctrl()
+            if layers_inj_val==0: #injection running
+                await self.boardDriver.rfg.write_layers_inj_ctrl(3)
+
         logger.info("Stopped injection")
 
 
