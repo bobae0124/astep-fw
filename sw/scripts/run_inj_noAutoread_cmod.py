@@ -20,11 +20,10 @@ layer, chip = 0,0
 pixel = [layer, chip, 0, 15] #layer, chip, row, column
 
 print("creating object")
-astro = astepRun(inject=pixel)
+astro = astepRun(inject=pixel, SR=True)
 
 async def main():
     print("opening fpga")
-    #await astro.open_fpga(cmod=False, uart=False)
     await astro.open_fpga(cmod=True, uart=True)
 
     print("setup clocks")
@@ -37,20 +36,11 @@ async def main():
     await astro.asic_init(yaml="test_quadchip_new", analog_col=[layer, chip ,pixel[3]], chipsPerRow=1)
     print(f"Header: {astro.get_log_header(layer, chip)}")
 
-    #print("initializing voltage")
-    #await astro.init_voltages(vthreshold=100) ## th in mV
-
     print("FUNCTIONALITY CHECK")
     await astro.functionalityCheck(holdBool=True)
 
-    #print("update threshold")
-    #await astro.update_pixThreshold(layer, chip, 100)
-
     print("enable pixel")
     await astro.enable_pixel(layer, chip, pixel[2], pixel[3])  
-
-    #print("init injection")
-    #await astro.init_injection(layer, chip, inj_voltage=300)
 
     print("final configs")
     for l in range(layer+1):
@@ -60,9 +50,6 @@ async def main():
         print("setup readout")
         #pass layer number
         await astro.setup_readout(layer, autoread=0) #disable autoread
-
-    #print("start injection")
-    #await astro.start_injection()
 
     """
     t0 = time.time()
@@ -81,9 +68,8 @@ async def main():
         
         #await(astro.print_status_reg())
     """
+    
     astro._wait_progress(5)
-    #print("stop injection")
-    #await astro.stop_injection()
 
 
     print("read out buffer")
