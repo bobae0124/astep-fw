@@ -320,38 +320,21 @@ class Asic():
         """
         bitvector = BitArray()
 
-        if self.num_chips > 1:
-            for chip in range(self.num_chips-1, -1, -1):
-                chipBitvector = BitArray()
-                for key in self.asic_config[f'config_{chip}']:
-                    for values in self.asic_config[f'config_{chip}'][key].values():
-                        if(key=='vdacs'):
-                            bitvector_vdac_reversed = BitArray(self.__int2nbit(values[1], values[0]))
-                            bitvector_vdac_reversed.reverse()
-                            chipBitvector.append(bitvector_vdac_reversed)
-                        else:
-                            chipBitvector.append(self.__int2nbit(values[1], values[0]))
-
-                logger.info("Generated chip_%d config successfully!", chip)
-            
-                if not msbfirst:
-                    chipBitvector.reverse()
-
-                bitvector.append(chipBitvector)
-    
-        else:
-            for key in self.asic_config:
-                for values in self.asic_config[key].values():
-                    #bitvector.append(self.__int2nbit(values[1], values[0]))
+        for chip in range(self.num_chips-1, -1, -1): #configure far end of daisy chain first
+            chipBitvector = BitArray()
+            for key in self.asic_config[f'config_{chip}']:
+                for values in self.asic_config[f'config_{chip}'][key].values():
                     if(key=='vdacs'):
                         bitvector_vdac_reversed = BitArray(self.__int2nbit(values[1], values[0]))
                         bitvector_vdac_reversed.reverse()
-                        bitvector.append(bitvector_vdac_reversed)
+                        chipBitvector.append(bitvector_vdac_reversed)
                     else:
-                        bitvector.append(self.__int2nbit(values[1], values[0]))
-
+                        chipBitvector.append(self.__int2nbit(values[1], values[0]))
+        
             if not msbfirst:
-                bitvector.reverse()
+                chipBitvector.reverse()
+
+            bitvector.append(chipBitvector)
 
             logger.info("Generated chip_%d config successfully!", chip)
 
