@@ -202,21 +202,27 @@ class BoardDriver():
         #    regval = regval | ( disable_autoread << 2 )
         await getattr(self.rfg, f"write_layer_{layer}_cfg_ctrl")(regval,flush)
     
-    async def setLayerConfig(self,layer:int, reset : bool, autoread : bool   , hold:bool , flush = False):
-        """Modified the layer confi with provided bools
+    async def setLayerConfig(self,layer:int, reset : bool, autoread : bool, hold:bool , flush = False):
+        """Modified the layer config with provided bools
 
         Args:
-            disable_autoread (int): By default 1, disables the automatic layer readout upon interruptn=0 condition
-            modify (bool): Reads the Control register first and only change the required bits
+            autoread (bool): Assert/deassert reset in ctrl register
+            reset (bool): Assert/deassert reset in ctrl register
+            hold (bool): Assert/deassert hold in ctrl register
             flush (bool): Write the register right away
         
         """
         regval =  await getattr(self.rfg, f"read_layer_{layer}_cfg_ctrl")()
-      
+
         if reset is True:
             regval |= (1<<1)
         else:
             regval &= ~(1<<1)
+
+        if hold is True:
+            regval |= 1 
+        else: 
+            regval &= 0XFE
 
         if autoread is False:
             regval |= (1<<2)
