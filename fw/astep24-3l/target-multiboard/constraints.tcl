@@ -486,7 +486,7 @@ if {${chipversion} == 3} {
     set_property -dict {PACKAGE_PIN D17 IOSTANDARD LVCMOS25} [get_ports layers_hold]; #IO_L12P_T1_MRCC_16 Sch=fmc_la18_cc_p
 }
 # For reference, could be used if pcb doesn't include pullup
-#set_property PULLUP true [get_ports layer_0_interruptn]
+set_property PULLUP true [get_ports layer_0_interruptn]
 
 ## Sample Clock
 ####################

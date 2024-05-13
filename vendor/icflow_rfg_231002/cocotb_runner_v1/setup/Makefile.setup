@@ -6,6 +6,7 @@ REQFILES=$(CCTBV1_HOME)/setup/requirements.txt $(SRCBASE)/requirements.txt
 
 setup: .venv/bin/activate .venv/bin/icf_updated probes.tcl $(FILES) node_modules/.bin/junit-cli-report-viewer package.json
 	@echo "Setting up CCTB"
+	@mkdir -p files
 	@if [[ -d $(SRCBASE)/files ]]; then cp -Rf $(SRCBASE)/files/* files/; fi
 
 .venv/bin/activate: 
