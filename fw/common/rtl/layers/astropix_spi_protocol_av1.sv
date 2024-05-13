@@ -31,9 +31,8 @@ module astropix_spi_protocol_av1 #(
     output reg                    m_axis_tvalid,
     input  wire                   m_axis_tready,
     output reg                    m_axis_tlast,
-    // wire [ID_WIDTH-1:0]    m_axis_tid,
     output wire [DEST_WIDTH-1:0]  m_axis_tdest,
-    // wire [USER_WIDTH-1:0]  m_axis_tuser,
+
 
     // Readout control
     output reg                    readout_active,

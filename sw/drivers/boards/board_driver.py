@@ -11,7 +11,7 @@ class BoardDriver():
 
     def __init__(self,rfg):
         self.rfg = rfg
-        self.houseKeeping = drivers.astep.housekeeping.Housekeeping(rfg)
+        self.houseKeeping = drivers.astep.housekeeping.Housekeeping(self,rfg)
         self.asics = []
         
         # Synchronisation Utils
@@ -260,6 +260,17 @@ class BoardDriver():
     async def getLayerMISOBytesCount(self,layer:int):
         """Returns the number of bytes in the Slave Out Bytes Buffer"""
         return await getattr(self.rfg, f"read_layer_{layer}_mosi_write_size")()
+
+
+    async def writeDACBytes(self, bytes: bytearray,flush:bool = False):
+        await self.rfg.write_hk_dac_mosi_fifo_bytes(bytes,flush)
+    
+    async def writeADCBytes(self, bytes: bytearray,flush:bool = False):
+        await self.rfg.write_hk_adc_mosi_fifo_bytes(bytes,flush)
+    
+    async def readADCBytes(self, count : int):
+        return await self.rfg.read_hk_adc_miso_fifo_raw(bytes,flush)
+
 
     ## Readout
     ################

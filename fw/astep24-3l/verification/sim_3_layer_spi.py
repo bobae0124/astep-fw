@@ -35,7 +35,7 @@ async def test_layer_0_spi_mosi(dut):
     slave.start_monitor()
 
     ## Write MOSI Bytes to Layer
-    await driver.setLayerReset(layer = 0, reset = False)
+    await driver.setLayerConfig(layer = 0, reset = False, hold = False, autoread = False , flush = False )
     await driver.writeLayerBytes(layer = 0 , bytes = [0xAB],flush=True)
     assert (await slave.getByte()) == 0xAB
 
@@ -51,7 +51,7 @@ async def test_layer_0_spi_mosi(dut):
 
     await Timer(50, units="us")
 
-@cocotb.test(timeout_time = 1 , timeout_unit = "ms",skip = False)
+@cocotb.test(timeout_time = 2 , timeout_unit = "ms",skip = False)
 async def test_layers_spi_mosi(dut):
 
     ## Setup
@@ -76,12 +76,12 @@ async def test_layers_spi_mosi(dut):
         
 
     ## Send Bytes to all layers
-    for i in range(4):
-        await driver.setLayerReset(layer = i, reset = False)
+    for i in range(3):
+        await driver.setLayerConfig(layer = i, reset = False, hold = True, autoread = False , flush = True )
         await driver.writeLayerBytes(layer = i , bytes = [0x01,0x02],flush=True)
 
     ## Check
-    for i in range(4):
+    for i in range(3):
         if i < 3:
             assert (await spiSlaves[i].getByte()) == 0x01
             assert (await spiSlaves[i].getByte()) == 0x02

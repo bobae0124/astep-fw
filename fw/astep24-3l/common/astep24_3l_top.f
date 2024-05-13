@@ -31,11 +31,6 @@ ${BASE}/fw/common/rtl/rfg/protocol/rfg_axis_readout_framing.sv
 ## Housekeeping
 -f ${BASE}/fw/common/rtl/housekeeping/housekeeping_main.f
 
-## Asic Model 
-${BASE}/fw/common/rtl/asic_model/astropix3_asic_model.sv
-${BASE}/fw/common/rtl/asic_model/astropix3_asic_model_frame_generator.sv
-${BASE}/fw/common/rtl/asic_model/spi_slave_egress.sv
-${BASE}/fw/common/rtl/asic_model/spi_slave_igress.sv
 
 ## Helpers
 +incdir+${BASE}/fw/common/includes
