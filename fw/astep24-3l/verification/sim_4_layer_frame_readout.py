@@ -41,7 +41,7 @@ async def test_layer_0_single_frame_noautoread(dut):
     ## Then Write 10 NULL Bytes, which will be enought to readout the whole frame
     generator = cocotb.start_soon(asic.generateTestFrame(length = 5))
     await Timer(1,units="us")  
-    await driver.setLayerConfig(layer = 0, reset = False,hold=False,autoread=False,flush=True)
+    await driver.setLayerConfig(layer = 0, reset = False,hold=False,autoread=False,chipSelect=True,flush=True)
     await driver.writeLayerBytes( layer = 0 , bytes = [0x00]*10 , flush = True)
     await generator.join()
 
@@ -73,7 +73,7 @@ async def test_layer_0_double_frame_noautoread(dut):
     ## Then Write 10 NULL Bytes, which will be enought to readout the whole frame
     generator = cocotb.start_soon(asic.generateTestFrame(length = 5,framesCount=2))
     await Timer(1,units="us")  
-    await driver.setLayerConfig(layer = 0, reset = False,hold=False,autoread=False,flush=True)
+    await driver.setLayerConfig(layer = 0, reset = False,hold=False,autoread=False,chipSelect=True,flush=True)
     await driver.writeLayerBytes( layer = 0 , bytes = [0x00]*16 , flush = True)
     await generator.join()
 

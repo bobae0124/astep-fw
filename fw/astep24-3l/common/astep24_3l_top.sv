@@ -42,6 +42,7 @@ module astep24_3l_top(
     output wire				layer_2_spi_mosi,
 
     output wire             layers_inj,
+    output wire             layers_spi_csn, // This is a merged CS for all layers
     output wire				layers_sr_in_rb,
     input  wire				layers_sr_in_sout0,
     input  wire				layers_sr_in_sout1,
@@ -269,16 +270,22 @@ module astep24_3l_top(
         .layer_0_cfg_ctrl_disable_autoread(layer_0_cfg_ctrl_disable_autoread),
         .layer_0_cfg_ctrl_reset(layer_0_reset),
         .layer_0_cfg_ctrl_hold(layer_0_hold),
+        .layer_0_cfg_ctrl_cs(layer_0_cfg_ctrl_cs),
+        .layer_0_cfg_ctrl_disable_miso(layer_0_cfg_ctrl_disable_miso),
         
         .layer_1_cfg_ctrl(),
         .layer_1_cfg_ctrl_disable_autoread(layer_1_cfg_ctrl_disable_autoread),
         .layer_1_cfg_ctrl_reset(layer_1_reset),
         .layer_1_cfg_ctrl_hold(layer_1_hold),
+        .layer_1_cfg_ctrl_cs(layer_1_cfg_ctrl_cs),
+        .layer_1_cfg_ctrl_disable_miso(layer_1_cfg_ctrl_disable_miso),
 
         .layer_2_cfg_ctrl(),
         .layer_2_cfg_ctrl_disable_autoread(layer_2_cfg_ctrl_disable_autoread),
         .layer_2_cfg_ctrl_reset(layer_2_reset),
         .layer_2_cfg_ctrl_hold(layer_2_hold),
+        .layer_2_cfg_ctrl_cs(layer_2_cfg_ctrl_cs),
+        .layer_2_cfg_ctrl_disable_miso(layer_2_cfg_ctrl_disable_miso),
 
         .layer_0_status(),   
         .layer_0_status_interruptn(layers_interruptn_synced[0]),
@@ -399,10 +406,7 @@ module astep24_3l_top(
             layer_2_spi_miso,
             layer_1_spi_miso,
             layer_0_spi_miso}),
-        .layers_spi_csn({
-            layer_2_spi_csn,
-            layer_1_spi_csn,
-            layer_0_spi_csn}),
+        .layers_spi_csn(),
 
         // MOSI
         //-----------
@@ -448,6 +452,11 @@ module astep24_3l_top(
             layer_2_reset,
             layer_1_reset,
             layer_0_reset
+        }),
+        .config_layers_disable_miso({
+            layer_2_cfg_ctrl_disable_miso,
+            layer_1_cfg_ctrl_disable_miso,
+            layer_0_cfg_ctrl_disable_miso
         }),
 
         // Statistics
@@ -521,7 +530,23 @@ module astep24_3l_top(
         .xadc_vccint(hk_xadc_vccint),
         .xadc_vccint_write(hk_xadc_vccint_write)
     );
-            
+    
+    // SPI IO
+    //-----------------
+
+    //-- Shared CSN for Layers
+    //---------------
+
+    // First layers CSN are set by the control register
+    // When Autoread is on, always set CSN to 0 - otherwise the CS control bit sets it
+    assign layer_0_spi_csn = !(layer_0_cfg_ctrl_cs || !layer_0_cfg_ctrl_disable_autoread) ;
+    assign layer_1_spi_csn = !(layer_1_cfg_ctrl_cs || !layer_1_cfg_ctrl_disable_autoread) ;
+    assign layer_2_spi_csn = !(layer_2_cfg_ctrl_cs || !layer_2_cfg_ctrl_disable_autoread) ;
+    assign layers_spi_csn = layer_0_spi_csn & layer_1_spi_csn & layer_2_spi_csn;
+
+    //-- Housekeeping
+    //--------------
+
     //-- MOSI and CLK is shared
     //-- CSN is selected based on RFG control
     assign ext_spi_clk = hk_ctrl_select_adc ? !ext_spi_clk_internal : ext_spi_clk_internal;

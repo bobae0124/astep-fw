@@ -42,7 +42,15 @@ set baseRegisters [subst {
         {HK_ADC_MISO_FIFO -fifo_axis_slave -read_count  -doc "FIFO with read bytes from ADC"}
         {SPI_LAYERS_CKDIVIDER -clock_divider spi_layers -reset 8'h4 -async_reset -doc "This clock divider provides the clock for the Layer SPI interfaces"}
         {SPI_HK_CKDIVIDER     -clock_divider spi_hk     -reset 8'h4 -async_reset -doc "This clock divider provides the clock for the Housekeeping ADC/DAC SPI interfaces"}
-        [rrepeat 3 {LAYER_${i}_CFG_CTRL            -reset 8'b00000111 -bits {{hold -doc "Hold Layer"} {reset -doc "Active High Layer Reset (Inverted before output to Sensor)"}  {disable_autoread -doc "1: Layer doesn't read frames if the interrupt is low, 0: Layer reads frames upon interrupt trigger"}}  -doc "Layer $i control bits"}]
+        [rrepeat 3 {LAYER_${i}_CFG_CTRL            -reset 8'b00000111 -bits {
+                {hold -doc "Hold Layer"} 
+                {reset -doc "Active High Layer Reset (Inverted before output to Sensor)"}  
+                {disable_autoread -doc "1: Layer doesn't read frames if the interrupt is low, 0: Layer reads frames upon interrupt trigger"}
+                {cs -doc "Chip Select, active high (inverted in firmware) - Set to 1 to force chip select low - if autoread is active, chip select is automatically 1"} 
+                {disable_miso -doc "If 1, the SPI interface won't read bytes from MOSI"} 
+            }  
+            -doc "Layer $i control bits"
+        }]
         [rrepeat 3 {LAYER_${i}_STATUS               -sw_read_only  -bits { {interruptn -input} {frame_decoding -input} } -doc "Layer $i status bits"} ]
         [rrepeat 3 {LAYER_${i}_STAT_FRAME_COUNTER  -size 32  -counter -enable -hw_ignore -doc "Counts the number of data frames"}]
         [rrepeat 3 {LAYER_${i}_STAT_IDLE_COUNTER   -size 32  -counter -enable -hw_ignore -doc "Counts the number of Idle bytes"}]

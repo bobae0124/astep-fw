@@ -46,14 +46,20 @@ module main_rfg(
     output wire                  layer_0_cfg_ctrl_hold,
     output wire                  layer_0_cfg_ctrl_reset,
     output wire                  layer_0_cfg_ctrl_disable_autoread,
+    output wire                  layer_0_cfg_ctrl_cs,
+    output wire                  layer_0_cfg_ctrl_disable_miso,
     output wire [7:0]            layer_1_cfg_ctrl,
     output wire                  layer_1_cfg_ctrl_hold,
     output wire                  layer_1_cfg_ctrl_reset,
     output wire                  layer_1_cfg_ctrl_disable_autoread,
+    output wire                  layer_1_cfg_ctrl_cs,
+    output wire                  layer_1_cfg_ctrl_disable_miso,
     output wire [7:0]            layer_2_cfg_ctrl,
     output wire                  layer_2_cfg_ctrl_hold,
     output wire                  layer_2_cfg_ctrl_reset,
     output wire                  layer_2_cfg_ctrl_disable_autoread,
+    output wire                  layer_2_cfg_ctrl_cs,
+    output wire                  layer_2_cfg_ctrl_disable_miso,
     output wire [7:0]            layer_0_status,
     input  wire                  layer_0_status_interruptn,
     input  wire                  layer_0_status_frame_decoding,
@@ -239,12 +245,18 @@ module main_rfg(
     assign layer_0_cfg_ctrl_hold = layer_0_cfg_ctrl_reg[0];
     assign layer_0_cfg_ctrl_reset = layer_0_cfg_ctrl_reg[1];
     assign layer_0_cfg_ctrl_disable_autoread = layer_0_cfg_ctrl_reg[2];
+    assign layer_0_cfg_ctrl_cs = layer_0_cfg_ctrl_reg[3];
+    assign layer_0_cfg_ctrl_disable_miso = layer_0_cfg_ctrl_reg[4];
     assign layer_1_cfg_ctrl_hold = layer_1_cfg_ctrl_reg[0];
     assign layer_1_cfg_ctrl_reset = layer_1_cfg_ctrl_reg[1];
     assign layer_1_cfg_ctrl_disable_autoread = layer_1_cfg_ctrl_reg[2];
+    assign layer_1_cfg_ctrl_cs = layer_1_cfg_ctrl_reg[3];
+    assign layer_1_cfg_ctrl_disable_miso = layer_1_cfg_ctrl_reg[4];
     assign layer_2_cfg_ctrl_hold = layer_2_cfg_ctrl_reg[0];
     assign layer_2_cfg_ctrl_reset = layer_2_cfg_ctrl_reg[1];
     assign layer_2_cfg_ctrl_disable_autoread = layer_2_cfg_ctrl_reg[2];
+    assign layer_2_cfg_ctrl_cs = layer_2_cfg_ctrl_reg[3];
+    assign layer_2_cfg_ctrl_disable_miso = layer_2_cfg_ctrl_reg[4];
     assign layers_sr_out_ck1 = layers_sr_out_reg[0];
     assign layers_sr_out_ck2 = layers_sr_out_reg[1];
     assign layers_sr_out_sin = layers_sr_out_reg[2];
