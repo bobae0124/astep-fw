@@ -225,13 +225,15 @@
 **Reset Value**: 8'b00000111
 
 
-|[7:3] |2 |1 |0 |
-|--|-- |-- |-- |
-|RSVD |disable_autoread|reset|hold|
+|[7:5] |4 |3 |2 |1 |0 |
+|--|-- |-- |-- |-- |-- |
+|RSVD |disable_miso|cs|disable_autoread|reset|hold|
 
 - hold: Hold Layer
 - reset: Active High Layer Reset (Inverted before output to Sensor)
 - disable_autoread: 1: Layer doesn't read frames if the interrupt is low, 0: Layer reads frames upon interrupt trigger
+- cs: Chip Select, active high (inverted in firmware) - Set to 1 to force chip select low - if autoread is active, chip select is automatically 1
+- disable_miso: If 1, the SPI interface won't read bytes from MOSI
 
 
 ## <a id='layer_1_cfg_ctrl'></a>layer_1_cfg_ctrl
@@ -246,13 +248,15 @@
 **Reset Value**: 8'b00000111
 
 
-|[7:3] |2 |1 |0 |
-|--|-- |-- |-- |
-|RSVD |disable_autoread|reset|hold|
+|[7:5] |4 |3 |2 |1 |0 |
+|--|-- |-- |-- |-- |-- |
+|RSVD |disable_miso|cs|disable_autoread|reset|hold|
 
 - hold: Hold Layer
 - reset: Active High Layer Reset (Inverted before output to Sensor)
 - disable_autoread: 1: Layer doesn't read frames if the interrupt is low, 0: Layer reads frames upon interrupt trigger
+- cs: Chip Select, active high (inverted in firmware) - Set to 1 to force chip select low - if autoread is active, chip select is automatically 1
+- disable_miso: If 1, the SPI interface won't read bytes from MOSI
 
 
 ## <a id='layer_2_cfg_ctrl'></a>layer_2_cfg_ctrl
@@ -267,13 +271,15 @@
 **Reset Value**: 8'b00000111
 
 
-|[7:3] |2 |1 |0 |
-|--|-- |-- |-- |
-|RSVD |disable_autoread|reset|hold|
+|[7:5] |4 |3 |2 |1 |0 |
+|--|-- |-- |-- |-- |-- |
+|RSVD |disable_miso|cs|disable_autoread|reset|hold|
 
 - hold: Hold Layer
 - reset: Active High Layer Reset (Inverted before output to Sensor)
 - disable_autoread: 1: Layer doesn't read frames if the interrupt is low, 0: Layer reads frames upon interrupt trigger
+- cs: Chip Select, active high (inverted in firmware) - Set to 1 to force chip select low - if autoread is active, chip select is automatically 1
+- disable_miso: If 1, the SPI interface won't read bytes from MOSI
 
 
 ## <a id='layer_0_status'></a>layer_0_status

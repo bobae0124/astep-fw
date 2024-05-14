@@ -164,6 +164,25 @@ class BoardDriver():
     async def configureLayerSPIDivider(self, divider:int , flush = False):
         await self.rfg.write_spi_layers_ckdivider(divider,flush)
 
+    async def layersSelectSPI(self, flush = False):
+        """This helper method asserts the shared CSN to 0 by selecting CS on layer 0
+        it's a helper to be used only if the hardware uses a shared Chip Select!!
+        If any Layer is in autoread mode, chip select will be already asserted
+        """
+        layer0Cfg = await self.rfg.read_layer_0_cfg_ctrl()
+        layer0Cfg = layer0Cfg | (1 << 3)
+        await self.rfg.write_layer_0_cfg_ctrl(layer0Cfg,flush)
+
+    async def layersDeselectSPI(self, flush = False):
+        """This helper method deasserts the shared CSN to 1 by deselecting CS on layer 0
+        it's a helper to be used only if the hardware uses a shared Chip Select!!
+        If any Layer is in autoread mode, chip select will stay asserted
+        """
+        layer0Cfg = await self.rfg.read_layer_0_cfg_ctrl()
+        layer0Cfg = layer0Cfg & ~(1 << 3)
+        await self.rfg.write_layer_0_cfg_ctrl(layer0Cfg,flush)
+
+
     async def resetLayer(self, layer : int , waitTime : float = 0.5 ):
         """Sets Layer in Reset then Remove reset after a wait time. The registers are written right now.
 
@@ -202,13 +221,15 @@ class BoardDriver():
         #    regval = regval | ( disable_autoread << 2 )
         await getattr(self.rfg, f"write_layer_{layer}_cfg_ctrl")(regval,flush)
     
-    async def setLayerConfig(self,layer:int, reset : bool, autoread : bool, hold:bool , flush = False):
+    async def setLayerConfig(self,layer:int, reset : bool, autoread : bool, hold:bool , chipSelect:bool = False,disableMISO:bool = False, flush = False):
         """Modified the layer config with provided bools
 
         Args:
-            autoread (bool): Assert/deassert reset in ctrl register
-            reset (bool): Assert/deassert reset in ctrl register
-            hold (bool): Assert/deassert hold in ctrl register
+            autoread (bool): Enables or Disables interrupt-based automatic reading
+            reset (bool): Assert/deassert reset I/O to ASIC
+            hold (bool): Assert/deassert hold I/O to ASIC
+            chipSelect (bool): Assert/deassert Chip Select for this layer (I/O is inverted in firmware to produce low-active signal)
+            disableMISO (bool): Disable SPI MISO bytes reading. Setting this bit to 1 prevents the Firmware from reading bytes
             flush (bool): Write the register right away
         
         """
@@ -223,11 +244,22 @@ class BoardDriver():
             regval |= 1 
         else: 
             regval &= 0XFE
-
+        
+        # Autoread is "disable" in config, so True here means False in the register
         if autoread is False:
             regval |= (1<<2)
         else:
             regval &= ~(1<<2)
+
+        if chipSelect is True:
+            regval |= (1<<3)
+        else:
+            regval &= ~(1<<3)
+
+        if disableMISO is True:
+            regval |= (1<<4)
+        else:
+            regval &= ~(1<<4)
 
         await getattr(self.rfg, f"write_layer_{layer}_cfg_ctrl")(regval,flush)
 
@@ -266,16 +298,6 @@ class BoardDriver():
     async def getLayerMISOBytesCount(self,layer:int):
         """Returns the number of bytes in the Slave Out Bytes Buffer"""
         return await getattr(self.rfg, f"read_layer_{layer}_mosi_write_size")()
-
-
-    async def writeDACBytes(self, bytes: bytearray,flush:bool = False):
-        await self.rfg.write_hk_dac_mosi_fifo_bytes(bytes,flush)
-    
-    async def writeADCBytes(self, bytes: bytearray,flush:bool = False):
-        await self.rfg.write_hk_adc_mosi_fifo_bytes(bytes,flush)
-    
-    async def readADCBytes(self, count : int):
-        return await self.rfg.read_hk_adc_miso_fifo_raw(bytes,flush)
 
 
     ## Readout

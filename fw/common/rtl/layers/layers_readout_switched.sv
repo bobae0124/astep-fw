@@ -46,6 +46,7 @@ module layers_readout_switched #(
     input wire  [31:0]                  config_frame_tag_counter,
     input wire  [7:0]                   config_nodata_continue,
     input wire  [LAYER_COUNT-1:0]       config_layers_reset,
+    input wire  [LAYER_COUNT-1:0]       config_layers_disable_miso,
 
     // Status
     //---------------------
@@ -104,6 +105,7 @@ module layers_readout_switched #(
                 .cfg_frame_tag_counter(config_frame_tag_counter),
                 .cfg_nodata_continue(config_nodata_continue),
                 .cfg_layer_reset(config_layers_reset[li]),
+                .cfg_disable_miso(config_layers_disable_miso[li]),
                 .status_frame_decoding(layers_status_frame_decoding[li]),
                 .stat_frame_detected(layers_stat_count_frame[li]),
                 .stat_idle_detected(layers_stat_count_idle[li])

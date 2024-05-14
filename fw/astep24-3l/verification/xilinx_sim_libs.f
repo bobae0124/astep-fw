@@ -26,8 +26,4 @@ ${BASE}/fw/common/xilinx-ip/fifo_axis_1clk_1kB/fifo_axis_1clk_1kB_sim_netlist.v
 ${BASE}/fw/common/xilinx-ip/fifo_axis_2clk_sw_io_16e/fifo_axis_2clk_sw_io_16e_sim_netlist.v
 
 
-${BASE}/fw/common/xilinx-ip/asic_model_frame_fifo/hdl/fifo_generator_v13_2_rfs.v
-${BASE}/fw/common/xilinx-ip/asic_model_frame_fifo/sim/asic_model_frame_fifo.v
-${BASE}/fw/common/xilinx-ip/asic_model_frame_fifo/simulation/fifo_generator_vlog_beh.v
-
 ${BASE}/fw/common/xilinx-ip/xadc_astep/xadc_astep_sim_netlist.v
