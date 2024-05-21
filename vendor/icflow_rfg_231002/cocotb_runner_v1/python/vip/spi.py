@@ -46,11 +46,6 @@ class VSPISlave():
         else:
             self.miso.value = 0x0
 
-        
-        
-        
-
-
     async def _monitor(self):
         """This method monitors Chip Select and Clock to get bits from Master, and send bits back"""
         while True:
@@ -123,6 +118,13 @@ class VSPISlave():
 
     async def getByte(self):
         return await self.mosiQueue.get()
+
+    async def getBytesCount(self):
+        return self.mosiQueue.qsize()
+
+    async def clearBytes(self):
+        while not self.mosiQueue.empty():
+            await self.mosiQueue.get()
 
     def start_monitor(self):
         return cocotb.start_soon(self._monitor())
