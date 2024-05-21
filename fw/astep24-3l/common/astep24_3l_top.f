@@ -35,7 +35,6 @@ ${BASE}/fw/common/rtl/rfg/protocol/rfg_axis_readout_framing.sv
 ## Helpers
 +incdir+${BASE}/fw/common/includes
 ${BASE}/fw/common/rtl/utilities/reset_sync.sv
-${BASE}/fw/common/rtl/utilities/edge_detect.sv
 ${BASE}/fw/common/rtl/utilities/async_input_sync.sv
 ${BASE}/fw/common/rtl/utilities/async_signal_sync.sv
 ${BASE}/fw/common/rtl/utilities/resets_synchronizer.sv
