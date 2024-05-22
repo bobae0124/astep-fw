@@ -6,8 +6,9 @@ import rfg.core
 
 class Housekeeping():
 
-    def __init__(self,rfg):
+    def __init__(self,driver,rfg):
         self.rfg = rfg
+        self.driver = driver
 
     async def readFirmwareVersion(self, queue : int = 0):
         return (await self.rfg.read_hk_firmware_version())
@@ -55,7 +56,33 @@ class Housekeeping():
         vccint = ( (await self.rfg.read_hk_xadc_vccint(targetQueue = targetQueue)) >> 4 ) / 4096 * 3
         return Decimal(vccint).quantize(Decimal('.01'), rounding=ROUND_HALF_EVEN)
 
+    async def configureHKSPIFrequency(self, targetFrequencyHz : int , flush = False):
+        """Calculated required divider to reach the provided target SPI clock frequency"""
+        coreFrequency = self.driver.getFPGACoreFrequency()
+        divider = int( coreFrequency / (2 * targetFrequencyHz))
+        assert divider >=1 and divider <=255 , (f"Divider {divider} is too high, min. clock frequency: {int(coreFrequency/2/255)}")
+        await self.configureHKSPIDivider(divider,flush)
 
-    async def writeADCBytes(self,values : bytearray) :
-        return await self.rfg.write_hk_adc_mosi_fifo_bytes(values,flush=True)
+    async def configureHKSPIDivider(self, divider:int , flush = False):
+        await self.rfg.spi_hk_ckdivider(divider,flush)
+
+    async def writeADCDACBytes(self,values : bytearray) :
+        return await self.rfg.write_hk_adcdac_mosi_fifo_bytes(values,flush=True)
+
+    async def getADCBytesCount(self):
+        """Returns the number of bytes in the ADC MISO buffer"""
+        return await self.rfg.read_hk_adc_miso_fifo_read_size()
+
+    async def readADCBytes(self,count:int=1) :
+        return await self.rfg.read_hk_adc_miso_fifo_raw(count)
+
+        
+
+    async def selectADC(self,flush:bool = True):
+        """This method selects ADC for HK SPI, flushes by default"""
+        await self.rfg.write_hk_ctrl(1,flush)
+
+    async def selectDAC(self,flush:bool = True):
+        """This method selects DAC for HK SPI, flushes by default"""
+        await self.rfg.write_hk_ctrl(0,flush)
     

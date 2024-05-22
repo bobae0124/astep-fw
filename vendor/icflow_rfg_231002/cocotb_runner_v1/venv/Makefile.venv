@@ -23,5 +23,5 @@ packages: requirements.txt
 	
 
 .venv/bin/activate: 
-	@python3  -m venv .venv
+	@python  -m venv .venv
 	

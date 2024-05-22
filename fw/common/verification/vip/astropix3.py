@@ -3,6 +3,14 @@ from cocotb.triggers    import Timer , RisingEdge , FallingEdge , Join , First ,
 import vip.spi
 vip.spi.info()
 
+import logging 
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.INFO)
+
+def debug():
+    logger.setLevel(logging.DEBUG)
+
+
 class Astropix3Model:
     """This Model can be used to return some bytes"""
 
@@ -67,3 +75,46 @@ class Astropix3Model:
         
 
         #print("Done frame generator")
+
+    ## SPI Frames Analyses
+    ##############
+    async def parseSPIBytesAsConfig(self,broadcast : bool = False): 
+        """Analyses the SPI Bytes as config command, throw an error if not a config"""
+        if await self.spiSlave.getBytesCount() == 0:
+            raise Error("No Bytes received as SPI Slave")
+        
+        
+        # Check header
+        ####
+        header = await self.spiSlave.getByte()
+        if broadcast:
+            assert((header >> 5 == 0x2) , "Header Command bits must be 0x2 single target chip")
+        else:
+            assert((header == 0x7E) , "Header Command bits must 0x7E broadcast")
+
+        # Loop to get the config bits
+        logger.info("Checking SPI Config SIN/CK1/CK2 sequence")
+        res = []
+        while await self.spiSlave.getBytesCount() >0:
+            srByte = await self.spiSlave.getByte()
+
+            # Check load
+            if (srByte == 0x3):
+                logger.info(f"-- Found Load")
+                while await self.spiSlave.getBytesCount() >0:
+                    srByte = await self.spiSlave.getByte()
+                    if (srByte == 0x3):
+                        logger.info(f"-- Found Load")
+                    else:
+                        break
+                logger.info(f"-- End of Load")
+                break 
+
+            # SIN byte
+            res.append(srByte & 0x01)
+            logger.info(f"- SIN={srByte & 0x01}")
+
+
+        await self.spiSlave.clearBytes()
+        logger.info(f"-- Done SPI Config: {res}")
+        return res

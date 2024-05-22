@@ -318,7 +318,7 @@ module astep24_3l_multitarget_top (
     wire layer_2_spi_csn;
     wire [2:0] layers_csn_internal;
     //assign layers_spi_csn = &layers_csn_internal;
-    assign layers_spi_csn     = 0;
+    //assign layers_spi_csn     = 0;
 
     wire [2:0] layers_resn_internal;
     assign layers_resn = &layers_resn_internal;
@@ -329,7 +329,7 @@ module astep24_3l_multitarget_top (
 
     wire [0:0] layers_csn_internal;
     //assign layers_spi_csn = layers_csn_internal;
-    assign layers_spi_csn     = 0;
+    //assign layers_spi_csn     = 0;
 
     wire [0:0] layers_resn_internal;
     assign layers_resn = layers_resn_internal;
@@ -408,6 +408,7 @@ module astep24_3l_multitarget_top (
 
         // Layers Config
         .layers_inj(layers_inj_internal),
+        .layers_spi_csn(layers_spi_csn),
         .layers_sr_in_rb(layers_sr_rb),
         .layers_sr_in_sout0(layers_sr_sout0),
         .layers_sr_in_sout1(`ifndef SINGLE_LAYER layers_sr_sout1 `else 1'b0 `endif),

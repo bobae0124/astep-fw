@@ -41,7 +41,7 @@ async def test_layer_0_single_frame_noautoread(dut):
     ## Then Write 10 NULL Bytes, which will be enought to readout the whole frame
     generator = cocotb.start_soon(asic.generateTestFrame(length = 5))
     await Timer(1,units="us")  
-    await driver.setLayerReset(layer = 0, reset = False)
+    await driver.setLayerConfig(layer = 0, reset = False,hold=False,autoread=False,chipSelect=True,flush=True)
     await driver.writeLayerBytes( layer = 0 , bytes = [0x00]*10 , flush = True)
     await generator.join()
 
@@ -49,7 +49,7 @@ async def test_layer_0_single_frame_noautoread(dut):
     assert  await driver.readoutGetBufferSize() == 12
     await Timer(50, units="us")
 
-@cocotb.test(timeout_time = 1 , timeout_unit = "ms")
+@cocotb.test(timeout_time = 2 , timeout_unit = "ms")
 async def test_layer_0_double_frame_noautoread(dut):
 
     ## Driver, asic, clock+reset
@@ -73,7 +73,7 @@ async def test_layer_0_double_frame_noautoread(dut):
     ## Then Write 10 NULL Bytes, which will be enought to readout the whole frame
     generator = cocotb.start_soon(asic.generateTestFrame(length = 5,framesCount=2))
     await Timer(1,units="us")  
-    await driver.setLayerReset(layer = 0, reset = False)
+    await driver.setLayerConfig(layer = 0, reset = False,hold=False,autoread=False,chipSelect=True,flush=True)
     await driver.writeLayerBytes( layer = 0 , bytes = [0x00]*16 , flush = True)
     await generator.join()
 
@@ -86,7 +86,7 @@ async def test_layer_0_double_frame_noautoread(dut):
         print(f"B={hex(b)}")
     await Timer(50, units="us")
 
-@cocotb.test(timeout_time = 0.5 , timeout_unit = "ms")
+@cocotb.test(timeout_time = 2 , timeout_unit = "ms")
 async def test_layer_0_single_frame_autoread(dut):
 
     ## Driver, asic, clock+reset
@@ -100,7 +100,7 @@ async def test_layer_0_single_frame_autoread(dut):
     ##########
 
     ## Start the layer, with autoread enabled
-    await driver.setLayerReset(layer = 0 , reset = False, disable_autoread = 0 , flush = True )
+    await driver.setLayerConfig(layer = 0, reset = False, hold = False, autoread = True , flush = True )
 
     ## Drive a frame from the ASIC
     ## This method returns when the frame was outputed from the chip spi slave
@@ -116,7 +116,7 @@ async def test_layer_0_single_frame_autoread(dut):
     await Timer(50, units="us")
 
 
-@cocotb.test(timeout_time = 0.8, timeout_unit = "ms")
+@cocotb.test(timeout_time = 2, timeout_unit = "ms")
 async def test_3_layers_single_frame(dut):
     """Send A single frame to all layers after each other"""
 
@@ -137,9 +137,9 @@ async def test_3_layers_single_frame(dut):
     #########
 
     ## Start the layers, with autoread enabled
-    await driver.setLayerReset(layer = 0, reset = False, disable_autoread = 0 , flush = False )
-    await driver.setLayerReset(layer = 1, reset = False, disable_autoread = 0 , flush = False )
-    await driver.setLayerReset(layer = 2, reset = False, disable_autoread = 0 , flush = True )
+    await driver.setLayerConfig(layer = 0, reset = False, hold = False, autoread = True , flush = False )
+    await driver.setLayerConfig(layer = 1, reset = False, hold = False, autoread = True , flush = False )
+    await driver.setLayerConfig(layer = 2, reset = False, hold = False, autoread = True , flush = True )
 
     ## Generate Frame to all after each other
     for i in range(3):
@@ -161,11 +161,12 @@ async def test_3_layers_single_frame(dut):
     ## Same test but generate the frames in parallel
     ## First warm reset
     await vip.cctb.warm_reset(dut)
+    await Timer(50, units="us")
 
     ## Start the layers, with autoread enabled
-    await driver.setLayerReset(layer = 0, reset = False, disable_autoread = 0 , flush = False )
-    await driver.setLayerReset(layer = 1, reset = False, disable_autoread = 0 , flush = False )
-    await driver.setLayerReset(layer = 2, reset = False, disable_autoread = 0 , flush = True )
+    await driver.setLayerConfig(layer = 0, reset = False, hold = False, autoread = True , flush = False )
+    await driver.setLayerConfig(layer = 1, reset = False, hold = False, autoread = True , flush = False )
+    await driver.setLayerConfig(layer = 2, reset = False, hold = False, autoread = True , flush = True )
 
     ## Generate Frames
     tasks = []

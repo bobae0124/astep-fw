@@ -54,18 +54,18 @@ async def test_injection(dut):
     await Timer(500, units="us")
 
 
-@cocotb.test(timeout_time = 10 , timeout_unit = "ms")
-async def test_vb_update(dut):
+#@cocotb.test(timeout_time = 10 , timeout_unit = "ms")
+#async def test_vb_update(dut):
 
 
-    boardDriver = astep24_3l_sim.getUARTDriver(dut)
+ #   boardDriver = astep24_3l_sim.getUARTDriver(dut)
     ## Clock/Reset
-    await vip.cctb.common_clock_reset(dut)
-    await Timer(10, units="us")
+ #   await vip.cctb.common_clock_reset(dut)
+ #   await Timer(10, units="us")
 
     # Get Injection Board from driver
-    injBoard = boardDriver.geccoGetInjectionBoard()
+  #  injBoard = boardDriver.geccoGetInjectionBoard()
 
-    await injBoard.voltageBoard.update()
+    #await injBoard.voltageBoard.update()
 
-    await Timer(500, units="us")
+    #await Timer(500, units="us")

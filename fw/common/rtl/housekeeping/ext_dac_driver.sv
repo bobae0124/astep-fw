@@ -54,7 +54,7 @@ module ext_dac_driver(
         .clk(clk_spi),
         .enable(1'd0),
         .m_axis_tdata(/* WAIVED: Master Input not used, no readout from DAC */),
-        .m_axis_tready(1'd0),
+        .m_axis_tready(1'd1), // Set Master slave's ready to 1 otherwise the SPI readout will think it should backflow. This cause read data to go to void, since there are none anyways
         .m_axis_tvalid(/* WAIVED: Master Input not used, no readout from DAC */),
         .resn(clk_spi_resn),
         .s_axis_tdata(mosi_fifo_m_axis_tdata),
