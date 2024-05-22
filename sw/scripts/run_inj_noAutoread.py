@@ -18,12 +18,13 @@ logger = logging.getLogger(__name__)
 
 #######################################################
 ############## USER DEFINED VARIABLES #################
-layer, chip = 0,0
+layer, chip = 0,1
 pixel = [layer, chip, 0, 15] #layer, chip, row, column
-configViaSR = True #if False, config with SPI
-inj_voltage = 600 #injection amplitude in mV
+configViaSR = False #if False, config with SPI
+inj_voltage = 300 #injection amplitude in mV
 threshold = 200 #global comparator threshold level in mV
 runTime = 5 #duration of run in s
+chipsPerRow = 2 #number of arrays per SPI bus to configure
 #######################################################
 
 
@@ -41,7 +42,7 @@ async def main():
     await astro.enable_spi()
     
     print("initializing asic")
-    await astro.asic_init(yaml="test_quadchip_new", analog_col=[layer, chip ,pixel[3]], chipsPerRow=2)
+    await astro.asic_init(yaml="test_quadchip_new", analog_col=[layer, chip ,pixel[3]], chipsPerRow=chipsPerRow)
     print(f"Header: {astro.get_log_header(layer, chip)}")
 
     print("initializing voltage")
