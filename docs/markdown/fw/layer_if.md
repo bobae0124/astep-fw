@@ -53,6 +53,68 @@ The QSPI Module is an SPI master which provides following functionalities:
 
 This module's data path is connected to AXIS Data Fifo providing the clock domain crossing between the fast core clock used to process data, and the configurable SPI I/O clock, which determines the speed of the SPI interface. 
 
+## Chip Select behavior
+
+On the ASTEP hardware, we are sharing the Chip Select line betwenn all layers to save on I/O counts. Moreover, since the Layer Interface can automatically read data from the layers, the chip select line is controlled both by the firmware and the software so that configuration frames and readout can both be send with proper Chip Select driver. 
+
+The Chip Select line is driven in the following way: 
+
+- If Autoread is disabled, i.e SPI in Software driven: 
+    - Chip Select is 1 by default after FW reset
+    - Each Layer has a bit called "cs", if set to 1, chip select is lowered, if 0, chip select is set back to 1.
+        - For example for layer 0: [CTRL Register](./main_rfg.md#layer_0_cfg_ctrl)
+    - The user is responsible for setting Chip Select before sending bytes to the layer, otherwise Chip Select will stay 1
+    - The shared Chip Select Line will be lowered anytime the Chip Select bit of any layer is asserted 
+- If any Autoread is enabled, the Shared Chip Select is lowered by default and will stay low until all Autoread are disabled
+
+The Python Board Driver allows setting the value of Chip Select using the layers control register: ["setLayerConfig"](../sw/reference.md#drivers.boards.board_driver.BoardDriver.setLayerConfig)
+
+There is also a helper method to globally set the Chip Select by setting it in Layer 0, this helps simplify scripts.
+For example: 
+
+~~~~python 
+# Configure Layer, just leave Chip Select to False
+await driver.setLayerConfig(0, ... , chipSelect = False)
+await driver.setLayerConfig(1, ... , chipSelect = False)
+await driver.setLayerConfig(2, ... , chipSelect = False)
+
+# Send some bytes to layer, select SPI before, and deselect after
+await driver.layersSelectSPI(flush=True)
+await driver.writeLayerBytes(layer = 0 , bytes = [0x01,0x02],flush=True)
+await driver.layersDeselectSPI(flush=True)
+
+# Same goes for Configuration via SPI, select SPI before
+await driver.layersSelectSPI(flush=True)
+await asic.writeSPIConfig(...)
+await driver.layersDeselectSPI(flush=True)
+~~~~
+
+## MISO Disable
+
+It can happen that some undesired data is read from the SPI while writing data to Astropix, for example during configuration, which can cause readout buffers to fill up and stall the SPI interface. 
+
+To help with this case if it happens, it is possible to deactivate the SPI read path of the Astropix interfaces by setting the disable_miso bit in the control register to 1. For Layer 0: [CTRL Register](./main_rfg.md#layer_0_cfg_ctrl)
+
+The Python Driver can set this bit via **setLayerConfig**:
+
+~~~~python 
+# Configure Layer, disable MISO and set Chip Select 
+await driver.setLayerConfig(0, ..., hold=True, chipSelect = True , disableMISO = True)
+
+# Now configure the Chip without fearing any data can stall the SPI interface 
+await asic.writeSPIConfig(...)
+
+# Don't forget to reenable MISO before reading data
+await driver.setLayerConfig(0, ..., hold=False, chipSelect = True , disableMISO = False)
+
+~~~~
+
+!!! warning 
+    Using Disable MISO doesn't stop Astropix from sending frames if it has any, thus after enabling it back, the user must be certain that the next read byte is not 
+    a paylad byte from a data frame.
+    To do this, make sure to keep hold to True when using disableMISO, then flush all data by activating the SPI in Hold mode until the Layer interrupt is 1. 
+    Then MISO can be enabled again and it is certain that the next data from Astropix will be IDLE or a Frame start.
+
 ## Layer Driver 
 
 The Layer driver receives bytes from the QSPI module through the axis Data FIFO, and processes them: 

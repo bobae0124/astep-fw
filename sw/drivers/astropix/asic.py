@@ -340,6 +340,55 @@ class Asic():
 
         logger.debug(bitvector)
 
+        return bitvector 
+
+    def gen_config_vectorv2(self, msbfirst: bool = False,targetChip:int = -1) -> BitArray:
+        """
+        Generate asic bitvector from digital, bias and dacconfig
+
+        :param msbfirst: Send vector MSB first
+        :param targetChip: Returns only the bits for the selected Astropix - if set to -1, returns for all the Astropix - no effect if the configuration is not multichip
+        """
+        bitvector = BitArray()
+
+        if targetChip==-1 and self.num_chips > 1:
+            for chip in range(self.num_chips-1, -1, -1):
+                chipBitvector = BitArray()
+                for key in self.asic_config[f'config_{chip}']:
+                    for values in self.asic_config[f'config_{chip}'][key].values():
+                        if(key=='vdacs'):
+                            bitvector_vdac_reversed = BitArray(self.__int2nbit(values[1], values[0]))
+                            bitvector_vdac_reversed.reverse()
+                            chipBitvector.append(bitvector_vdac_reversed)
+                        else:
+                            chipBitvector.append(self.__int2nbit(values[1], values[0]))
+
+                logger.info("Generated chip_%d config successfully!", chip)
+            
+                if not msbfirst:
+                    chipBitvector.reverse()
+
+                bitvector.append(chipBitvector)
+
+        ## Create config for a single chip
+        ## This can be if the config is single chip, or for multichip if we want the bits or a single chip, for example when writing SPI config to a certain chip
+        else:
+            configSource = self.asic_config[f'config_{targetChip}'] if (self.num_chips>1) else self.asic_config    
+            for key in configSource:
+                for values in configSource[key].values():
+                    #bitvector.append(self.__int2nbit(values[1], values[0]))
+                    if(key=='vdacs'):
+                        bitvector_vdac_reversed = BitArray(self.__int2nbit(values[1], values[0]))
+                        bitvector_vdac_reversed.reverse()
+                        bitvector.append(bitvector_vdac_reversed)
+                    else:
+                        bitvector.append(self.__int2nbit(values[1], values[0]))
+
+            if not msbfirst:
+                bitvector.reverse()
+
+        logger.debug(bitvector)
+
         return bitvector    
 
  
@@ -367,7 +416,6 @@ class Asic():
 
             # SIN (bit 3 in register)
             sinValue = (1 if bit == True else 0) << 2
-            #self.rfg.addWrite(register = targetRegister, value = sinValue)
             self.rfg.addWrite(register = targetRegister, value = sinValue, repeat = ckdiv) #ensure SIN has higher delay than CLK1 to avoid setup violation / incorrect sampling
 
             # CK1
@@ -389,8 +437,9 @@ class Asic():
     ## SPI 
     #############
 
-    def createSPIRoutingFrame():
-        pass 
+    async def writeSPIRoutingFrame(self):
+        await getattr(self.rfg, f"write_layer_{self.row}_mosi_bytes")([SPI_HEADER_ROUTING] + [0x0]*self._num_chips*4,True)
+         
 
 
     def createSPIConfigFrame(self, load: bool = True, n_load: int = 10, broadcast: bool = False, targetChip: int = 0)  -> bytearray:
@@ -441,6 +490,54 @@ class Asic():
 
         return data
 
+    def createSPIConfigFramev2(self, load: bool = True, n_load: int = 10, broadcast: bool = False, targetChip: int = 0)  -> bytearray:
+        """
+        "Converts the ASIC Config bits to the corresponding bytes to send via SPI
+
+        :param value: Bytearray vector of config bits
+        :param load: Load signal
+        :param n_load: Length of load signal
+
+        :param broadcast: Enable Broadcast - in that case the config of targetChip will be broadcasted
+        :param targetChip: Chipid of source config, set in header if !broadcast
+
+        :returns: SPI ASIC config pattern
+        """
+
+        ## Generate Bit vector for config 
+        value = self.gen_config_vectorv2(msbfirst = False,targetChip = targetChip)
+
+        # Number of Bytes to write
+        #length = len(value) * 5 + 4
+
+        ##logger.info("SPI Write Asic Config")
+        
+
+        # Write SPI SR Command to set MUX
+        if broadcast:
+            data = bytearray([SPI_SR_BROADCAST])
+        else:
+            data = bytearray([SPI_HEADER_SR | targetChip])
+
+        # data
+        for bit in value:
+
+            sin = SPI_SR_BIT1 if bit == 1 else SPI_SR_BIT0
+
+            data.append(sin)
+
+        # Append Load signal and empty bytes
+        if load:
+            data.extend([SPI_SR_LOAD] * n_load)
+
+        # Append 4 Empty bytes per chip in the chip, to ensure the config frame is pushed completely through the chain
+        data.extend([SPI_EMPTY_BYTE] * ((self.num_chips-1) *4))
+
+
+        logger.debug("Length: %d\n Data (%db): %s\n", len(data), len(value), value)
+
+        return data
+
 
     async def writeConfigSPI(self, targetChip : int = 0 ):
         """Generate Config Shift Register bits, spi protocol bytes and send them"""
@@ -458,5 +555,25 @@ class Asic():
             ## Sleep to give time for the FW to send the bytes, this will be better synchronised in the future
             ## Must be improved
             await asyncio.sleep(0.1)         
+            logger.info("Current MISO Write count=%d",await self.rfg.read_layer_0_mosi_write_size())
+
+    async def writeConfigSPIv2(self, broadcast: bool = False, targetChip : int = 0 ):
+        """Generate Config Shift Register bits, spi protocol bytes and send them"""
+
+        spiBytes = self.createSPIConfigFramev2(targetChip = targetChip , broadcast = broadcast)
+        logger.info("Writing SPI Config for chip %d,row=%d,len=%d",targetChip,self.row,len(spiBytes))
+
+        step  = 256
+        steps = int(math.ceil(len(spiBytes)/step))
+        for chunk in range(0, len(spiBytes), step):
+            chunkBytes = spiBytes[chunk:chunk+step]
+            logger.info("Writing Chunck %d/%d len=%d",(chunk/step+1),steps,len(chunkBytes))
+            await getattr(self.rfg, f"write_layer_{self.row}_mosi_bytes")(chunkBytes,True)
+
+            ## Sleep to give time for the FW to send the bytes, this will be better synchronised in the future
+            ## Must be improved
+            while (await getattr(self.rfg, f"read_layer_{self.row}_mosi_write_size")() > 0):
+                pass
+            #await asyncio.sleep(0.1)         
             logger.info("Current MISO Write count=%d",await self.rfg.read_layer_0_mosi_write_size())
 

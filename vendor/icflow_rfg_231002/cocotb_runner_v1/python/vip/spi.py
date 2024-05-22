@@ -25,7 +25,7 @@ class VSPISlave():
     ## Queue for Bytes Received from MAster
     mosiQueue : Queue | None
 
-    def __init__(self,clk,csn,mosi,miso,misoDefaultValue = 0x3D,misoSize = 2):
+    def __init__(self,clk,csn,mosi,miso,misoDefaultValue = 0x3D,misoSize = 2,cpol=0):
         self.clk                = clk 
         self.csn                = csn 
         self.mosi               = mosi 
@@ -35,12 +35,16 @@ class VSPISlave():
         self.misoSize           = misoSize
         self.misoQueue          = Queue()
         self.misoDefaultValue   = misoDefaultValue
-        self.misoDoneEvent      = None 
+        self.misoDoneEvent      = None
 
-        
-        
-        
+        self.cpol = cpol
 
+        ## Init Slave out to 0
+        if self.misoSize > 1:
+            for i in range(self.misoSize):
+                self.miso[i].value = 0x0
+        else:
+            self.miso.value = 0x0
 
     async def _monitor(self):
         """This method monitors Chip Select and Clock to get bits from Master, and send bits back"""
@@ -55,13 +59,18 @@ class VSPISlave():
             misoBitCounter           = 0
 
             while running:
+
                 ## Wait for clock or chip select deassertion
-                await First(FallingEdge(self.clk), RisingEdge(self.clk), RisingEdge(self.csn))
+                await First(RisingEdge(self.clk), FallingEdge(self.clk), RisingEdge(self.csn))
+        
                 if self.csn == 1:
                     running = False
                 else:
-                    ## Write bit on leading edge
-                    if self.clk.value == 1:
+                    leadingEdge = self.clk.value == 1
+                    ## Write bit on leading edge for cpol=0
+                    if (self.cpol==0 and self.clk.value == 1) or (self.cpol==1 and self.clk.value == 0):
+                        
+                        logger.debug(f"Writing bit, leading edge={leadingEdge}")
 
                         ## Output bit, range over misoSize because Miso can have multiple bits in parallel
                         for bitIndex in range(self.misoSize):
@@ -91,6 +100,8 @@ class VSPISlave():
                                 misoCurrentByteFromQueue    = True
 
                     else:
+                        
+                        logger.debug(f"Reading bit, leading edge={leadingEdge}")
 
                         ## Receive bit on falling edge 
                         ## Get bit and pack to byte
@@ -107,6 +118,13 @@ class VSPISlave():
 
     async def getByte(self):
         return await self.mosiQueue.get()
+
+    async def getBytesCount(self):
+        return self.mosiQueue.qsize()
+
+    async def clearBytes(self):
+        while not self.mosiQueue.empty():
+            await self.mosiQueue.get()
 
     def start_monitor(self):
         return cocotb.start_soon(self._monitor())

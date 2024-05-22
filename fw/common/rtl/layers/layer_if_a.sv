@@ -29,6 +29,7 @@ module layer_if_a  #(LAYER_ID = 0)(
     input  wire [31:0]		cfg_frame_tag_counter,
     input  wire [7:0]		cfg_nodata_continue,
     input  wire             cfg_layer_reset,
+    input  wire             cfg_disable_miso,
 
     output wire             status_frame_decoding,
 
@@ -80,7 +81,7 @@ module layer_if_a  #(LAYER_ID = 0)(
         .clk(clk_spi),
         .enable(spi_io_enable),
         .m_axis_tdata(spi_io_m_axis_tdata),
-        .m_axis_tready(spi_io_m_axis_tready),
+        .m_axis_tready(spi_io_m_axis_tready | cfg_disable_miso),
         .m_axis_tvalid(spi_io_m_axis_tvalid),
         .resn(clk_spi_resn && cfg_layer_resetn),
         .s_axis_tdata(mosi_fifo_m_axis_tdata),
@@ -103,7 +104,7 @@ module layer_if_a  #(LAYER_ID = 0)(
         .s_axis_aresetn(clk_spi_resn && cfg_layer_resetn),
         .s_axis_tdata(spi_io_m_axis_tdata),
         .s_axis_tready(spi_io_m_axis_tready),
-        .s_axis_tvalid(spi_io_m_axis_tvalid),
+        .s_axis_tvalid(spi_io_m_axis_tvalid & !cfg_disable_miso),
         .s_axis_tlast(1'b1),
         .axis_wr_data_count(/*unused*/)
     );

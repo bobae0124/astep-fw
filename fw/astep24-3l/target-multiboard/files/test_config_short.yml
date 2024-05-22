@@ -15,7 +15,7 @@
 ---
 astropix3:
     chain:
-        length: 1
+        length: 2
     geometry:
         cols: 35
         rows: 35
