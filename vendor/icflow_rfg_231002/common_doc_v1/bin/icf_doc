@@ -1,3 +1,0 @@
-#!/bin/bash
-
-icf_script $ICFLOW_HOME/common_doc_v1/default_doc.tcl  $*

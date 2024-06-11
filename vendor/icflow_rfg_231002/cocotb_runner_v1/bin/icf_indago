@@ -1,5 +1,0 @@
-#!/bin/bash 
-
-pushd .icflow/sim
-indago 
-popd
