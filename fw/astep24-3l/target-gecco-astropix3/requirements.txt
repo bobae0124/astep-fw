@@ -1,0 +1,2 @@
+cocotbext-uart
+pytest

@@ -1,0 +1,5 @@
+bitstreams/
+vivado-run/*
+vivado*
+reports
+*.rpt
