@@ -56,52 +56,118 @@ async def main(args):
     print(f"Header: {astro.get_log_header()}")
 
     print("initializing voltage")
-    await astro.init_voltages() ## th in mV
-    #await astro.init_voltages(vthreshold=args.threshold) ## th in mV
+    #await astro.init_voltages() ## th in mV
+    await astro.init_voltages(vthreshold=args.threshold) ## th in mV
 
     #print("FUNCTIONALITY CHECK")
     #await astro.functionalityCheck(holdBool=True)
 
-    print("update threshold")
+    #print("update threshold")
     #await astro.update_pixThreshold(100)
-    await astro.update_pixThreshold(vThresh=args.threshold)
+    #await astro.update_pixThreshold(vThresh=args.threshold)
 
 #    print("enable pixel")
 #    await astro.enable_pixel(pixel[0], pixel[1])
 
     #print("disable pixel col15,row0 [r,c]")
     #await astro.disable_pixel(0, 15)
-    # Masking pixels
-    # Read noise scan summary file
-    if args.noisescaninfo is not None:
-        print("masking pixels")
-        noise_input_file = open(args.noisescaninfo, 'r')
-        lines = noise_input_file.readlines()
-    #print(lines[0])
-        del lines[0] # remove header
-    # Get counts
-        count_vals=0
-        for line in lines:
-            noise_val = int(line.split('\t')[2])
-            col_val = int(line.split('\t')[0])
-            row_val = int(line.split('\t')[1])
-            if noise_val > 5:
-                #astro.disable_pixel(col_val,row_val)
-                await astro.disable_pixel(row_val,col_val)
-                print("(",col_val,",",row_val,")=",noise_val," larger than 5")
-                count_vals = count_vals+1
-# for beam_test.py
-            else:
-                await astro.enable_pixel(row_val,col_val)
-        print(count_vals, " pixels are disable !")
-        print("Active pixels ~ ",1-(count_vals/(35*35)), " %.")
 
-   for r in range(0,10,1):
-        for c in range(0,35,1):
-            await astro.disable_pixel(r,c)
-    for r in range(13,19,1):
-        for c in range(13,19,1):
+#    """
+# Masking pixels
+    # Read noise scan summary file
+#    if args.noisescaninfo is not None:
+#        print("masking pixels")
+#        noise_input_file = open(args.noisescaninfo, 'r')
+#        lines = noise_input_file.readlines()
+#    #print(lines[0])
+#        del lines[0] # remove header
+#    # Get counts
+#        count_vals=0
+#        noisecut = int(args.noiseth)
+#        for line in lines:
+#            noise_val = int(line.split('\t')[2])
+#            col_val = int(line.split('\t')[0])
+#            row_val = int(line.split('\t')[1])
+#            if noise_val > noisecut:
+#                #astro.disable_pixel(col_val,row_val)
+#                await astro.disable_pixel(row_val,col_val)
+#                print(f"({col_val},{row_val})={noise_val} larger than {noisecut} -> NOISY")
+#                count_vals = count_vals+1
+## for beam_test.py
+#            else:
+#                await astro.enable_pixel(row_val,col_val)
+#        print(count_vals, " pixels are disable !")
+#        print("Active pixels ~ ", (1-(count_vals/(35*35)))*100 , " %.")
+#    """
+## enable all pixels
+#    for r in range(0,35,1):
+#        for c in range(0,35,1): # 0-4 col
+#            await astro.enable_pixel(r,c)
+##disable edge 10
+#    for r in range(0,35,1):
+#        for c in range(0,10,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+#    for r in range(0,35,1):
+#        for c in range(25,35,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+#    for r in range(0,10,1):
+#        for c in range(0,35,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+#    for r in range(25,35,1):
+#        for c in range(0,35,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+##disable edge 10, end
+##disable edge 7
+#    for r in range(0,35,1):
+#        for c in range(0,7,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+#    for r in range(0,35,1):
+#        for c in range(28,35,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+#    for r in range(0,7,1):
+#        for c in range(0,35,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+#    for r in range(28,35,1):
+#        for c in range(0,35,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+##disable edge 7, end
+#disable edge 5
+#    for r in range(0,35,1):
+#        for c in range(0,5,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+#    for r in range(0,35,1):
+#        for c in range(30,35,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+#    for r in range(0,5,1):
+#        for c in range(0,35,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+#    for r in range(30,35,1):
+#        for c in range(0,35,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+##disable edge 3
+#    for r in range(0,35,1):
+#        for c in range(0,3,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+#    for r in range(0,35,1):
+#        for c in range(32,35,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+#    for r in range(0,3,1):
+#        for c in range(0,35,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+#    for r in range(32,35,1):
+#        for c in range(0,35,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+#disable edge 5, end
+
+#   for r in range(31,35,1):
+#        for c in range(0,35,1): # 0-4 col
+#            await astro.disable_pixel(r,c)
+    for r in range(0,35,1):#0-5 (0,1,2,3,4), 5-10(5,6,7,8,9), 10-20,20-30,30-34
+        for c in range(0,35,1):# 4-10/ 10-20/ 20-30/ 30-34
             await astro.enable_pixel(r,c)
+    for r in range(0,35,1):
+        for c in range(0,3,1): # 0-4 col
+            await astro.disable_pixel(r,c)
 
 
 
@@ -134,7 +200,7 @@ async def main(args):
     n_noise = 0
     event = 0
     if args.maxtime is not None: 
-        end_time=time.time()+(args.maxtime) # second! not minute
+        end_time=time.time()+(args.maxtime*60) # minute!
     t0 = time.time()
     inc = -2
     start_intime = time.time()
@@ -148,7 +214,7 @@ async def main(args):
             if inc<0:
                 continue
             hit = readout[:buff] 
-            print(f"hit={hit}, buff={buff}")
+            #print(f"hit={hit}, buff={buff}")
             print("print(binascii.hexlify(hit))")
             print(binascii.hexlify(hit))
             #print(hex(readout[:buff]))
@@ -170,7 +236,7 @@ async def main(args):
 
     print("read out buffer")
     buff, readout = await(astro.get_readout())
-    print(binascii.hexlify(readout))
+#    print(binascii.hexlify(readout))
     print(f"{buff} bytes in buffer")
 
     bitfile.close() # Close open file       
@@ -192,8 +258,12 @@ if __name__ == "__main__":
     parser.add_argument('-y', '--yaml', action='store', required=False, type=str, default = 'config_v3_none', #Apr4. config/config_v3_none.yml_
                     help = 'filepath (in config/ directory) .yml file containing chip configuration. Default: config/config_v3_none.yml (All pixels off)')
 
-    parser.add_argument('-ns', '--noisescaninfo', action='store', required=False, type=str, default ='noise_scan_summary_apr29_newfw_aps3w08s05_noise_t100_3s.csv',
+    #parser.add_argument('-ns', '--noisescaninfo', action='store', required=False, type=str, default ='noise_scan_summary_apr29_newfw_aps3w08s05_noise_t100_3s.csv',
+    parser.add_argument('-ns', '--noisescaninfo', action='store', required=False, type=str, default ='noise_scan_summary_Apr29_newfw_aps3w06s01_noisescan_3s_t100.csv',
                     help = 'filepath noise scan summary file containing chip noise infomation.')
+
+    parser.add_argument('-nth', '--noiseth', action='store', required=False, type=str, default = 100,
+                    help = 'set threshold cut for disable pixels.default=100')
     
     parser.add_argument('-c', '--saveascsv', action='store_true', 
                     default=False, required=False, 
@@ -206,14 +276,15 @@ if __name__ == "__main__":
                     help = 'Specify injection voltage (in mV). DEFAULT 300 mV')
 
     #parser.add_argument('-t', '--threshold', type = float, action='store', default=None,
-    parser.add_argument('-t', '--threshold', type = int, action='store', default=None,
-                    help = 'Threshold voltage for digital ToT (in mV). DEFAULT 100mV')
+    parser.add_argument('-t', '--threshold', type = int, action='store', default=200,
+                    help = 'Threshold voltage for digital ToT (in mV). DEFAULT 200mV')
 
     parser.add_argument('-r', '--maxruns', type=int, action='store', default=None,
                     help = 'Maximum number of readouts')
 
     parser.add_argument('-M', '--maxtime', type=float, action='store', default=None,
-                    help = 'Maximum run time (in hour)')
+                    help = 'Maximum run time (in Minute)')
+
 
 
     parser.add_argument
