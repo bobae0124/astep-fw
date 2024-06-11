@@ -1,0 +1,23 @@
+# python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/ -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge10pixels_Sr90_t150_10s__20240520_163540.log -L D -p 
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge10pixels_Sr90_t150_10s__20240520_163618.log -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge10pixels_Sr90_t150_10s__20240520_163638.log -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge10pixels_Sr90_t150_10s__20240520_163723.log -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge10pixels_Sr90_t150_1s__20240520_163744.log  -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge10pixels_Sr90_t200_10s__20240520_163841.log -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge10pixels_Sr90_t200_10s__20240520_163902.log -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge10pixels_Sr90_t250_10s__20240520_163925.log -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge10pixels_Sr90_t250_10s__20240520_163942.log -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge10pixels_Sr90_t300_10s__20240520_164006.log -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge10pixels_Sr90_t300_10s__20240520_164036.log -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge10pixels_Sr90_t300_10s__20240520_164106.log -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge5pixels_Sr90_t150_10s__20240520_162958.log  -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge5pixels_Sr90_t150_10s__20240520_163019.log  -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge5pixels_Sr90_t150_1s__20240520_162941.log   -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge5pixels_Sr90_t150_1s__20240520_163158.log   -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge5pixels_Sr90_t150_1s__20240520_163235.log   -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge5pixels_Sr90_t150_30s__20240520_163023.log  -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge5pixels_Sr90_t150_60s__20240520_163254.log  -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge5pixels_Sr90_t200_10s__20240520_163436.log  -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge5pixels___20240520_162453.log               -L D -p
+python3.12 scripts/decode_postRun.py -f /Users/gimbobae/Desktop/astropix_test/APS3w08s05/May20_APSw08s05_Sr90/May20_test_disableEdge5pixels___20240520_162458.log               -L D -p 

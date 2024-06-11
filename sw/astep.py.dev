@@ -49,7 +49,7 @@ class astepRun:
 
         # Start putting the variables in for use down the line
         if inject is None:
-            nject = (None, None)
+            inject = (None, None)
         self.injection_col = inject[1]
         self.injection_row = inject[0]
 
@@ -171,15 +171,7 @@ class astepRun:
     #Interface with asic.py 
     async def enable_pixel(self, row: int, col: int):
        self.asic.enable_pixel(col, row)
-    #async def enable_pixel(self, row: int, col: int, inplace:bool=True):
-    #   self.asic.enable_pixel(col, row, inplace=True)
        #await self.asic_update()
-##    #Interface with asic.py   from astropix.py, row<->col
-##    def enable_pixel(self, row: int, col: int, inplace:bool=True):
-##       self.asic.enable_pixel(col, row, inplace)
-##
-    async def disable_pixel(self, row: int, col: int):
-       self.asic.disable_pixel(col, row)
 
     # The method to write data to the asic. 
     async def asic_update(self):
@@ -399,22 +391,6 @@ class astepRun:
         print(f"Layer Status:  {hex(status)},interruptn={status & 0x1},decoding={(status >> 1) & 0x1},reset={(ctrl>>1) & 0x1},hold={(ctrl) & 0x1},buffer={await (self.boardDriver.readoutGetBufferSize())}")
         #logger.info(f"Layer Status:  {hex(status)},interruptn={status & 0x1},decoding={(status >> 1) & 0x1},reset={(ctrl>>1) & 0x1},hold={(ctrl) & 0x1},buffer={await (self.boardDriver.readoutGetBufferSize())}")
 
-# add by me
-#    def extract_segments(data, prefix='0a0104', segment_length=22):
-#        segments = []
-#        start = 0
-#        
-#        while start < len(data):
-#            start = data.find(prefix, start)
-#            if start == -1:
-#                break
-#            segment = data[start:start + segment_length]
-#            if len(segment) == segment_length:
-#                segments.append(segment)
-#            start += segment_length
-#        
-#        return segments
-
     def decode_readout(self, readout:bytearray, i:int, printer: bool = True, nmb_bytes:int = 11):
         #Decodes readout
 
@@ -428,41 +404,12 @@ class astepRun:
         #Returns dataframe
 
         #!!! Warning, richard 11/10/23 -> The Astep FW returns all bits properly ordered, don't reverse bits when using this firmware!
-        short = 0
-        #list_hits = [readout[i:i+nmb_bytes] for i in range(0,len(readout),nmb_bytes)] # orig.
 
-# 2024.June.2 updated '0a0104'
-        list_hits = []
-        start = 0
-        prefix='0a0104'
-        segment_length=22
-        
-        while start < len(readout):
-            start = readout.find(prefix, start)
-            if start == -1:
-                break
-            segment = readout[start:start + segment_length]
-            if len(segment) == segment_length:
-                list_hits.append(segment)
-            start += segment_length
-        
-        print(f"list_hits = {list_hits}")
-
+        list_hits = [readout[i:i+nmb_bytes] for i in range(0,len(readout),nmb_bytes)]
         hit_list = []
-        #print(f"*********************** printout list_hits = {list_hits}")
-        #for hit in list_hits:
-        for hits in list_hits:  # 2024.June.2 update
+        for hit in list_hits:
             # Generates the values from the bitstream
-            hit = list(binascii.unhexlify(hits)) #2024.June.2 update
-            if len(hit) < 3:
-                short += short
-                print(f"{short}---- ???  empty ???   len(hit) = {len(hit)}...{hit[0]}  {bytearray(hit)} ------------------------ << << ")
-                continue 
-            #print(f"***! sum(hit) == {sum(hit)} or hit[0] = {hit[0]}, hit[1] = {hit[1]}, int(hit[0])+int(hit[1]) == {(int(hit[0])+int(hit[1]))} !***")
-            #if (sum(hit) == 1020) or (int(hit[0])+int(hit[1]) == 510): #HARDCODED MAX BUFFER or 'HIT' OF ONLY 1'S- WILL NEED TO REVISIT
-            if (int(hit[0])+int(hit[1]) == 510) or (int(hit[0])+int(hit[1]) == 15): #HARDCODED MAX BUFFER or 'HIT' OF ONLY 1'S- WILL NEED TO REVISIT
-                short += short
-                print(f"{short}=====  hit[0]={int(hit[0])}, hit[1]={int(hit[1])}: hit[0]+hit[1] == 510 [ffff] or hit[0]+hit[1] == 15 [0a0104]  =====")
+            if (sum(hit) == 1020) or (int(hit[0])+int(hit[1]) == 510): #HARDCODED MAX BUFFER or 'HIT' OF ONLY 1'S- WILL NEED TO REVISIT
                 continue 
             try:
                 id          = int(hit[2]) >> 3
@@ -484,16 +431,16 @@ class astepRun:
             if printer:
                 try:
                   print(
-                    f"{i} Header: {int(hit[0])}\t {int(hit[1])}\t"
+                    f"{i} Header: {int(hit[0])}\t {int(hit[1])}\n"
                     f"ChipId: {id}\tPayload: {payload}\t"
                     f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
                     f"TS: {timestamp}\t"
                     f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us)\n"
-                    #f"Trailing: {int(hit[7])}\t{int(hit[8])}\t{int(hit[9])}\t{int(hit[10])} \n"           
+                    f"Trailing: {int(hit[7])}\t{int(hit[8])}\t{int(hit[9])}\t{int(hit[10])}"           
                     )
                 except IndexError:
                   print(
-                    f"{i} Header: {int(hit[0])}\t {int(hit[1])}\t"
+                    f"{i} Header: {int(hit[0])}\t {int(hit[1])}\n"
                     f"ChipId: {id}\tPayload: {payload}\t"
                     f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
                     f"TS: {timestamp}\t"
@@ -505,7 +452,7 @@ class astepRun:
             # Look into dataframe
             hits = {
                 'readout': i,
-                'ChipID': id,
+                'Chip ID': id,
                 'payload': payload,
                 'location': location,
                 'isCol': (True if col else False),
@@ -517,16 +464,17 @@ class astepRun:
                 'hittime': time.time()
                 }
             hit_list.append(hits)
+
         # Much simpler to convert to df in the return statement vs df.concat
         return pd.DataFrame(hit_list)
 
-#    """
+    """
     # To be called when initalizing the asic, clears the FPGAs memory 
-    async def dump_fpga(self):
+    def dump_fpga(self):
         #Reads out hit buffer and disposes of the output. Does not return or take arguments. 
         readout = self.get_readout()
         del readout
-#    """
+    """
 
 ###################### INTERNAL METHODS ###########################
 
