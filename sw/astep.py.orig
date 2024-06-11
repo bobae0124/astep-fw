@@ -197,9 +197,6 @@ class astepRun:
     #Interface with asic.py 
     async def enable_pixel(self, layer:int, chip:int, row: int, col: int):
        self.asics[layer].enable_pixel(chip, col, row)
-    async def disable_pixel(self,layer:int, chip:int, row: int, col: int):
-       self.asic[layer].disable_pixel(chip, col, row)
-
 
     # The method to write data to the asic. 
     async def asic_update(self, layer):
@@ -663,122 +660,7 @@ class astepRun:
             # hits are sored in dictionary form
             hits = {
                 'readout': i,
-                'ChipID': id,
-                'payload': payload,
-                'location': location,
-                'isCol': (True if col else False),
-                'timestamp': timestamp,
-                'tot_msb': tot_msb,
-                'tot_lsb': tot_lsb,
-                'tot_total': tot_total,
-                'tot_us': ((tot_total * self.sampleclock_period_ns)/1000.0),
-                'fpga_ts': int.from_bytes(hit[7:11], sys.byteorder)
-                }
-            hit_list.append(hits)
-
-        # Much simpler to convert to df in the return statement vs df.concat
-        return pd.DataFrame(hit_list)
-
-    def decode_readout_offline(self, readout:bytearray, i:int, printer: bool = True, nmb_bytes:int = 11):
-        # add 06/24 by Bobae Kim for single chip
-        #Decodes readout
-
-        #Required argument:
-        #readout: Bytearray - readout from sensor, not the printed Hex values
-        #i: int - Readout number
-
-        #Optional:
-        #printer: bool - Print decoded output to terminal
-
-        #Returns dataframe
-        #!!! Warning, richard 11/10/23 -> The Astep FW returns all bits properly ordered, don't reverse bits when using this firmware!
-        #list_hits = [readout[i:i+nmb_bytes] for i in range(0,len(readout),nmb_bytes)]
-
-        list_hits =[]
-        start = 0
-        prefix='0a0104'
-        segment_length=22
-        hit_list = []
-        while start < len(readout):
-            start = readout.find(prefix, start)
-            if start == -1:
-                break
-            segment = readout[start:start + segment_length]
-            if len(segment) == segment_length:
-                list_hits.append(segment)
-            start += segment_length
-        print(f"list_hits = {list_hits}")
- 
-        #Break full readout into separate data packets as defined by how many bytes are contained in each hit from the FW, use to fill array 'list_hits'
-#        b=0
-#        while b<len(readout):
-#            packet_len = int(readout[b])
-#            if packet_len>16:
-#                logger.debug("Probably didn't find a hit here - go to next byte")
-#                b+=1
-#            else: #got a hit
-#                list_hits.append(readout[b:b+packet_len+1])
-#                #logger.debug(f"found hit {binascii.hexlify(readout[b:b+packet_len+1])}")
-#                b += packet_len+1
-
-        #decode hit contents
-#        for hit in list_hits:
-            # Generates the values from the bitstream
-            #if (sum(hit) == 1020) or (int(hit[0])+int(hit[1]) == 510): #HARDCODED MAX BUFFER or 'HIT' OF ONLY 1'S- WILL NEED TO REVISIT
-            #    continue 
-        for hits in list_hits:  # 2024.June.2 update
-            if len(list_hits) < 2:
-                continue
-            # Generates the values from the bitstream
-            hit = list(binascii.unhexlify(hits)) #2024.June.2 update
-            #if len(hit) < 3:
-            #    short += short
-            #    print(f"{short}---- ???  empty ???   len(hit) = {len(hit)}...{hit[0]}  {bytearray(hit)} ------------------------ << << ")
-            #    continue
-            #print(f"***! sum(hit) == {sum(hit)} or hit[0] = {hit[0]}, hit[1] = {hit[1]}, int(hit[0])+int(hit[1]) == {(int(hit[0])+int(hit[1]))} !***")
-            #if (sum(hit) == 1020) or (int(hit[0])+int(hit[1]) == 510): #HARDCODED MAX BUFFER or 'HIT' OF ONLY 1'S- WILL NEED TO REVISIT
-            if (int(hit[3])+int(hit[4]) == 510): #HARDCODED MAX BUFFER or 'HIT' OF ONLY 1'S- WILL NEED TO REVISIT
-                 print(f"=====  {int(hit[3])},{int(hit[4])}: hit[3]+hit[4] == 510 [ffff]   =====")
-                 continue
-            try:
-                id          = int(hit[2]) >> 3
-                payload     = int(hit[2]) & 0b111
-                location    = int(hit[3])  & 0b111111
-                col         = 1 if (int(hit[3]) >> 7 ) & 1 else 0
-                timestamp   = int(hit[4])
-                tot_msb     = int(hit[5]) & 0b1111
-                tot_lsb     = int(hit[6])   
-                tot_total   = (tot_msb << 8) + tot_lsb
-            except IndexError: #hit cut off at end of stream
-                id, payload, location, col = -1, -1, -1, -1
-                timestamp, tot_msb, tot_lsb, tot_total = -1, -1, -1, -1
-            
-            # print decoded info in terminal if desiered
-            if printer:
-                try:
-                  print(
-                    f"{i} Packet len: {int(hit[0])}\t Layer ID: {int(hit[1])}\n"
-                    f"ChipId: {id}\tPayload: {payload}\t"
-                    f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
-                    f"TS: {timestamp}\t"
-                    f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us) \n"
-                    #f"FPGA TS: {binascii.hexlify(hit[7:11])} ({int.from_bytes(hit[7:11], 'little')})\n"           
-                    f"FPGA TS: {(hit[7:11])} ({int.from_bytes(hit[7:11], 'little')})\n"           
-                    )
-                except IndexError:
-                  print(
-                    #f"{i} Header: {int(hit[0])}\t {int(hit[1])}\n"
-                    #f"ChipId: {id}\tPayload: {payload}\t"
-                    #f"Location: {location}\tRow/Col: {'Col' if col else 'Row'}\t"
-                    #f"TS: {timestamp}\t"
-                    #f"ToT: MSB: {tot_msb}\tLSB: {tot_lsb} Total: {tot_total} ({(tot_total * self.sampleclock_period_ns)/1000.0} us)\n"
-                    f"HIT TOO SHORT TO BE DECODED - {binascii.hexlify(hit)}"           
-                    )
-
-            # hits are sored in dictionary form
-            hits = {
-                'readout': i,
-                'ChipID': id,
+                'Chip ID': id,
                 'payload': payload,
                 'location': location,
                 'isCol': (True if col else False),
