@@ -1,0 +1,160 @@
+# split -b 1GB July8_bench_am241_mask3col_12h__20240708_182159.log
+#split -b 1GB Jul9_bench_am241_t200_7hours__20240709_101359.log
+#Nov7_b102_w06s01_ba133_15h__20241107_172111.log
+
+mv xaa Nov10_b102_w06s01_ba133_5h__20241110_101529_xaa.log
+mv xab Nov10_b102_w06s01_ba133_5h__20241110_101529_xab.log
+mv xac Nov10_b102_w06s01_ba133_5h__20241110_101529_xac.log
+mv xad Nov10_b102_w06s01_ba133_5h__20241110_101529_xad.log
+mv xae Nov10_b102_w06s01_ba133_5h__20241110_101529_xae.log
+mv xaf Nov10_b102_w06s01_ba133_5h__20241110_101529_xaf.log
+mv xag Nov10_b102_w06s01_ba133_5h__20241110_101529_xag.log
+mv xah Nov10_b102_w06s01_ba133_5h__20241110_101529_xah.log
+mv xai Nov10_b102_w06s01_ba133_5h__20241110_101529_xai.log
+mv xaj Nov10_b102_w06s01_ba133_5h__20241110_101529_xaj.log
+mv xak Nov10_b102_w06s01_ba133_5h__20241110_101529_xak.log
+mv xal Nov10_b102_w06s01_ba133_5h__20241110_101529_xal.log
+mv xam Nov10_b102_w06s01_ba133_5h__20241110_101529_xam.log
+mv xan Nov10_b102_w06s01_ba133_5h__20241110_101529_xan.log
+mv xao Nov10_b102_w06s01_ba133_5h__20241110_101529_xao.log
+#mv xap Nov9_b102_w06s01_ba133_15h__20241109_181811_xap.log
+#mv xaq Nov9_b102_w06s01_ba133_15h__20241109_181811_xaq.log
+#mv xar Nov9_b102_w06s01_ba133_15h__20241109_181811_xar.log
+#mv xas Nov9_b102_w06s01_ba133_15h__20241109_181811_xas.log
+#mv xat Nov9_b102_w06s01_ba133_15h__20241109_181811_xat.log
+#mv xau Nov9_b102_w06s01_ba133_15h__20241109_181811_xau.log
+#mv xav Nov9_b102_w06s01_ba133_15h__20241109_181811_xav.log
+#mv xaw Nov9_b102_w06s01_ba133_15h__20241109_181811_xaw.log
+#mv xax Nov9_b102_w06s01_ba133_15h__20241109_181811_xax.log
+#mv xay Nov9_b102_w06s01_ba133_15h__20241109_181811_xay.log
+#mv xaz Nov9_b102_w06s01_ba133_15h__20241109_181811_xaz.log
+#mv xba Nov9_b102_w06s01_ba133_15h__20241109_181811_xba.log 
+#mv xbb Nov9_b102_w06s01_ba133_15h__20241109_181811_xbb.log
+#mv xbc Nov9_b102_w06s01_ba133_15h__20241109_181811_xbc.log
+#mv xbd Nov9_b102_w06s01_ba133_15h__20241109_181811_xbd.log
+#mv xbe Nov9_b102_w06s01_ba133_15h__20241109_181811_xbe.log
+#mv xbf Nov9_b102_w06s01_ba133_15h__20241109_181811_xbf.log
+#mv xbg Nov9_b102_w06s01_ba133_15h__20241109_181811_xbg.log
+#mv xbh Nov9_b102_w06s01_ba133_15h__20241109_181811_xbh.log
+#mv xbi Nov9_b102_w06s01_ba133_15h__20241109_181811_xbi.log
+#mv xbj Nov9_b102_w06s01_ba133_15h__20241109_181811_xbj.log
+#mv xbk Nov9_b102_w06s01_ba133_15h__20241109_181811_xbk.log
+#mv xbl Nov9_b102_w06s01_ba133_15h__20241109_181811_xbl.log
+#mv xbm Nov9_b102_w06s01_ba133_15h__20241109_181811_xbm.log
+#mv xbn Nov9_b102_w06s01_ba133_15h__20241109_181811_xbn.log
+#mv xbo Nov9_b102_w06s01_ba133_15h__20241109_181811_xbo.log
+#mv xbp Nov6_b102_w06s01_ba133_15h__20241109_181811_xbp.log
+#mv xbq Nov6_b102_w06s01_ba133_15h__20241109_181811_xbq.log
+#mv xbr Nov6_b102_w06s01_ba133_15h__20241109_181811_xbr.log
+#mv xas Nov6_b102_w06s01_ba133_15h__20241106_182959_xas.log
+#mv xat Nov6_b102_w06s01_ba133_15h__20241106_182959_xat.log
+#mv xau Nov6_b102_w06s01_ba133_15h__20241106_182959_xau.log
+#mv xav Nov6_b102_w06s01_ba133_15h__20241106_182959_xav.log
+#mv xaw Nov6_b102_w06s01_ba133_15h__20241106_182959_xaw.log
+#mv xax Nov6_b102_w06s01_ba133_15h__20241106_182959_xax.log
+#mv xay Nov6_b102_w06s01_ba133_15h__20241106_182959_xay.log
+#mv xaz Nov6_b102_w06s01_ba133_15h__20241106_182959_xaz.log
+
+
+
+
+#mv xaa  Nov6_b102_w06s01_ba133_3h__20241106_144457_xaa.log
+#mv xab  Nov6_b102_w06s01_ba133_3h__20241106_144457_xab.log
+#mv xac  Nov6_b102_w06s01_ba133_3h__20241106_144457_xac.log
+#mv xad  Nov6_b102_w06s01_ba133_3h__20241106_144457_xad.log
+#mv xae  Nov6_b102_w06s01_ba133_3h__20241106_144457_xae.log
+#mv xaf  Nov6_b102_w06s01_ba133_3h__20241106_144457_xaf.log
+#mv xag  Nov6_b102_w06s01_ba133_3h__20241106_144457_xag.log
+#mv xah  Nov6_b102_w06s01_ba133_3h__20241106_144457_xah.log
+#mv xai  Nov6_b102_w06s01_ba133_3h__20241106_144457_xai.log
+#mv xaj  Nov6_b102_w06s01_ba133_3h__20241106_144457_xaj.log
+
+#mv xac Nov5_b102_w06s01_ba133_15h__20241105_174902_xac.log
+#mv xad Nov5_b102_w06s01_ba133_15h__20241105_174902_xad.log
+#mv xae Nov5_b102_w06s01_ba133_15h__20241105_174902_xae.log
+#mv xaf Nov5_b102_w06s01_ba133_15h__20241105_174902_xaf.log
+#mv xag Nov5_b102_w06s01_ba133_15h__20241105_174902_xag.log
+#mv xah Nov5_b102_w06s01_ba133_15h__20241105_174902_xah.log
+#mv xai Nov5_b102_w06s01_ba133_15h__20241105_174902_xai.log
+#mv xaj Nov5_b102_w06s01_ba133_15h__20241105_174902_xaj.log
+#mv xak Nov5_b102_w06s01_ba133_15h__20241105_174902_xak.log
+#mv xal Nov5_b102_w06s01_ba133_15h__20241105_174902_xal.log
+#mv xam Nov5_b102_w06s01_ba133_15h__20241105_174902_xam.log
+#mv xan Nov5_b102_w06s01_ba133_15h__20241105_174902_xan.log
+#mv xao Nov5_b102_w06s01_ba133_15h__20241105_174902_xao.log
+#mv xap Nov5_b102_w06s01_ba133_15h__20241105_174902_xap.log
+#mv xaq Nov5_b102_w06s01_ba133_15h__20241105_174902_xaq.log
+#mv xar Nov5_b102_w06s01_ba133_15h__20241105_174902_xar.log
+#mv xas Nov5_b102_w06s01_ba133_15h__20241105_174902_xas.log
+#mv xat Nov5_b102_w06s01_ba133_15h__20241105_174902_xat.log
+#mv xau Nov5_b102_w06s01_ba133_15h__20241105_174902_xau.log
+#mv xav Nov5_b102_w06s01_ba133_15h__20241105_174902_xav.log
+#mv xaw Nov5_b102_w06s01_ba133_15h__20241105_174902_xaw.log
+#mv xax Nov5_b102_w06s01_ba133_15h__20241105_174902_xax.log
+#mv xay Nov5_b102_w06s01_ba133_15h__20241105_174902_xay.log
+#mv xaz Nov5_b102_w06s01_ba133_15h__20241105_174902_xaz.log
+#mv xba Nov5_b102_w06s01_ba133_15h__20241105_174902_xba.log
+#
+##Nov5_b102_w06s01_ba133_1h__20241105_162823.log
+#mv xaa Nov5_b102_w06s01_ba133_1h__20241105_162823_xaa.log
+#mv xab Nov5_b102_w06s01_ba133_1h__20241105_162823_xab.log
+#mv xac Nov5_b102_w06s01_ba133_1h__20241105_162823_xac.log
+#mv xad Nov5_b102_w06s01_ba133_1h__20241105_162823_xad.log
+##July16_Ru106_t200_18hour__20240716_181426.log
+#mv xaa July16_Ru106_t200_18hour__20240716_181426_xaa.log
+#mv xab July16_Ru106_t200_18hour__20240716_181426_xab.log
+#mv xac July16_Ru106_t200_18hour__20240716_181426_xac.log
+#mv xad July16_Ru106_t200_18hour__20240716_181426_xad.log
+#mv xae July16_Ru106_t200_18hour__20240716_181426_xae.log
+#mv xaf July16_Ru106_t200_18hour__20240716_181426_xaf.log
+#mv xag July16_Ru106_t200_18hour__20240716_181426_xag.log
+#mv xah July16_Ru106_t200_18hour__20240716_181426_xah.log
+#mv xai July16_Ru106_t200_18hour__20240716_181426_xai.log
+#mv xaj July16_Ru106_t200_18hour__20240716_181426_xaj.log
+#mv xak July16_Ru106_t200_18hour__20240716_181426_xak.log
+#mv xal July16_Ru106_t200_18hour__20240716_181426_xal.log
+#mv xam July16_Ru106_t200_18hour__20240716_181426_xam.log
+#mv xan July16_Ru106_t200_18hour__20240716_181426_xan.log
+#Nov4_b102_w06s01_ba133__20241104_165705.log
+#Nov4_b102_w06s01_ba133__20241104_151210.log
+#mv xaa Nov4_b102_w06s01_ba133__20241104_151210_xaa.log
+#mv xab Nov4_b102_w06s01_ba133__20241104_151210_xab.log
+#mv xac Nov4_b102_w06s01_ba133__20241104_151210_xac.log
+#Nov4_b102_w06s01_ba133__20241104_180238.log
+#mv xaa Nov4_b102_w06s01_ba133__20241104_180238_xaa.log
+#mv xab Nov4_b102_w06s01_ba133__20241104_180238_xab.log
+#mv xac Nov4_b102_w06s01_ba133__20241104_180238_xac.log
+#mv xad Nov4_b102_w06s01_ba133__20241104_180238_xad.log
+#mv xae Nov4_b102_w06s01_ba133__20241104_180238_xae.log
+#mv xaf Nov4_b102_w06s01_ba133__20241104_180238_xaf.log
+#mv xag Nov4_b102_w06s01_ba133__20241104_180238_xag.log
+#mv xah Nov4_b102_w06s01_ba133__20241104_180238_xah.log
+#mv xai Nov4_b102_w06s01_ba133__20241104_180238_xai.log
+#mv xaj Nov4_b102_w06s01_ba133__20241104_180238_xaj.log
+#mv xak Nov4_b102_w06s01_ba133__20241104_180238_xak.log
+#mv xal Nov4_b102_w06s01_ba133__20241104_180238_xal.log
+#mv xam Nov4_b102_w06s01_ba133__20241104_180238_xam.log
+#mv xan Nov4_b102_w06s01_ba133__20241104_180238_xan.log
+#mv xao Nov4_b102_w06s01_ba133__20241104_180238_xao.log
+#mv xap Nov4_b102_w06s01_ba133__20241104_180238_xap.log
+#mv xaq Nov4_b102_w06s01_ba133__20241104_180238_xaq.log
+#mv xar Nov4_b102_w06s01_ba133__20241104_180238_xar.log
+#mv xas Nov4_b102_w06s01_ba133__20241104_180238_xas.log
+#mv xat Nov4_b102_w06s01_ba133__20241104_180238_xat.log
+#mv xau Nov4_b102_w06s01_ba133__20241104_180238_xau.log
+#mv xav Nov4_b102_w06s01_ba133__20241104_180238_xav.log
+#mv xaw Nov4_b102_w06s01_ba133__20241104_180238_xaw.log
+#mv xax Nov4_b102_w06s01_ba133__20241104_180238_xax.log
+#mv xay Nov4_b102_w06s01_ba133__20241104_180238_xay.log
+#mv xaz Nov4_b102_w06s01_ba133__20241104_180238_xaz.log
+#mv xba Nov4_b102_w06s01_ba133__20241104_180238_xba.log
+#mv xbb Nov4_b102_w06s01_ba133__20241104_180238_xbb.log
+#mv xbc Nov4_b102_w06s01_ba133__20241104_180238_xbc.log
+#mv xbd Nov4_b102_w06s01_ba133__20241104_180238_xbd.log
+#mv xbe Nov4_b102_w06s01_ba133__20241104_180238_xbe.log
+#mv xbf Nov4_b102_w06s01_ba133__20241104_180238_xbf.log
+#mv xbg Nov4_b102_w06s01_ba133__20241104_180238_xbg.log
+#mv xbh Nov4_b102_w06s01_ba133__20241104_180238_xbh.log
+#mv xbi Nov4_b102_w06s01_ba133__20241104_180238_xbi.log
+#mv xbj Nov4_b102_w06s01_ba133__20241104_180238_xbj.log
+#mv xbk Nov4_b102_w06s01_ba133__20241104_180238_xbk.log

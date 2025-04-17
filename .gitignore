@@ -3,6 +3,7 @@
 **/ip/
 
 **/*.log
+**/*.csv
 
 
 ## Xilinx

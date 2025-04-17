@@ -38,7 +38,7 @@ astropix3:
             qon3:               [1, 0b1]
 
         idacs:
-            blres:              [6, 0]
+            blres:              [6,0]
             nu1:                [6, 0]
             vn1:                [6, 20]
             vnfb:               [6, 1]
@@ -59,7 +59,7 @@ astropix3:
             vnrec:              [6, 30]
 
         vdacs:
-            blpix:              [10, 568] # 1V = 568
+            blpix:              [10, 6] # 1V = 568
             thpix:              [10, 682] # 100 mV threshold = 625
             vcasc2:             [10, 625]
             nu1:                [10, 512]

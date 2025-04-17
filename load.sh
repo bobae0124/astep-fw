@@ -6,8 +6,8 @@ fi
 
 ## Python path
 export PYTHONPATH="$BASE/sw/:$PYTHONPATH"
-
-
+#source /tools/Xilinx/Vivado/2022.1/settings64.sh
+source /tools/Xilinx/Vivado/2023.2/settings64.sh 
 
 
 ## Local tools -> This file can be set by users to load tools, based on user's installation paths
