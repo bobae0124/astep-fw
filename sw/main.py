@@ -79,7 +79,7 @@ async def main(args):
     print(args) # Soon to be removed
     logger.debug("Start main()")
     # Setup FPGA communications
-    boardDriver = drivers.boards.getCMODUartDriver("COM6")
+    boardDriver = drivers.boards.getCMODUartDriver("/dev/ttyUSB1")
     logger.debug(f"boardDriver instanciated: {boardDriver}")
     await boardDriver.open()
     logger.info("Opened FPGA, testing...")
@@ -156,7 +156,7 @@ async def main(args):
     dataStream_lst = []
     bufferLength_lst = []
     if args.runTime is not None: 
-        end_time=time.time()+(args.runTime*60.)
+        end_time=time.time()+(args.runTime)
     else:
         end_time = float('inf')
     # Flush old data

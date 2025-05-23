@@ -1,0 +1,4 @@
+,readout,layer,chipID,payload,location,isCol,timestamp,tot_msb,tot_lsb,tot_total,tot_us,fpga_ts
+0,0,-1,-1,-1,-1,True,-1,-1,-1,-1,-1.0,-1
+1,0,1,1,4,10,True,78,5,41,1321,13.21,0
+2,0,-1,-1,-1,-1,True,-1,-1,-1,-1,-1.0,-1

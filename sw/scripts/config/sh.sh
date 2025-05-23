@@ -1,0 +1,5 @@
+mv w101q12_may28yml_chip0_inj0_c10r10.yml quadchip_may28yml_chip0_inj0_c10r10.yml
+mv w101q12_may28yml_chip1_inj0_c10r10.yml quadchip_may28yml_chip1_inj0_c10r10.yml
+mv w101q12_may28yml_chip2_inj0_c10r10.yml quadchip_may28yml_chip2_inj0_c10r10.yml
+mv w101q12_may28yml_chip3_inj0_c10r10.yml quadchip_may28yml_chip3_inj0_c10r10.yml
+

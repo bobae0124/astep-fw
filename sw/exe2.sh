@@ -1,0 +1,31 @@
+#python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-144205_1stchip.tsv
+#python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-144205_2ndchip.tsv
+#python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-144205_5thchip.tsv
+#python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-144520_1stchip.tsv
+#python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-144520_2ndchip.tsv
+#python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-144948_3rdchip.tsv
+#python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-145122_4thchip.tsv
+#python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-145302_5thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153051_1stchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153051_5thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153051_6thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153051_8thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153144_5thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153144_6thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153144_8thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-152933_6thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153018_1stchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153018_5thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153018_6thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153018_7thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153057_1stchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153057_2ndchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153057_4thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153057_5thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153057_6thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153057_7thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153057_8thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153154_5thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153154_6thchip.tsv
+ python3.12 scripts/generate_run_summary_bb.py -d ./ -if decode_output_20250523-153154_9thchip.tsv
+

@@ -46,3 +46,8 @@ docs/site
 
 ## vendor things
 *.tar.gz
+
+##add by me
+*.txt
+*.tsv
+*.png
