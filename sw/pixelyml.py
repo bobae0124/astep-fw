@@ -1,6 +1,7 @@
 import pandas as pd
 
-tsv_file = "input_pixels.tsv"
+#tsv_file = "input_pixels.tsv"
+tsv_file = "w106s09.tsv"
 df = pd.read_csv(tsv_file, sep="\t", dtype=str)
 
 recconfig = {}
@@ -39,7 +40,7 @@ for _, row in df.iterrows():
 def format_bits(value):
     bit_str = f"{value:036b}"[::-1]
     blocks = [bit_str[i:i+5][::-1] for i in range(0, 36, 5)]
-    return '0b' + '_'.join(blocks[::-1])
+    return '0b00' + '_'.join(blocks[::-1])
 
 for col in range(35):
     col_name = f"col{col}"

@@ -3,9 +3,6 @@
 06/2024 Bobae Kim updated
 python3.12 scripts/generate_event_display_bb_update.py -d June2_TBpreparation/ -if June2_ftbf_may28FWSW_masked3col_t200_10m___20240602_144719_offline.csv -n test
 > create June2_ftbf_may28FWSW_masked3col_t200_10m___20240602_144719_offline.csv_proton120GeV_test_diffTS2_diffToT10.png
-
-#python3.12 scripts/generate_event_display_bb_update.py -n test -d /Users/gimbobae/Desktop/astropix_test/APS3w06s01/May31_ftbt/May28_updatedFWSW/ -if June2_ftbf_may28FWSW_masked3col_t200_1m___20240602_143319_offline.csv
-#> create June2_ftbf_may28FWSW_masked3col_t200_1m___20240602_143319_offline.csv_proton120GeV_test_diffTS2_diffToT10.png
 """
 import argparse
 import csv
@@ -73,7 +70,6 @@ def main(args):
     #add
     print(df.head())
     print(df.columns)
-    # 'readout' 열 존재 여부 확인 및 길이 확인
     if 'readout' in df.columns:
         if len(df['readout']) > 0:
             max_n_readouts = df['readout'].iloc[-1]
@@ -136,26 +132,17 @@ def main(args):
 				#col0-3 skip
                     if ( dffcol['location'][indc] < 3 ):
                             continue
+                    if (dffcol['location'][indc] > 34 or dffrow['location'][indr] > 34):
+                        continue
                     if (abs(dffcol['timestamp'][indc] - dffrow['timestamp'][indr]) < timestamp_diff) & (abs(dffcol['tot_us'][indc] - dffrow['tot_us'][indr])/dffcol['tot_us'][indc]*100 < tot_time_limit):
-                        if (dffcol['location'][indc] > 34 or dffrow['location'][indr] > 34):
-                            print(f"[Matching but Continue] col.location, row.location = {dffcol['location'][indc]},{dffrow['location'][indr]}")
-                            continue
+                        print(f"[Matched] col.location, row.location = {dffcol['location'][indc]},{dffrow['location'][indr]}; {dffcol['tot_us'][indc]},{dffrow['tot_us'][indr]}")
                         # Record hit pixels per event
                         average_tot = ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2)
                         pair.append([dffcol['readout'][indc], dffcol['location'][indc], dffrow['location'][indr], dffcol['timestamp'][indc], dffrow['timestamp'][indr], dffcol['tot_us'][indc], dffrow['tot_us'][indr], ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2)])
                         dffrow = dffrow.drop(indr)
                         break
-                        #pair.append([dffcol['location'][indc], dffrow['location'][indr], dffcol['timestamp'][indc], dffrow['timestamp'][indr], dffcol['tot_us'][indc], dffrow['tot_us'][indr]])
-#                    if ((abs(dffcol['TS'][indc] - dffrow['TS'][indr]) < timestamp_diff) & 
-#                    (abs(dffcol['tot_us'][indc] - dffrow['tot_us'][indr]) < tot_time_limit)):
-#                        # Record hit pixels per event
-#                        pair.append([dffcol['loc'][indc], dffrow['loc'][indr], 
-#                                     dffcol['TS'][indc], dffrow['TS'][indr], 
-#                                     dffcol['tot_us'][indc], dffrow['tot_us'][indr],
-#                                    (dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2])
     print("... Matching is done!")
     ######################################################################################################
-
     ##### Summary of how many events being used ###################################################
     nevents = '%.2f' % ((n_evt_used/(tot_n_evts)) * 100.)
     nnanevents = '%.2f' % ((tot_n_nans/(tot_n_evts)) * 100.)
@@ -199,6 +186,7 @@ def main(args):
         for c in range(0,3,1): # 0-4 col
                 disablepix.append([c, r, 1])
     #disablepix.append([14, 31, 1])
+	#FIXME; read yml file
     pixs=pd.DataFrame(disablepix, columns=['col','row','disable'])
 #    print(pixs)
     npixel = '%.2f' % ( (1-(len(pixs)/1225)) * 100.)
@@ -252,47 +240,8 @@ def main(args):
 
 #p1+p2 overlay plot
     p3 = ax[0,2].hist2d(x=pixs['col'], y=pixs['row'], bins=35, range=[[0.,35],[0,35]], weights=pixs['disable'], norm=Normalize(vmin=0,vmax=1),cmap='Greys')
-    #p3 = ax[0,2].hist2d(x=dfpairc['col'], y=dfpairc['row'], bins=35, range=[[0,35],[0,35]], weights=dfpairc['hits'], cmap='YlOrRd', cmin=1.0, norm=matplotlib.colors.LogNorm())
     p3 = ax[0,2].hist2d(x=dfpairc['col'], y=dfpairc['row'], bins=35, range=[[0,35],[0,35]], weights=dfpairc['hits'], cmap='YlOrRd', cmin=1.0)
-#    masked_weights = np.ma.masked_where(pixs['disable'] != 1, pixs['disable'])
-#    p4 = ax[0, 2].hist2d(x=pixs['col'], y=pixs['row'], bins=35, range=[[0., 35], [0, 35]], 
-#                     weights=masked_weights, norm=Normalize(vmin=0, vmax=1), cmap='Greys', alpha=1.)
-    #col_disable_1 = pixs['col'][pixs['disable'] == 1]
-    #row_disable_1 = pixs['row'][pixs['disable'] == 1]
-    #ax[0, 2].scatter(col_disable_1, row_disable_1, color='black', s=10, label='Disabled (1)')
 
-#    h2, xedges, yedges = np.histogram2d(pixs['col'], pixs['row'], bins=35, range=[[0., 35], [0, 35]], 
-#                                    weights=np.where(pixs['disable'] == 1, 1, 0))
-#    masked_weights = np.ma.masked_where(h2 == 0, h2)
-#    masked_weights = np.ma.masked_where(np.isnan(h2), h2)
-#    X, Y = np.meshgrid(xedges, yedges)
-#    ax[0, 2].pcolormesh(X, Y, masked_weights.T, cmap='gray', edgecolors='face', vmin=0, vmax=1)
-
-
-#    h2, xedges, yedges = np.histogram2d(pixs['col'], pixs['row'], bins=35, range=[[0., 35], [0, 35]], 
-#                                        weights=np.where(pixs['disable'] == 1, 1, 0))
-#    h2 = np.ma.masked_where(h2 == 0, h2)  # 0인 값을 마스킹
-#    
-#    # 두 번째 히스토그램을 imshow로 그리기
-#    extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
-#    ax[0, 2].imshow(h2.T, cmap='gray', extent=extent, origin='lower', interpolation='none', alpha=1.0)
-    # 두 번째 데이터 히스토그램
-#    h2, xedges, yedges = np.histogram2d(pixs['col'], pixs['row'], bins=35, range=[[0., 35], [0, 35]], 
-#                                        weights=np.where(pixs['disable'] == 1, 1, 0))
-#    
-#    # col 값이 0부터 3 사이에 있는 경우 모든 빈을 1로 설정
-#    h2[:, :4] = 1
-#    # 0인 값을 마스킹
-#    h2 = np.ma.masked_where(h2 == 0, h2)
-#    
-#    # 두 번째 히스토그램을 imshow로 그리기
-#    extent = [xedges[0], xedges[-1], yedges[0], yedges[-1]]
-#    ax[0, 2].imshow(h2.T, cmap='gray', extent=extent, origin='lower', interpolation='none', alpha=1.0)
-
-
-
-#    p3 = ax[0,2].hist2d(x=pixs['col'], y=pixs['row'], bins=35, range=[[0.,35],[0,35]], weights=pixs['disable'], norm=Normalize(vmin=0,vmax=1),cmap='Greys')
-#    p3 = ax[1, 0].hist2d(x=dfpixel['col'], y=dfpixel['row'], bins=35, range=[[-0.5,34.5],[-0,35]], weights=dfpixel['norm_sum_avg_tot_us'], cmap='Blues',cmin=1.0, norm=matplotlib.colors.LogNorm())
     fig.colorbar(p3[3], ax=ax[0, 2]).set_label(label='Hit Counts', weight='bold', size=14)
     ax[0,2].grid()
     ax[0,2].set_xlabel('Col', fontweight = 'bold', fontsize=14)
@@ -309,7 +258,6 @@ def main(args):
     ax[1, 0].yaxis.set_tick_params(labelsize = 14)
 
     p5 = ax[1, 1].hist(x=dffpair['avg_tot_us'], bins=22, range=(0, 22), color='blue', edgecolor='black')
-#    fig.colorbar(p5[3], ax=ax[1, 2]).set_label(label='Average Normalized Time-over-Threshold[us]', weight='bold', size=18)
     ax[1, 1].grid()
     ax[1, 1].set_xlabel('ToT [us]', fontweight = 'bold', fontsize=14)
     ax[1, 1].set_ylabel('Counts', fontweight = 'bold', fontsize=14)
@@ -318,10 +266,9 @@ def main(args):
 
     # Text
     ax[1, 2].set_axis_off()
-    ax[1, 2].text(0.1, 0.85, f"Beam: {args.beaminfo}", fontsize=15, fontweight = 'bold');
-    ax[1, 2].text(0.1, 0.80, f"ChipID: {args.name}", fontsize=15, fontweight = 'bold');
+#    ax[1, 2].text(0.1, 0.85, f"Beam: {args.beaminfo}", fontsize=15, fontweight = 'bold');
+#    ax[1, 2].text(0.1, 0.80, f"ChipID: {args.name}", fontsize=15, fontweight = 'bold');
     ax[1, 2].text(0.1, 0.40, f"Available Pixels: {npixel}%", fontsize=15);
-#    ax[0, 2].text(0.1, 0.75, f"Runs: {runnum}", fontsize=15, fontweight = 'bold');
     ax[1, 2].text(0.1, 0.70, f"Events: {tot_n_evts}", fontsize=15);#, fontweight = '');
     ax[1, 2].text(0.1, 0.60, "Processed below", fontsize=15, fontweight = 'bold');
     ax[1, 2].text(0.1, 0.55, f"conditions: <{args.timestampdiff} timestamp and <{args.totdiff}% in ToT", fontsize=15);#, fontweight = '');
@@ -333,8 +280,6 @@ def main(args):
     ax[0, 2].set_title(f"Hit Map with Masked pixels", fontweight = 'bold', fontsize=14)
     ax[1, 0].set_title(f"Avg.ToT per pixel", fontweight = 'bold', fontsize=14)
     ax[1, 1].set_title(f"Avg.ToT for all pixels", fontweight = 'bold', fontsize=14)
-    #plt.savefig(f"{args.outdir}/{args.beaminfo}_{args.name}_run_{runnum}_evtdisplay.png")
-    #print(f"{args.outdir}/{args.beaminfo}_{args.name}_run_{runnum}_evtdisplay.png was created...")
 
     plt.savefig(f"{args.outdir}/{args.inputfile}_{args.beaminfo}_{args.name}_diffTS{args.timestampdiff}_diffToT{args.totdiff}.png")
     print(f"{args.inputfile}_{args.beaminfo}_{args.name}_diffTS{args.timestampdiff}_diffToT{args.totdiff}.png was created...")
@@ -346,7 +291,7 @@ def main(args):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser(description='Astropix Driver Code')
-    parser.add_argument('-n', '--name', default='v3QuadChip_layer0_chip0', required=False,
+    parser.add_argument('-n', '--name', default='AstroPixv3', required=False,
                     help='chip ID that can be used in name of output file (default=APSw06s01_TB0624)')
 
 #    parser.add_argument('-l','--runnolist', nargs='+', required=True,
@@ -355,7 +300,7 @@ if __name__ == "__main__":
     parser.add_argument('-o', '--outdir', default='.', required=False,
                     help='output directory for all png files')
 
-    parser.add_argument('-d', '--datadir', required=False, default="~/May28_gitmainbranch/astep-fw/sw/",
+    parser.add_argument('-d', '--datadir', required=False, default="./",
                     help = 'input directory for beam data file')
 
     parser.add_argument('-if', '--inputfile', required=True, default =None,
