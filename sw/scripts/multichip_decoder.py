@@ -52,7 +52,7 @@ def decode_for_pattern(readout_lines, pattern_hex, chip_idx):
                 tot_msb   = hit[5] & 0b1111
                 tot_lsb   = hit[6]
                 tot_total = (tot_msb << 8) + tot_lsb
-                sampleclock_period_ns = 10
+                sampleclock_period_ns = 5
                 tot_us = (tot_total * sampleclock_period_ns) / 1000.0
                 fpga_ts = int.from_bytes(hit[7:11], 'little') if len(hit) >= 11 else -1
             except IndexError:
