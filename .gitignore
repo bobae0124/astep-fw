@@ -51,3 +51,9 @@ docs/site
 *.txt
 *.tsv
 *.png
+sw/data/*.log
+sw/data/*.txt
+sw/data/*.csv
+sw/data/*
+sw/scripts/*.pdf
+sw/scripts/*.png
