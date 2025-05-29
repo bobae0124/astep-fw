@@ -45,14 +45,16 @@ for chip in range(9):
     ax = axes[row_idx, col_idx]
 
     data = chip_counts[chip]
+
     if data:
         cols, rows, counts = zip(*[(c, r, count) for (c, r), count in data.items()])
         total_hits = sum(counts)
         h = ax.hist2d(
             x=cols, y=rows, bins=35, range=[[0, 35], [0, 35]],
             #weights=counts, cmap='YlOrRd', cmin=1.0
-            weights=counts, cmap=cmap, cmin=0.0001
+            weights=counts, cmap=cmap, cmin=0.0001, vmin=0
         )
+        ax.add_patch(plt.Rectangle((0,0),3,35,color='black',zorder=10))
         ax.set_title(f'Chip {chip}', fontweight='bold', fontsize=14)
         ax.set_xlabel('Col', fontweight='bold', fontsize=14)
         ax.set_ylabel('Row', fontweight='bold', fontsize=14)
@@ -103,6 +105,7 @@ for chip in range(9):
             x=cols, y=rows, bins=35, range=[[0, 35], [0, 35]],
             weights=avg_tot, cmap=cmap, cmin=0.0001, vmin=0, vmax=20
         )
+        ax.add_patch(plt.Rectangle((0,0),3,35,color='black',zorder=10))
         ax.set_title(f'Chip {chip}', fontweight='bold', fontsize=14)
         ax.set_xlabel('Col', fontweight='bold', fontsize=14)
         ax.set_ylabel('Row', fontweight='bold', fontsize=14)
