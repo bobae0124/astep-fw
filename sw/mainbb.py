@@ -75,10 +75,11 @@ def dataParse_autoread(data_lst, buffer_lst, bitfile:str = None):
 #################### MAIN FUNCTION ####################
 
 async def main(args):
-    bitpath = args.outputPrefix+".txt"
+    bitpath = args.outputPrefix+args.name+".txt"
+    #bitpath = args.outputPrefix+".txt"
     bitfile = open(bitpath,'w')    
     # Welcome to the main (and only) function of this script!
-    print(args) # Soon to be removed
+    #print(args) # Soon to be removed
     logger.debug("Start main()")
     # Setup FPGA communications
     boardDriver = drivers.boards.getCMODUartDriver("/dev/ttyUSB1")
@@ -208,7 +209,8 @@ async def main(args):
         if len(df) > 0:
             csvframe = ['readout', 'layer', 'chipID', 'payload', 'location', 'isCol', 'timestamp', 'tot_msb', 'tot_lsb', 'tot_total', 'tot_us', 'fpga_ts']
             df.columns = csvframe
-            df.to_csv(args.outputPrefix+".csv")
+            #df.to_csv(args.outputPrefix+".csv")
+            df.to_csv(args.outputPrefix+args.name+".csv")
         else:
             logger.warning("No data written to disk because none have been received.")
     else: # TBC
@@ -232,6 +234,7 @@ if __name__ == "__main__":
     # Options related to outputs
     parser.add_argument('-n', '--name', default='', required=False,
                         help='Option to give additional name to output files upon running. Default: NONE')
+
     parser.add_argument('-o', '--outputPrefix', type=str, default="{0}{2}data{2}{1}".format(os.getcwd(), time.strftime("%Y%m%d-%H%M%S"), os.path.sep), 
                         help="Path to and beginning of the name of the data file(s) and log file, default: data/YYYYMMDD-HHMMSS")
 
@@ -281,7 +284,8 @@ if __name__ == "__main__":
         loglevel = logging.WARNING
     elif ll == 'C':
         loglevel = logging.CRITICAL
-    logname = args.outputPrefix+"_run.log"
+    #logname = args.outputPrefix+"_run.log"
+    logname = args.outputPrefix+args.name+"_run.log"
     formatter = logging.Formatter('%(asctime)s:%(msecs)d.%(name)s.%(levelname)s:%(message)s')
     fh = logging.FileHandler(logname)
     fh.setFormatter(formatter)

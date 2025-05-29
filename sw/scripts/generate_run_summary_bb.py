@@ -21,7 +21,7 @@ plt.style.use('classic')
 
 def main(args):
     path = args.datadir
-    print(f"{args.datadir}, {args.inputfile}")
+    #print(f"{args.datadir}, {args.inputfile}")
 
     pair = [] 
     # How many events are remained in one dataset
@@ -36,7 +36,7 @@ def main(args):
     f = args.datadir + args.inputfile
     print(f"Reading in {f}")
     df = pd.read_csv(f,sep='\t')
-    print(f"Reading is done")
+    #print(f"Reading is done")
 
     chipid = None
     chip_suffix_map = {
@@ -135,7 +135,7 @@ def main(args):
                     if (dffcol['location'][indc] > 34 or dffrow['location'][indr] > 34):
                         continue
                     if (abs(dffcol['timestamp'][indc] - dffrow['timestamp'][indr]) < timestamp_diff) & (abs(dffcol['tot_us'][indc] - dffrow['tot_us'][indr])/dffcol['tot_us'][indc]*100 < tot_time_limit):
-                        print(f"[Matched] col.location, row.location = {dffcol['location'][indc]},{dffrow['location'][indr]}; {dffcol['tot_us'][indc]},{dffrow['tot_us'][indr]}")
+                        #print(f"[Matched] col.location, row.location = {dffcol['location'][indc]},{dffrow['location'][indr]}; {dffcol['tot_us'][indc]},{dffrow['tot_us'][indr]}")
                         # Record hit pixels per event
                         average_tot = ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2)
                         pair.append([dffcol['readout'][indc], dffcol['location'][indc], dffrow['location'][indr], dffcol['timestamp'][indc], dffrow['timestamp'][indr], dffcol['tot_us'][indc], dffrow['tot_us'][indr], ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2)])
@@ -149,8 +149,8 @@ def main(args):
     n_empty = tot_n_evts - n_evt_used - tot_n_nans
     nemptyevents = '%.2f' % ((n_empty/(tot_n_evts)) * 100.)
     print("Summary:")
-    print(f"{tot_n_nans} of {tot_n_evts} events were found as NaN...")
-    print(f"{n_empty} of {tot_n_evts} events were found as empty...")
+#    print(f"{tot_n_nans} of {tot_n_evts} events were found as NaN...")
+#    print(f"{n_empty} of {tot_n_evts} events were found as empty...")
     print(f"{n_evt_used} of {tot_n_evts} events were processed...")
     print(f"***** Matching hit: {len(pair)} *****")
 #        print(f"{n_evt_excluded} of {tot_n_evts} events were excluded because of bad payload...")
@@ -257,7 +257,7 @@ def main(args):
     ax[1, 0].xaxis.set_tick_params(labelsize = 14)
     ax[1, 0].yaxis.set_tick_params(labelsize = 14)
 
-    p5 = ax[1, 1].hist(x=dffpair['avg_tot_us'], bins=22, range=(0, 22), color='blue', edgecolor='black')
+    p5 = ax[1, 1].hist(x=dffpair['avg_tot_us'], bins=44, range=(0, 22), color='blue', edgecolor='black')
     ax[1, 1].grid()
     ax[1, 1].set_xlabel('ToT [us]', fontweight = 'bold', fontsize=14)
     ax[1, 1].set_ylabel('Counts', fontweight = 'bold', fontsize=14)
