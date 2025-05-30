@@ -10,7 +10,9 @@ chip_counts = {i: defaultdict(int) for i in range(4)}
 chip_tot_values = {i: defaultdict(list) for i in range(4)}
 
 # 파일 리스트 읽기
-with open('w101q12.txt', 'r') as f:
+#filename='w101q12'
+filename='w112q06'
+with open(filename+'.txt', 'r') as f:
     tsv_files = [line.strip() for line in f if line.strip()]
 
 for file in tsv_files:
@@ -33,7 +35,7 @@ for file in tsv_files:
 
 # ===== Hit Count Plot (hist2d) =====
 fig, axes = plt.subplots(2, 2, figsize=(11, 10))
-fig.suptitle('Quad-chip Hit Count Maps (w101q12)', fontsize=18)
+fig.suptitle('Quad-chip Hit Count Maps ('+filename+')', fontsize=18)
 
 # viridis 컬러맵 복사 후 under 색 지정
 cmap = plt.cm.get_cmap('viridis').copy()
@@ -79,15 +81,15 @@ for chip in range(4):
 
 #axes[1, 4].axis('off')
 plt.tight_layout(rect=[0, 0, 1, 0.95])
-plt.savefig('quadchip_hit_count_hist2d_per_subplot.png', dpi=300)
-plt.savefig('quadchip_hit_count_hist2d_per_subplot.pdf')
+plt.savefig(filename+'_hit_count_hist2d_per_subplot.png', dpi=300)
+plt.savefig(filename+'_hit_count_hist2d_per_subplot.pdf')
 plt.close()
 
 ## =====  avg_tot_us 평균 Plot (hist2d) =====
 fig, axes = plt.subplots(2, 2, figsize=(11, 10))
 #fig.suptitle('Chip-wise avg_tot_us (Averaged) Maps (Filtered Col/Row)', fontsize=18)
-fig.suptitle('Quad-chip Avg.ToT Maps (w101q12)', fontsize=18)
-
+#fig.suptitle('Quad-chip Avg.ToT Maps (w101q12)', fontsize=18)
+fig.suptitle('Quad-chip Avg.ToT Maps ('+filename+')', fontsize=18)
 
 for chip in range(4):
     row_idx = 1 if chip < 2 else 0
@@ -126,8 +128,8 @@ for chip in range(4):
 
 #axes[1, 4].axis('off')
 plt.tight_layout(rect=[0, 0, 1, 0.95])
-plt.savefig('quadchip_avg_tot_us_hist2d_per_subplot.png', dpi=300)
-plt.savefig('quadchip_avg_tot_us_hist2d_per_subplot.pdf')
+plt.savefig(filename+'_avg_tot_us_hist2d_per_subplot.png', dpi=300)
+plt.savefig(filename+'_avg_tot_us_hist2d_per_subplot.pdf')
 plt.close()
 
 	
