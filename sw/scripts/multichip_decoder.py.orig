@@ -1,8 +1,6 @@
 import argparse
 import pandas as pd
 import os
-import re
-import binascii
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Multi-chip decoder")
@@ -16,50 +14,32 @@ def get_chip_suffix(idx):
     return suffixes[idx]
 
 def decode_for_pattern(readout_lines, pattern_hex, chip_idx):
-    #pattern = pattern_hex.to_bytes(3, byteorder='big')
-    pattern_str = f"{pattern_hex:06x}"
-    segment_length = 22 #11 bytes -> 22 char
+    pattern = pattern_hex.to_bytes(3, byteorder='big')
+    segment_length = 11
     decoded_hits = []
     event_id = 1
 
     for s in readout_lines:
         if not s:
             continue
-        list_hits = []
-#        matches = re.findall(f'({pattern_str}[0-9a-fA-F]{{16}})', s)
-        positions = [m.start() for m in re.finditer(pattern_str,s)]
-#        print(f"positions={positions}")
-        for pos in positions:
-            chunk = s[pos:pos + segment_length ]
-            #print(f"chunk={chunk}")
-            if len(chunk) < segment_length:
-                #print(f"Skip incomplete chunk:{chunk}")
-                continue
-            try:
-                segment = binascii.unhexlify(chunk)
-                list_hits.append(segment)
-            except binascii.Error as e:
-                print(f"Skipping invalid chunk: {chunk}, error: {e}")
-                continue
+        try:
+            readout = bytes.fromhex(s)
+        except ValueError:
+            print(f"Skipping invalid hex line: {s}")
+            continue
 
-#        try:
-#            readout = bytes.fromhex(s)
-#        except ValueError:
-#            print(f"Skipping invalid hex line: {s}")
-#            continue
-#
-#        list_hits = []
-#        start = 0
-#        while start < len(readout):
-#            start = readout.find(pattern, start)
-#            if start == -1:
-#                break
-#
-#            segment = readout[start:start + segment_length]
-#            if len(segment) == segment_length:
-#                list_hits.append(segment)
-#            start += 1
-#
+        list_hits = []
+        start = 0
+        while start < len(readout):
+            start = readout.find(pattern, start)
+            if start == -1:
+                break
+
+            segment = readout[start:start + segment_length]
+            if len(segment) == segment_length:
+                list_hits.append(segment)
+            start += 1
+
         for idx, hit in enumerate(list_hits, start=1):
             try:
                 pack_len  = hit[0]
@@ -97,7 +77,7 @@ def decode_for_pattern(readout_lines, pattern_hex, chip_idx):
             })
 
         event_id += 1
-    #print(f"{decoded_hits}")
+
     return decoded_hits
 
 def main():
