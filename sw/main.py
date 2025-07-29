@@ -50,14 +50,16 @@ async def buffer_flush(boardDriver, layerlst = range(3)):
     # Reassert hold to be safe
     await boardDriver.holdLayers(hold=True, flush=True)
     if buff > 0:
-        logger.info(binascii.hexlify(readout))
+        #logger.info(binascii.hexlify(readout))
         logger.info(f"Buffer size = {buff} B")
     logger.info("interrupt recovered, ready to collect data, resetting stat counters")
     await boardDriver.resetLayerStatCounters(layer)
 
-async def get_readout(boardDriver, counts:int = 4096):
+async def get_readout(boardDriver, bitfile=0, counts:int = 4096):
     bufferSize = await(boardDriver.readoutGetBufferSize())
     readout = await(boardDriver.readoutReadBytes(counts))
+    #print(type(binascii.hexlify(readout)), binascii.hexlify(readout))
+    if bitfile and bufferSize>0: bitfile.write(binascii.hexlify(readout).hex())
     return bufferSize, readout
 
 async def getBuffer(boardDriver):
@@ -88,7 +90,8 @@ async def printStatus(boardDriver, time=0., buff=0):
 # Needed to decode data
 class myhack:
     def __init__(self):
-        self.sampleclock_period_ns = 10
+        #self.sampleclock_period_ns = 10
+        self.sampleclock_period_ns = 5
 
 def bin2csv(fprefix):
     with open("{}.bin".format(fprefix), "rb") as ofile:
@@ -110,8 +113,10 @@ async def main(args):
     # Welcome to the main (and only) function of this script!
     print(args) # Soon to be removed
     logger.debug("Start main()")
+    bitfile = open(args.name, 'w')
     # Setup FPGA communications
-    boardDriver = drivers.boards.getCMODUartDriver("COM6")
+    #boardDriver = drivers.boards.getCMODUartDriver("COM6")
+    boardDriver = drivers.boards.getCMODUartDriver("/dev/ttyUSB1")
     logger.debug(f"boardDriver instanciated: {boardDriver}")
     await boardDriver.open()
     logger.info("Opened FPGA, testing...")
@@ -162,17 +167,24 @@ async def main(args):
     if args.analog:
         logger.debug("enable analog")
         boardDriver.asics[args.analog[0]].enable_ampout_col(args.analog[1], args.analog[2], inplace=False)
+    #add by Bobae; for the noise scan
+    if args.onpix:
+        logger.info(f"Enable pixel = {args.onpix}")
+        boardDriver.asics[args.onpix[0]].enable_pixel(chip=args.onpix[1], col=args.onpix[3], row=args.onpix[2], inplace=False)
+
 
     await printStatus(boardDriver)
     for layer in range(3): await boardDriver.zeroLayerWrongLength(layer, flush=True)
 
     layerlst = range(len(args.yaml))
+    #print(layerlst)
     await boardDriver.disableLayersReadout(flush=True)#Hold, disableMISO, disableAutoread, CS=inactive
     await boardDriver.resetLayersFull()#Toggle RST
 
     # Set chip IDs
     await boardDriver.layersSelectSPI(flush=True)#Set chipSelect
     for layer in layerlst:
+        #print(f"layer {layer} in layerlist {layerlst}.")
         await boardDriver.asics[layer].writeSPIRoutingFrame(0)
     await boardDriver.layersDeselectSPI(flush=True)#Unset chipSelect
         
@@ -194,10 +206,15 @@ async def main(args):
         await injector.start()
         dataStream_lst = []
         bufferLength_lst = []
+    if args.onpix:
+        dataStream_lst = []
+        bufferLength_lst = []
     else:
-        ofile = open("{}.bin".format(args.outputPrefix), "wb")
+        #ofile = open("{}.bin".format(args.outputPrefix), "wb")
+        ofile = open("{}.bin".format(args.outputPrefix+args.name), "wb")
     if args.runTime is not None: 
-        end_time=time.time()+(args.runTime*60.)
+        #end_time=time.time()+(args.runTime*60.)
+        end_time=time.time()+(args.runTime)
     else:
         end_time = float('inf')
     
@@ -209,11 +226,11 @@ async def main(args):
     while run:
         try:
             # Read data
-            task = asyncio.create_task(get_readout(boardDriver))
-            #task = asyncio.create_task(getBuffer(boardDriver))
+            task = asyncio.create_task(get_readout(boardDriver, bitfile))
             await task
             buff, readout = task.result()
-            if args.inject:
+            #if args.inject:
+            if args.inject or args.onpix:
                 # Store data
                 dataStream_lst.append(readout)
                 bufferLength_lst.append(buff)
@@ -222,6 +239,11 @@ async def main(args):
                 ofile.write(readout)
                 #logger.info(binascii.hexlify(readout))
             print(f"  {buff:04d}  ", end="\r")
+            if buff == 4098: 
+                print(f" {buff:04d} = 4098. kill this run!")
+                logger.info("[{buff:04d}=4098] Kill this run.")
+                run=False
+                break
             # logger.info(binascii.hexlify(readout[:buff]))
             # Check time
             run = time.time() < end_time
@@ -234,24 +256,28 @@ async def main(args):
     
     # End injection
     if args.inject: await injector.stop()
+    if args.onpix: print("bit file closed")
     else: ofile.close()
+    bitfile.close()
     
     # End connection
     await boardDriver.close()
 
     #Process data
-    if args.inject:
+    #if args.inject:
+    if args.inject or args.onpix:
         print(len(bufferLength_lst), max(bufferLength_lst))
         dataStream = dataParse_autoread(dataStream_lst, bufferLength_lst, None)
         df = drivers.astropix.decode.decode_readout(myhack(), logger, dataStream, i=0, printer=True)
         if len(df) > 0:
             csvframe = ['readout', 'layer', 'chipID', 'payload', 'location', 'isCol', 'timestamp', 'tot_msb', 'tot_lsb', 'tot_total', 'tot_us', 'fpga_ts']
             df.columns = csvframe
-            df.to_csv(args.outputPrefix+".csv")
+            #df.to_csv(args.outputPrefix+".csv")
+            df.to_csv(args.outputPrefix+args.name+".csv")
         else:
             logger.warning("No data written to disk because none have been received.")
     else:
-        bin2csv(args.outputPrefix)
+        bin2csv(args.outputPrefix+args.name)
         
 
 
@@ -269,6 +295,8 @@ if __name__ == "__main__":
                                      epilog="""""") 
 
     # Options related to outputs
+    parser.add_argument('-n', '--name', default='', required=False,
+                        help='Option to give additional name to output files upon running. Default: NONE')
     parser.add_argument('-o', '--outputPrefix', type=str, default="{0}{2}data{2}{1}".format(os.getcwd(), time.strftime("%Y%m%d-%H%M%S"), os.path.sep), 
                         help="Path to and beginning of the name of the data file(s) and log file, default: data/YYYYMMDD-HHMMSS")
 
@@ -284,7 +312,7 @@ if __name__ == "__main__":
                                 One file must be passed for each layer, from layer #0 to layer #2. \
                                 Default: config/quadChip_allOff (All pixels off, only fisrt layer is configured)')
     parser.add_argument('-c', '--chipsPerRow', action='store', required=False, type=int, default = [4], nargs="+", 
-                        help = 'Number of chips per SPI bus to enable. Can provide a single number or one number per bus. Default: 4')
+                        help = 'Number of chips per SPI bus to enable. Can provide a single number or one number per bus. Default: 9')
     
     # Options related to Setup / Configuration of the chip in data collection run
     parser.add_argument('-t', '--threshold', type = int, action='store', default=100,
@@ -300,6 +328,8 @@ if __name__ == "__main__":
                     help =  'Turn on injection in the given layer, chip, row, and column. Default: No injection')
     parser.add_argument('-v','--vinj', action='store', default = None,  type=int,
                         help = 'Specify injection voltage (in mV). DEFAULT: value in config ')
+    parser.add_argument('-e', '--onpix', action='store', default=None, type=int, nargs=4,
+                    help =  'Enable pixel in the given layer, chip, row, and column. Default: No injection')
 
     args = parser.parse_args()
     
@@ -315,7 +345,8 @@ if __name__ == "__main__":
         loglevel = logging.WARNING
     elif ll == 'C':
         loglevel = logging.CRITICAL
-    logname = args.outputPrefix+"_run.log"
+    #logname = args.outputPrefix+"_run.log"
+    logname = args.outputPrefix+args.name+"_run.log"
     formatter = logging.Formatter('%(asctime)s:%(msecs)d.%(name)s.%(levelname)s:%(message)s')
     fh = logging.FileHandler(logname)
     fh.setFormatter(formatter)
@@ -337,11 +368,11 @@ if __name__ == "__main__":
     elif len(args.yaml) < len(args.chipsPerRow):
         raise ValueError("You need to provide one yaml configuration file for every chipsPerRow argument.")
 
-    #Make sure analog/inject arguments make sense
-    if args.analog is not None and (len(args.analog)!=3 or args.analog[0]<0 or args.analog[0]>2 or args.analog[1]<0 or args.analog[1]>3 or args.analog[2]<0):
-        raise ValueError("Incorrect analog argument layer={0[0]},chip={0[1]},column={0[2]}".format(args.analog))
-    if args.inject is not None and (len(args.inject)!=4 or args.inject[0]<0 or args.inject[0]>2 or args.inject[1]<0 or args.inject[1]>3 or args.inject[2]<0 or args.inject[3]<0):
-        raise ValueError("Incorrect analog argument layer={0[0]},chip={0[1]},row={0[2]},column={0[3]}".format(args.inject))
+#    #Make sure analog/inject arguments make sense
+#    if args.analog is not None and (len(args.analog)!=3 or args.analog[0]<0 or args.analog[0]>2 or args.analog[1]<0 or args.analog[1]>3 or args.analog[2]<0):
+#        raise ValueError("Incorrect analog argument layer={0[0]},chip={0[1]},column={0[2]}".format(args.analog))
+#    if args.inject is not None and (len(args.inject)!=4 or args.inject[0]<0 or args.inject[0]>2 or args.inject[1]<0 or args.inject[1]>3 or args.inject[2]<0 or args.inject[3]<0):
+#        raise ValueError("Incorrect analog argument layer={0[0]},chip={0[1]},row={0[2]},column={0[3]}".format(args.inject))
 
 
     asyncio.run(main(args))
