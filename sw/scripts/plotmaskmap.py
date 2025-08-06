@@ -38,7 +38,9 @@ def build_mask_map(recconfig, n_rows=35):
         if c >= n_cols:
             continue
         mask_val = to_int(val[1])
-        bits = bin(mask_val)[2:].zfill(n_rows)[::-1]
+        bits = bin(mask_val)[2:].zfill(n_rows+1)[::-1]
+        print(f"{bits}")
+        bits = bits[1:]
         for r in range(n_rows):
             m[r, c] = int(bits[r])
     return m
