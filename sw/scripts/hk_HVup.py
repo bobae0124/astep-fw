@@ -20,7 +20,8 @@ async def callHK(lsbFirst=True): # adding a setting that can change the byte ord
     Shift register input style requires bytes to be read in left to right. May be fixed in future versions
     """
     ## Open UART Driver for CMOD
-    driver = drivers.boards.getCMODUartDriver("COM6")
+    #driver = drivers.boards.getCMODUartDriver("COM6")
+    driver = drivers.boards.getCMODUartDriver("/dev/ttyUSB1")
     await driver.open() #does the driver need to be closed between reads?
     await driver.houseKeeping.selectADC()
     
@@ -65,7 +66,8 @@ async def setHV(lsbFirst=True,setVoltage=0): # adding a setting that can change 
         return
 
     ## Open UART Driver for CMOD
-    driver = drivers.boards.getCMODUartDriver("COM6")
+    #driver = drivers.boards.getCMODUartDriver("COM6")
+    driver = drivers.boards.getCMODUartDriver("/dev/ttyUSB1")
     await driver.open() #does the driver need to be closed between reads? 
     await driver.houseKeeping.selectDAC()
 

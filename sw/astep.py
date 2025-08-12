@@ -125,7 +125,8 @@ class astepRun:
 
     async def enable_fpgatag(self,enable:bool = True):
         # Enables FPGA-based Timestamp. Setting source_external = True and source_match_counter = False will allow for external (off-FPGA) clock
-        await self.boardDriver.layersConfigFPGATimestamp(enable = enable,force = False ,source_match_counter = True, source_external = False ,flush = True)
+        #await self.boardDriver.layersConfigFPGATimestamp(enable = enable,force = False ,source_match_counter = True, source_external = False ,flush = True)
+        await self.boardDriver.layersConfigFPGATimestamp(enable = enable,force = False ,source_match_counter = False, source_external = True ,flush = True)
 
     async def asic_configure(self, layer:int):
         await self.asic_update(layer)

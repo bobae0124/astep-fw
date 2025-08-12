@@ -137,7 +137,8 @@ async def main(args):
     print(args) # Soon to be removed
     logger.debug("Start main()")
     # Setup FPGA communications
-    boardDriver = drivers.boards.getCMODUartDriver("COM6")
+    #boardDriver = drivers.boards.getCMODUartDriver("COM6")
+    boardDriver = drivers.boards.getCMODUartDriver("/dev/ttyUSB1")
     logger.debug(f"boardDriver instanciated: {boardDriver}")
     await boardDriver.open()
     logger.info("Opened FPGA, testing...")
@@ -150,8 +151,14 @@ async def main(args):
     logger.debug("Set sensor clocks.")
     await boardDriver.enableSensorClocks(flush = True)
     # Setup FPGA timestamps
-    await boardDriver.layersConfigFPGATimestampFrequency(targetFrequencyHz = 1000000, flush = True)
-    await boardDriver.layersConfigFPGATimestamp(enable = True, force = False, source_match_counter = True, source_external = False, flush = True)
+    #internal clock
+#    await boardDriver.layersConfigFPGATimestampFrequency(targetFrequencyHz = 1000000, flush = True)
+#    await boardDriver.layersConfigFPGATimestamp(enable = True, force = False, source_match_counter = True, source_external = False, flush = True)
+    #external clock
+    await boardDriver.ioSetFPGAExternalTSClockDifferential(False, flush=True)
+    await boardDriver.ioSetAstropixTSToFPGATS(True, flush=True)
+    await boardDriver.layersConfigFPGATimestamp(enable = True, force = False, source_match_counter = False, source_external = True, flush = True)
+    
 
     logger.debug("Configure SPI readout")
     await boardDriver.configureLayerSPIDivider(20, flush = True)

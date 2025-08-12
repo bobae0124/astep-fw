@@ -175,6 +175,8 @@ class BoardDriver():
         v = await self.rfg.read_io_ctrl()
         if enable: v|=0x10 
         else: v &= ~(0x10)
+        if enable: print("ioSetFPGAExternalTSClockDifferential=True")
+        else: print("ioSetFPGAExternalTSClockDifferential=False")
         await self.rfg.write_io_ctrl(v,flush)
 
     async def ioSetAstropixTSToFPGATS(self,enable:bool,flush:bool = False):
@@ -182,6 +184,8 @@ class BoardDriver():
         v = await self.rfg.read_io_ctrl()
         if enable: v|=0x20 
         else: v &= ~(0x20)
+        if enable: print("ioSetAstropixTSToFPGATS=True")
+        else: print("ioSetAstropixTSToFPGATS=False")
         await self.rfg.write_io_ctrl(v,flush) 
 
     ## Layers

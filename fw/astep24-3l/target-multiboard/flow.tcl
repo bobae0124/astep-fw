@@ -265,7 +265,22 @@ proc run_bit {board version defines constraints_file} {
                 set_property -dict {used_in_synthesis false used_in_simulation false used_in_implementation true} [get_files  $constraintFile]
         }
     }
-
+    # ==== PRE-SYNTH CHECKS (prints to console/log) ====
+    puts ">>> [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}] PRE: Checking ext_timestamp_clk port and clock def"
+    
+    if { [llength [get_ports -quiet ext_timestamp_clk]] } {
+        puts ">>> PRE: Found port 'ext_timestamp_clk'"
+        report_property [get_ports ext_timestamp_clk]
+    } else {
+        puts "!!! PRE: Port 'ext_timestamp_clk' NOT FOUND (check top-level port / TARGET_CMOD block)"
+    }
+    
+    if { [llength [get_clocks -quiet ext_ts]] } {
+        puts ">>> PRE: Clock 'ext_ts' is defined in constraints."
+    } else {
+        puts "!!! PRE: Clock 'ext_ts' NOT FOUND yet (will re-check after synth)."
+    }
+    # ================================================
     # Set Defines and inc dirs: Config defines + Board specific static defines + Dynamically created build version    
     #########
     set buildVersion  [getDateVersion]
@@ -283,6 +298,29 @@ proc run_bit {board version defines constraints_file} {
         #generate_target -verbose -force all [get_ips]
         synth_ip [get_ips]
         synth_design -top astep24_3l_multitarget_top
+        # ==== POST-SYNTH CHECKS ====
+        puts ">>> [clock format [clock seconds] -format {%Y-%m-%d %H:%M:%S}] POST: Verifying ext_ts clock and routing"
+        file mkdir reports
+        if { [llength [get_ports -quiet ext_timestamp_clk]] } {
+            report_property [get_ports ext_timestamp_clk] -file reports/ext_ts_port_props.post_synth.rpt
+        } else {
+            puts "!!! POST: Port 'ext_timestamp_clk' NOT FOUND"
+        }
+        if { [llength [get_clocks -quiet ext_ts]] } {
+            report_clocks -file reports/ext_ts_report_clocks.post_synth.rpt
+        } else {
+            puts "!!! POST: Clock 'ext_ts' NOT FOUND (check create_clock in constraints)"
+        }
+        if { [llength [get_clocks -quiet ext_ts]] } {
+            report_clock_networks -clock [get_clocks ext_ts] -file reports/ext_ts_clock_networks.post_synth.rpt
+        }
+        set bufgs [get_cells -hier -quiet *BUFG*]
+        if { [llength $bufgs] } {
+            puts ">>> POST: BUFG instances present: $bufgs"
+        } else {
+            puts "!!! POST: No BUFG instances found (check BUFGCE instantiation)"
+        }
+        # ================================================
         opt_design
         place_design
         phys_opt_design

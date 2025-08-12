@@ -66,6 +66,7 @@ module astep24_3l_multitarget_top (
     
     input  wire             cold_resn,
     input  wire             warm_resn, 
+    input  wire             ext_timestamp_clk, //add
     output wire [1:0]       led,
     output wire             led0_r, 
     output wire             led0_g, 
@@ -73,6 +74,7 @@ module astep24_3l_multitarget_top (
 
     output wire				uart_rx_out,
     input  wire				uart_tx_in,
+
     `endif
 
     //--------------------
@@ -273,9 +275,29 @@ module astep24_3l_multitarget_top (
      
     `else
             // CMOD Case
-            OBUF  clk_sample_se_single( .I(sample_clk_gated), .O(sample_clk));
-            BUFGCE timestamp_clock_gate (.I(timestamp_clk_internal),.O(timestamp_clk), .CE(io_ctrl_timestamp_clock_enable)); 
-            assign ext_timestamp_clk_internal = 'b0;
+            //OBUF  clk_sample_se_single( .I(sample_clk_gated), .O(sample_clk));
+            //BUFGCE timestamp_clock_gate (.I(timestamp_clk_internal),.O(timestamp_clk), .CE(io_ctrl_timestamp_clock_enable)); 
+            //assign ext_timestamp_clk_internal = 'b0;
+	    // 1) Keep the sample clock (output) as before
+            OBUF  clk_sample_se_single( .I(sample_clk_gated), .O(sample_clk)); //add
+	    // 2) Receive external TS single-ended input via IBUF
+            wire ext_timestamp_clk_ibuf; //add
+            IBUF ext_ts_ibuf (.I(ext_timestamp_clk), .O(ext_timestamp_clk_ibuf));//add
+	    // 3) Select between internal TS and external TS (controlled by register)
+            wire timestamp_clk_internal_to_out;	//add
+            MUXF7 timestamp_clock_ext_local_select(
+                .I0(timestamp_clk_internal),        
+                .I1(ext_timestamp_clk_ibuf),        
+                .O (timestamp_clk_internal_to_out),
+                .S (io_ctrl_astropix_ts_is_fpga_ext_ts)
+            );
+	    // 4) Route the selected TS clock through BUFG for global distribution
+            BUFGCE timestamp_clock_gate (
+                .I (timestamp_clk_internal_to_out),
+                .O (timestamp_clk),
+                .CE(io_ctrl_timestamp_clock_enable)
+            );
+
     `endif
 
     // Config Connections
