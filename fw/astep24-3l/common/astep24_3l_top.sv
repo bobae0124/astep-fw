@@ -220,6 +220,13 @@ module astep24_3l_top(
     wire [31:0] layers_cfg_frame_tag_counter;
     wire        layers_cfg_frame_tag_counter_ctrl_enable;
     wire        layers_cfg_frame_tag_counter_ctrl_enable_match_trigger;
+    //add
+    wire        layers_cfg_frame_tag_counter_ctrl_force_count;
+    wire        layers_cfg_frame_tag_counter_ctrl_source_match_counter;
+    wire        layers_cfg_frame_tag_counter_ctrl_source_external;
+    wire        layers_cfg_frame_tag_counter_trigger_interrupt;
+    wire        layers_cfg_frame_tag_counter_trigger_match;
+
 
     wire hk_conversion_trigger_interrupt;
     wire hk_ctrl_select_adc;
@@ -245,7 +252,14 @@ module astep24_3l_top(
     wire layer_0_cfg_ctrl_loopback,layer_1_cfg_ctrl_loopback,layer_2_cfg_ctrl_loopback;
 
     wire layer_0_stat_wronglength_counter_enable,layer_1_stat_wronglength_counter_enable,layer_2_stat_wronglength_counter_enable;
-    
+    //add
+    wire [7:0]  layers_cfg_frame_tag_counter_ctrl_bus = {
+        4'b0000, // RSVD [7:4]
+        layers_cfg_frame_tag_counter_ctrl_force_count,          // [3]
+        layers_cfg_frame_tag_counter_ctrl_source_external,      // [2]
+        layers_cfg_frame_tag_counter_ctrl_source_match_counter, // [1]
+        layers_cfg_frame_tag_counter_ctrl_enable                // [0]
+    };    
     main_rfg  main_rfg_I (
             
         .clk(clk_core),
@@ -411,7 +425,8 @@ module astep24_3l_top(
         // Configs
         //---------------
       
-        .layers_cfg_frame_tag_counter_ctrl(),
+        //.layers_cfg_frame_tag_counter_ctrl(),
+        .layers_cfg_frame_tag_counter_ctrl(layers_cfg_frame_tag_counter_ctrl_bus),
         .layers_cfg_frame_tag_counter_ctrl_force_count(layers_cfg_frame_tag_counter_ctrl_force_count),
         .layers_cfg_frame_tag_counter_ctrl_enable(layers_cfg_frame_tag_counter_ctrl_enable),
         .layers_cfg_frame_tag_counter_ctrl_source_match_counter(layers_cfg_frame_tag_counter_ctrl_source_match_counter),
