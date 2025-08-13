@@ -1,0 +1,52 @@
+2025-08-12 19:06:43,268:268.__main__.INFO:Setup logger
+2025-08-12 19:06:43,288:288.root.INFO:Discovering FSP
+2025-08-12 19:06:43,291:291.rfg.io.uart.INFO:Opened Serial port /dev/ttyUSB1 with baud 921600 bps
+2025-08-12 19:06:43,291:291.__main__.INFO:Opened FPGA, testing...
+2025-08-12 19:06:43,293:293.__main__.INFO:FPGA test successful.
+2025-08-12 19:06:43,424:424.drivers.astropix.asic.INFO:astropix3  Configuration file with 4 chips found!
+2025-08-12 19:06:43,425:425.drivers.astropix.asic.INFO:astropix3 Number of chips in chain: 4 
+2025-08-12 19:06:43,425:425.drivers.astropix.asic.INFO:astropix3 matrix dimensions found!
+2025-08-12 19:06:43,425:425.drivers.astropix.asic.INFO:Chain chip_0 config found!
+2025-08-12 19:06:43,425:425.drivers.astropix.asic.INFO:Chain chip_1 config found!
+2025-08-12 19:06:43,425:425.drivers.astropix.asic.INFO:Chain chip_2 config found!
+2025-08-12 19:06:43,425:425.drivers.astropix.asic.INFO:Chain chip_3 config found!
+2025-08-12 19:06:43,425:425.__main__.INFO:1 ASIC drivers instanciated.
+2025-08-12 19:06:43,565:565.__main__.INFO:[00.0 s] buff=0000 status: 0=00-010101-0000 1=01-010100-0000 2=01-010100-0000
+2025-08-12 19:06:44,173:173.drivers.astropix.asic.INFO:Writing Chunck 1/1 len=13
+2025-08-12 19:06:44,225:225.drivers.astropix.asic.INFO:Writing Chunck 1/7 len=256
+2025-08-12 19:06:44,301:301.drivers.astropix.asic.INFO:Writing Chunck 2/7 len=256
+2025-08-12 19:06:44,381:381.drivers.astropix.asic.INFO:Writing Chunck 3/7 len=256
+2025-08-12 19:06:44,461:461.drivers.astropix.asic.INFO:Writing Chunck 4/7 len=256
+2025-08-12 19:06:44,541:541.drivers.astropix.asic.INFO:Writing Chunck 5/7 len=256
+2025-08-12 19:06:44,621:621.drivers.astropix.asic.INFO:Writing Chunck 6/7 len=256
+2025-08-12 19:06:44,701:701.drivers.astropix.asic.INFO:Writing Chunck 7/7 len=32
+2025-08-12 19:06:44,817:817.drivers.astropix.asic.INFO:Writing Chunck 1/7 len=256
+2025-08-12 19:06:44,893:893.drivers.astropix.asic.INFO:Writing Chunck 2/7 len=256
+2025-08-12 19:06:44,973:973.drivers.astropix.asic.INFO:Writing Chunck 3/7 len=256
+2025-08-12 19:06:45,053:53.drivers.astropix.asic.INFO:Writing Chunck 4/7 len=256
+2025-08-12 19:06:45,133:133.drivers.astropix.asic.INFO:Writing Chunck 5/7 len=256
+2025-08-12 19:06:45,213:213.drivers.astropix.asic.INFO:Writing Chunck 6/7 len=256
+2025-08-12 19:06:45,293:293.drivers.astropix.asic.INFO:Writing Chunck 7/7 len=32
+2025-08-12 19:06:45,407:407.drivers.astropix.asic.INFO:Writing Chunck 1/7 len=256
+2025-08-12 19:06:45,485:485.drivers.astropix.asic.INFO:Writing Chunck 2/7 len=256
+2025-08-12 19:06:45,565:565.drivers.astropix.asic.INFO:Writing Chunck 3/7 len=256
+2025-08-12 19:06:45,645:645.drivers.astropix.asic.INFO:Writing Chunck 4/7 len=256
+2025-08-12 19:06:45,725:725.drivers.astropix.asic.INFO:Writing Chunck 5/7 len=256
+2025-08-12 19:06:45,805:805.drivers.astropix.asic.INFO:Writing Chunck 6/7 len=256
+2025-08-12 19:06:45,885:885.drivers.astropix.asic.INFO:Writing Chunck 7/7 len=32
+2025-08-12 19:06:46,001:1.drivers.astropix.asic.INFO:Writing Chunck 1/7 len=256
+2025-08-12 19:06:46,077:77.drivers.astropix.asic.INFO:Writing Chunck 2/7 len=256
+2025-08-12 19:06:46,157:157.drivers.astropix.asic.INFO:Writing Chunck 3/7 len=256
+2025-08-12 19:06:46,237:237.drivers.astropix.asic.INFO:Writing Chunck 4/7 len=256
+2025-08-12 19:06:46,317:317.drivers.astropix.asic.INFO:Writing Chunck 5/7 len=256
+2025-08-12 19:06:46,397:397.drivers.astropix.asic.INFO:Writing Chunck 6/7 len=256
+2025-08-12 19:06:46,477:477.drivers.astropix.asic.INFO:Writing Chunck 7/7 len=32
+2025-08-12 19:06:46,573:573.__main__.INFO:Flush chips before data collection
+2025-08-12 19:06:46,605:605.__main__.INFO:interrupt low
+2025-08-12 19:06:46,653:653.__main__.INFO:interrupt low
+2025-08-12 19:06:46,701:701.__main__.INFO:interrupt low
+2025-08-12 19:06:46,749:749.__main__.INFO:interrupt low
+2025-08-12 19:06:46,813:813.__main__.INFO:Flush FPGA buffer before data collection
+2025-08-12 19:07:47,047:47.__main__.INFO:[0.03 s] buff=0000 status: 0=01-001000-0328 1=01-010100-0000 2=01-010100-0000
+2025-08-12 19:07:47,096:96.rfg.io.uart.INFO:Closing Serial Port
+2025-08-12 19:07:47,271:271.rfg.io.uart.INFO:Closing Serial Port

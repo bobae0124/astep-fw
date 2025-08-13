@@ -124,7 +124,7 @@ def main(args):
                         # Record hit pixels per event
                         average_tot = ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2)
                         #pair.append([dffcol['readout'][indc], dffcol['location'][indc], dffrow['location'][indr], dffcol['timestamp'][indc], dffrow['timestamp'][indr], dffcol['tot_us'][indc], dffrow['tot_us'][indr], ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2)])
-                        pair.append([dffcol['readout'][indc],dffcol['layer'][indc],dffcol['chipID'][indc], dffcol['location'][indc], dffrow['location'][indr], dffcol['timestamp'][indc], dffrow['timestamp'][indr], dffcol['tot_us'][indc], dffrow['tot_us'][indr], ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2)])
+                        pair.append([dffcol['readout'][indc],dffcol['layer'][indc],dffcol['chipID'][indc], dffcol['location'][indc], dffrow['location'][indr], dffcol['timestamp'][indc], dffrow['timestamp'][indr], dffcol['tot_us'][indc], dffrow['tot_us'][indr], ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2), dffcol['fpga_ts'][indc],dffrow['fpga_ts'][indr]])
                         dffrow = dffrow.drop(indr)
                         break
     print("... Matching is done!")
@@ -150,8 +150,8 @@ def main(args):
      
     #---- Create hit pixel dataframes and Save csv file as MatchingHitinfo_*.csv ----#
     # Hit pixel information for all events
-    dffpair = pd.DataFrame(pair, columns=['readout','layer','chipID','col','row','timestamp_col', 'timestamp_row', 'tot_us_col', 'tot_us_row', 'avg_tot_us'])
-    dffpair.to_csv(f"MatchingHitinfo_{args.inputfile}", sep='\t', index=False)
+    dffpair = pd.DataFrame(pair, columns=['readout','layer','chipID','col','row','timestamp_col', 'timestamp_row', 'tot_us_col', 'tot_us_row', 'avg_tot_us','fpga_ts_col','fpga_ts_row'])
+    dffpair.to_csv(f"MatchingHitinfo_{args.inputfile}", sep='\t', index=False, float_format="%.2f")
     # Create dataframe for number of hits 
     dfpair = dffpair[['layer','chipID','col','row']].copy()
     dfpairc = dfpair[['layer','chipID','col','row']].value_counts().reset_index(name='hits')

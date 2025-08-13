@@ -283,6 +283,7 @@ module astep24_3l_multitarget_top (
 	    // 2) Receive external TS single-ended input via IBUF
             wire ext_timestamp_clk_ibuf; //add
             IBUF ext_ts_ibuf (.I(ext_timestamp_clk), .O(ext_timestamp_clk_ibuf));//add
+            assign ext_timestamp_clk_internal = ext_timestamp_clk_ibuf; //add2
 	    // 3) Select between internal TS and external TS (controlled by register)
             wire timestamp_clk_internal_to_out;	//add
             MUXF7 timestamp_clock_ext_local_select(

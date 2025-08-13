@@ -253,13 +253,8 @@ module astep24_3l_top(
 
     wire layer_0_stat_wronglength_counter_enable,layer_1_stat_wronglength_counter_enable,layer_2_stat_wronglength_counter_enable;
     //add
-    wire [7:0]  layers_cfg_frame_tag_counter_ctrl_bus = {
-        4'b0000, // RSVD [7:4]
-        layers_cfg_frame_tag_counter_ctrl_force_count,          // [3]
-        layers_cfg_frame_tag_counter_ctrl_source_external,      // [2]
-        layers_cfg_frame_tag_counter_ctrl_source_match_counter, // [1]
-        layers_cfg_frame_tag_counter_ctrl_enable                // [0]
-    };    
+    wire [7:0]  layers_cfg_frame_tag_counter_ctrl_bus;
+
     main_rfg  main_rfg_I (
             
         .clk(clk_core),

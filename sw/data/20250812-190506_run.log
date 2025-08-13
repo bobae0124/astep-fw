@@ -1,0 +1,50 @@
+2025-08-12 19:05:06,683:683.__main__.INFO:Setup logger
+2025-08-12 19:05:06,723:723.root.INFO:Discovering FSP
+2025-08-12 19:05:06,726:726.rfg.io.uart.INFO:Opened Serial port /dev/ttyUSB1 with baud 921600 bps
+2025-08-12 19:05:06,726:726.__main__.INFO:Opened FPGA, testing...
+2025-08-12 19:05:06,738:738.__main__.INFO:FPGA test successful.
+2025-08-12 19:05:06,878:878.drivers.astropix.asic.INFO:astropix3  Configuration file with 4 chips found!
+2025-08-12 19:05:06,879:879.drivers.astropix.asic.INFO:astropix3 Number of chips in chain: 4 
+2025-08-12 19:05:06,879:879.drivers.astropix.asic.INFO:astropix3 matrix dimensions found!
+2025-08-12 19:05:06,879:879.drivers.astropix.asic.INFO:Chain chip_0 config found!
+2025-08-12 19:05:06,879:879.drivers.astropix.asic.INFO:Chain chip_1 config found!
+2025-08-12 19:05:06,879:879.drivers.astropix.asic.INFO:Chain chip_2 config found!
+2025-08-12 19:05:06,879:879.drivers.astropix.asic.INFO:Chain chip_3 config found!
+2025-08-12 19:05:06,879:879.__main__.INFO:1 ASIC drivers instanciated.
+2025-08-12 19:05:07,010:10.__main__.INFO:[00.0 s] buff=0000 status: 0=01-000111-0000 1=01-000111-0000 2=01-000111-0000
+2025-08-12 19:05:07,619:619.drivers.astropix.asic.INFO:Writing Chunck 1/1 len=13
+2025-08-12 19:05:07,670:670.drivers.astropix.asic.INFO:Writing Chunck 1/7 len=256
+2025-08-12 19:05:07,746:746.drivers.astropix.asic.INFO:Writing Chunck 2/7 len=256
+2025-08-12 19:05:07,826:826.drivers.astropix.asic.INFO:Writing Chunck 3/7 len=256
+2025-08-12 19:05:07,906:906.drivers.astropix.asic.INFO:Writing Chunck 4/7 len=256
+2025-08-12 19:05:07,986:986.drivers.astropix.asic.INFO:Writing Chunck 5/7 len=256
+2025-08-12 19:05:08,066:66.drivers.astropix.asic.INFO:Writing Chunck 6/7 len=256
+2025-08-12 19:05:08,146:146.drivers.astropix.asic.INFO:Writing Chunck 7/7 len=32
+2025-08-12 19:05:08,261:261.drivers.astropix.asic.INFO:Writing Chunck 1/7 len=256
+2025-08-12 19:05:08,338:338.drivers.astropix.asic.INFO:Writing Chunck 2/7 len=256
+2025-08-12 19:05:08,418:418.drivers.astropix.asic.INFO:Writing Chunck 3/7 len=256
+2025-08-12 19:05:08,498:498.drivers.astropix.asic.INFO:Writing Chunck 4/7 len=256
+2025-08-12 19:05:08,578:578.drivers.astropix.asic.INFO:Writing Chunck 5/7 len=256
+2025-08-12 19:05:08,658:658.drivers.astropix.asic.INFO:Writing Chunck 6/7 len=256
+2025-08-12 19:05:08,738:738.drivers.astropix.asic.INFO:Writing Chunck 7/7 len=32
+2025-08-12 19:05:08,854:854.drivers.astropix.asic.INFO:Writing Chunck 1/7 len=256
+2025-08-12 19:05:08,930:930.drivers.astropix.asic.INFO:Writing Chunck 2/7 len=256
+2025-08-12 19:05:09,010:10.drivers.astropix.asic.INFO:Writing Chunck 3/7 len=256
+2025-08-12 19:05:09,090:90.drivers.astropix.asic.INFO:Writing Chunck 4/7 len=256
+2025-08-12 19:05:09,170:170.drivers.astropix.asic.INFO:Writing Chunck 5/7 len=256
+2025-08-12 19:05:09,250:250.drivers.astropix.asic.INFO:Writing Chunck 6/7 len=256
+2025-08-12 19:05:09,330:330.drivers.astropix.asic.INFO:Writing Chunck 7/7 len=32
+2025-08-12 19:05:09,446:446.drivers.astropix.asic.INFO:Writing Chunck 1/7 len=256
+2025-08-12 19:05:09,522:522.drivers.astropix.asic.INFO:Writing Chunck 2/7 len=256
+2025-08-12 19:05:09,602:602.drivers.astropix.asic.INFO:Writing Chunck 3/7 len=256
+2025-08-12 19:05:09,682:682.drivers.astropix.asic.INFO:Writing Chunck 4/7 len=256
+2025-08-12 19:05:09,762:762.drivers.astropix.asic.INFO:Writing Chunck 5/7 len=256
+2025-08-12 19:05:09,842:842.drivers.astropix.asic.INFO:Writing Chunck 6/7 len=256
+2025-08-12 19:05:09,922:922.drivers.astropix.asic.INFO:Writing Chunck 7/7 len=32
+2025-08-12 19:05:10,018:18.__main__.INFO:Flush chips before data collection
+2025-08-12 19:05:10,050:50.__main__.INFO:interrupt low
+2025-08-12 19:05:10,098:98.__main__.INFO:interrupt low
+2025-08-12 19:05:10,163:163.__main__.INFO:Flush FPGA buffer before data collection
+2025-08-12 19:06:10,380:380.__main__.INFO:[0.013 s] buff=0000 status: 0=01-001000-0000 1=01-010100-0000 2=01-010100-0000
+2025-08-12 19:06:10,428:428.rfg.io.uart.INFO:Closing Serial Port
+2025-08-12 19:06:10,434:434.rfg.io.uart.INFO:Closing Serial Port
