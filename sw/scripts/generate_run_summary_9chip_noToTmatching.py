@@ -102,9 +102,6 @@ def main(args):
             # Loop over col and row info to find a pair to define a pixel
             for indc in dffcol.index:
                 for indr in dffrow.index:
-                    if dffcol['tot_us'][indc] == 0 or dffrow['tot_us'][indr] ==0:
-                        continue
-				#col0-3 skip
                     if ( dffcol['location'][indc] < 3 ):
                             continue
                     if (dffcol['location'][indc] > 34 or dffrow['location'][indr] > 34):
@@ -113,14 +110,15 @@ def main(args):
                         continue
                     if (dffcol['layer'][indc] > 4 or dffrow['layer'][indr] > 4): # use layer1,2,3
                         continue
-                    if (dffcol['chipID'][indc] > 4 or dffrow['chipID'][indr] > 4): # use chipid 0,1,2,3
+                    if (dffcol['chipID'][indc] > 9 or dffrow['chipID'][indr] > 9): # use chipid 0-8
                         continue
                     if (dffcol['layer'][indc] != dffrow['layer'][indr] ): #same layer
                         continue
                     if (dffcol['chipID'][indc] != dffrow['chipID'][indr] ): #same chipid
                         continue
-                    if (abs(dffcol['timestamp'][indc] - dffrow['timestamp'][indr]) < timestamp_diff) & (abs(dffcol['tot_us'][indc] - dffrow['tot_us'][indr])/dffcol['tot_us'][indc]*100 < tot_time_limit):
-                        print(f"[Matched] layer c{dffcol['layer'][indc]},r{dffrow['layer'][indr]}; chipid c{dffcol['chipID'][indc]},r{dffrow['chipID'][indr]}; col.location, row.location = {dffcol['location'][indc]},{dffrow['location'][indr]}; {dffcol['tot_us'][indc]},{dffrow['tot_us'][indr]}")
+                    #if (abs(dffcol['timestamp'][indc] - dffrow['timestamp'][indr]) < timestamp_diff) & (abs(dffcol['tot_us'][indc] - dffrow['tot_us'][indr])/dffcol['tot_us'][indc]*100 < tot_time_limit):
+                    if (abs(dffcol['timestamp'][indc] - dffrow['timestamp'][indr]) < timestamp_diff):
+                        #print(f"[Matched] layer c{dffcol['layer'][indc]},r{dffrow['layer'][indr]}; chipid c{dffcol['chipID'][indc]},r{dffrow['chipID'][indr]}; col.location, row.location = {dffcol['location'][indc]},{dffrow['location'][indr]}; {dffcol['tot_us'][indc]},{dffrow['tot_us'][indr]}")
                         # Record hit pixels per event
                         average_tot = ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2)
                         #pair.append([dffcol['readout'][indc], dffcol['location'][indc], dffrow['location'][indr], dffcol['timestamp'][indc], dffrow['timestamp'][indr], dffcol['tot_us'][indc], dffrow['tot_us'][indr], ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2)])
@@ -156,35 +154,33 @@ def main(args):
     dfpair = dffpair[['layer','chipID','col','row']].copy()
     dfpairc = dfpair[['layer','chipID','col','row']].value_counts().reset_index(name='hits')
     # How many hits are collected and shown in a plot
-    pd.set_option('display.max_rows',None)
-    pd.set_option('display.max_columns',None)
     print(f"{dfpairc}")
     nhits = dfpairc['hits'].sum()
     # mean of avg_tot_us, each col, row
     grouped_avg = dffpair.groupby(['layer','chipID','col', 'row'])['avg_tot_us'].mean().reset_index(name='avg')
     print(f"average_tot = {grouped_avg}")
-
     if grouped_avg.empty:
         print("no maching hit at all. exit code")
         sys.exit()
-    
+   
     # Generate Plot: three-layer each chip!
-    # layer1,chip2 | layer1,chip3 || layer2,chip2 | layer2,chip3 || layer3,chip2 | layer3,chip3
-    # layer1,chip0 | layer1,chip1 || layer2,chip0 | layer2,chip1 || layer3,chip0 | layer3,chip1
+    # chip 0 | 1 | 2 | 3 | 4 | 
+    #      5 | 6 | 7 | 8 | 
 
     layer_chip_pairs = [
-        (1,2), (1,3), (2,2), (2,3), (3,2), (3,3),
-        (1,0), (1,1), (2,0), (2,1), (3,0), (3,1)
+        (1,0), (1,1), (1,2), (1,3), (1,4),
+        (1,5), (1,6), (1,7), (1,8), 
     ]
     
-    fig, ax = plt.subplots(nrows=2, ncols=6, figsize=(30, 10))
+    #fig, ax = plt.subplots(nrows=2, ncols=5, figsize=(30, 10))
+    fig, ax = plt.subplots(nrows=4, ncols=5, figsize=(30, 25))
     fig.suptitle('Pixel Hit Maps by Layer and Chip', fontsize=18)
     
     for idx, (layer, chip) in enumerate(layer_chip_pairs):
-        i =(idx) //6
-        j =(idx) %6
-        ax_ij = ax[i, j]
-    
+        i =(idx)//5
+        j =(idx)%5
+        ax_ij = ax[i,j]
+
         df_sel = dfpairc[(dfpairc['layer'] == layer) & (dfpairc['chipID'] == chip)]
     
         h = ax_ij.hist2d(
@@ -193,9 +189,12 @@ def main(args):
             bins=35,
             range=[[0, 35], [0, 35]],
             weights=df_sel['hits'],
-            cmap='viridis',
+            #cmap='viridis',
+            cmap='YlOrRd',
+            cmin=1,
             vmax=100
         )
+        df_sel2 = dffpair[(dffpair['layer'] == layer) & (dffpair['chipID'] == chip)]
     
         ax_ij.set_title(f'Layer {layer}, Chip {chip}')
         ax_ij.set_xlabel('col')
@@ -204,10 +203,22 @@ def main(args):
     
         cbar = fig.colorbar(h[3], ax=ax_ij)
         cbar.set_label('Hit Count')
+
+        i_tot = i +2
+        ax[i_tot,j].hist(
+            df_sel2['avg_tot_us'].dropna(),
+            bins=84,
+            range=(0,21),
+            edgecolor='black'
+        )
+        ax[i_tot,j].set_title(f'Layer {layer}, Chip {chip}')
+        ax[i_tot,j].set_xlabel('ToT [us]')
+        ax[i_tot,j].set_ylabel('Counts')
+        ax[i_tot,j].grid()
     
     plt.tight_layout(rect=[0, 0, 1, 0.96])
-    plt.savefig(f"{args.outdir}/3layerQuad_{args.inputfile}_{args.name}_diffTS{args.timestampdiff}_diffToT{args.totdiff}.png")
-    print(f"3layerQuad_{args.inputfile}_{args.name}_diffTS{args.timestampdiff}_diffToT{args.totdiff}.png was created...")
+    plt.savefig(f"{args.outdir}/9chip_{args.inputfile}_{args.name}_diffTS{args.timestampdiff}_diffToT{args.totdiff}.png")
+    print(f"9chip_{args.inputfile}_{args.name}_diffTS{args.timestampdiff}_diffToT{args.totdiff}.png was created...")
     plt.show()
 
     # END OF PROGRAM

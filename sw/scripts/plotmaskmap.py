@@ -65,9 +65,9 @@ for i in range(2):
         row_idx, col_idx = np.where(chip_mask == 1)
         weights = np.ones_like(row_idx)
         print(f"*-----chip{(i ^ 1) * 2 + j}-----*")
-        print(f"row : {row_idx}")
-        print(f"col : {col_idx}")
-        print(f"mask: {weights}")
+#        print(f"row : {row_idx}")
+#        print(f"col : {col_idx}")
+        print(f"mask: {len(weights)}")
         h = ax.hist2d(
             col_idx,row_idx,
             bins=35,
@@ -80,8 +80,8 @@ for i in range(2):
         ax.set_title(f'Chip {(i ^ 1) * 2 + j}')
         ax.set_xlabel('Column')
         ax.set_ylabel('Row')
-        ax.set_xticks(range(0, 36, 5))
-        ax.set_yticks(range(0, 36, 5))
+        ax.set_xticks(range(3, 34, 5))
+        ax.set_yticks(range(0, 34, 5))
         ax.grid(True, color='gray', linestyle='--', linewidth=0.5, alpha=0.7)
 
 fig.suptitle(f'Mask Maps ({prefix})')

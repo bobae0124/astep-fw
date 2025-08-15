@@ -23,6 +23,8 @@ from astep import astepRun
 plt.style.use('classic')
 
 def main(args):
+    pd.set_option('display.max_rows',None)
+    pd.set_option('display.max_columns',None)
     path = args.datadir
 
     pair = [] 
