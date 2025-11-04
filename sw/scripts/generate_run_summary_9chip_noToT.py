@@ -102,8 +102,8 @@ def main(args):
             # Loop over col and row info to find a pair to define a pixel
             for indc in dffcol.index:
                 for indr in dffrow.index:
-                    if dffcol['tot_us'][indc] == 0 or dffrow['tot_us'][indr] ==0:
-                        continue
+                    #if dffcol['tot_us'][indc] == 0 or dffrow['tot_us'][indr] ==0:
+                    #    continue
 				#col0-3 skip
                     if ( dffcol['location'][indc] < 3 ):
                             continue
@@ -119,13 +119,13 @@ def main(args):
                         continue
                     if (dffcol['chipID'][indc] != dffrow['chipID'][indr] ): #same chipid
                         continue
-                    if (abs(dffcol['timestamp'][indc] - dffrow['timestamp'][indr]) < timestamp_diff) & (abs(dffcol['tot_us'][indc] - dffrow['tot_us'][indr])/dffcol['tot_us'][indc]*100 < tot_time_limit):
-                        #print(f"[Matched] layer c{dffcol['layer'][indc]},r{dffrow['layer'][indr]}; chipid c{dffcol['chipID'][indc]},r{dffrow['chipID'][indr]}; col.location, row.location = {dffcol['location'][indc]},{dffrow['location'][indr]}; {dffcol['tot_us'][indc]},{dffrow['tot_us'][indr]}")
+                    #if (abs(dffcol['timestamp'][indc] - dffrow['timestamp'][indr]) < timestamp_diff) & (abs(dffcol['tot_us'][indc] - dffrow['tot_us'][indr])/dffcol['tot_us'][indc]*100 < tot_time_limit):
+                    if (abs(dffcol['timestamp'][indc] - dffrow['timestamp'][indr]) < timestamp_diff):
+                        print(f"[Matched] layer c{dffcol['layer'][indc]},r{dffrow['layer'][indr]}; chipid c{dffcol['chipID'][indc]},r{dffrow['chipID'][indr]}; col.location, row.location = {dffcol['location'][indc]},{dffrow['location'][indr]}; {dffcol['tot_us'][indc]},{dffrow['tot_us'][indr]}")
                         # Record hit pixels per event
                         average_tot = ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2)
                         #pair.append([dffcol['readout'][indc], dffcol['location'][indc], dffrow['location'][indr], dffcol['timestamp'][indc], dffrow['timestamp'][indr], dffcol['tot_us'][indc], dffrow['tot_us'][indr], ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2)])
-                        #pair.append([dffcol['readout'][indc],dffcol['layer'][indc],dffcol['chipID'][indc], dffcol['location'][indc], dffrow['location'][indr], dffcol['timestamp'][indc], dffrow['timestamp'][indr], dffcol['tot_us'][indc], dffrow['tot_us'][indr], ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2)])
-                        pair.append([dffcol['readout'][indc],dffcol['layer'][indc],dffcol['chipID'][indc], dffcol['location'][indc], dffrow['location'][indr], dffcol['timestamp'][indc], dffrow['timestamp'][indr], dffcol['tot_us'][indc], dffrow['tot_us'][indr], ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2),dffcol['fpga_ts'][indc],dffrow['fpga_ts'][indr]])
+                        pair.append([dffcol['readout'][indc],dffcol['layer'][indc],dffcol['chipID'][indc], dffcol['location'][indc], dffrow['location'][indr], dffcol['timestamp'][indc], dffrow['timestamp'][indr], dffcol['tot_us'][indc], dffrow['tot_us'][indr], ((dffcol['tot_us'][indc] + dffrow['tot_us'][indr])/2)])
                         dffrow = dffrow.drop(indr)
                         break
     print("... Matching is done!")
@@ -151,8 +151,10 @@ def main(args):
      
     #---- Create hit pixel dataframes and Save csv file as MatchingHitinfo_*.csv ----#
     # Hit pixel information for all events
-    dffpair = pd.DataFrame(pair, columns=['readout','layer','chipID','col','row','timestamp_col', 'timestamp_row', 'tot_us_col', 'tot_us_row', 'avg_tot_us','fpga_ts_col','fpga_ts_row'])
+    dffpair = pd.DataFrame(pair, columns=['readout','layer','chipID','col','row','timestamp_col', 'timestamp_row', 'tot_us_col', 'tot_us_row', 'avg_tot_us'])
     dffpair.to_csv(f"MatchingHitinfo_{args.inputfile}", sep='\t', index=False)
+    pd.set_option('display.max_rows',None)
+    pd.set_option('display.max_columns',None)
     # Create dataframe for number of hits 
     dfpair = dffpair[['layer','chipID','col','row']].copy()
     dfpairc = dfpair[['layer','chipID','col','row']].value_counts().reset_index(name='hits')
@@ -162,10 +164,11 @@ def main(args):
     # mean of avg_tot_us, each col, row
     grouped_avg = dffpair.groupby(['layer','chipID','col', 'row'])['avg_tot_us'].mean().reset_index(name='avg')
     print(f"average_tot = {grouped_avg}")
+
     if grouped_avg.empty:
         print("no maching hit at all. exit code")
         sys.exit()
-   
+    
     # Generate Plot: three-layer each chip!
     # chip 0 | 1 | 2 | 3 | 4 | 
     #      5 | 6 | 7 | 8 | 
@@ -175,8 +178,7 @@ def main(args):
         (1,5), (1,6), (1,7), (1,8), 
     ]
     
-    #fig, ax = plt.subplots(nrows=2, ncols=5, figsize=(30, 10))
-    fig, ax = plt.subplots(nrows=4, ncols=5, figsize=(30, 25))
+    fig, ax = plt.subplots(nrows=2, ncols=5, figsize=(30, 10))
     fig.suptitle('Pixel Hit Maps by Layer and Chip', fontsize=18)
     
     for idx, (layer, chip) in enumerate(layer_chip_pairs):
@@ -192,12 +194,9 @@ def main(args):
             bins=35,
             range=[[0, 35], [0, 35]],
             weights=df_sel['hits'],
-            #cmap='viridis',
-            cmap='YlOrRd',
-            cmin=1#,
-#            vmax=100
+            cmap='viridis',
+            vmax=100
         )
-        df_sel2 = dffpair[(dffpair['layer'] == layer) & (dffpair['chipID'] == chip)]
     
         ax_ij.set_title(f'Layer {layer}, Chip {chip}')
         ax_ij.set_xlabel('col')
@@ -206,18 +205,6 @@ def main(args):
     
         cbar = fig.colorbar(h[3], ax=ax_ij)
         cbar.set_label('Hit Count')
-
-        i_tot = i +2
-        ax[i_tot,j].hist(
-            df_sel2['avg_tot_us'].dropna(),
-            bins=84,
-            range=(0,21),
-            edgecolor='black'
-        )
-        ax[i_tot,j].set_title(f'Layer {layer}, Chip {chip}')
-        ax[i_tot,j].set_xlabel('ToT [us]')
-        ax[i_tot,j].set_ylabel('Counts')
-        ax[i_tot,j].grid()
     
     plt.tight_layout(rect=[0, 0, 1, 0.96])
     plt.savefig(f"{args.outdir}/9chip_{args.inputfile}_{args.name}_diffTS{args.timestampdiff}_diffToT{args.totdiff}.png")
