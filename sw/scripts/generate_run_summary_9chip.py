@@ -25,7 +25,7 @@ import matplotlib as mpl
 import asyncio
 from astep import astepRun
 plt.style.use('classic')
-
+pd.set_option('display.max_rows',100)
 def main(args):
     path = args.datadir
 
@@ -157,6 +157,7 @@ def main(args):
     dfpairc = dfpair[['layer','chipID','col','row']].value_counts().reset_index(name='hits')
     # How many hits are collected and shown in a plot
     print(f"{dfpairc}")
+    print(dfpairc.head(100))
     nhits = dfpairc['hits'].sum()
     # mean of avg_tot_us, each col, row
     grouped_avg = dffpair.groupby(['layer','chipID','col', 'row'])['avg_tot_us'].mean().reset_index(name='avg')
@@ -193,8 +194,8 @@ def main(args):
             weights=df_sel['hits'],
             #cmap='viridis',
             cmap='YlOrRd',
-            cmin=1,
-            vmax=100
+            cmin=1
+           # vmax=100
         )
         df_sel2 = dffpair[(dffpair['layer'] == layer) & (dffpair['chipID'] == chip)]
     
