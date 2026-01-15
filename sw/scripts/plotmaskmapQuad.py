@@ -14,7 +14,8 @@ print(f"Processing file: {filename}")
 prefix = filename[:7]
 print(f"{prefix}")
 
-filepath = f"scripts/config/{filename}"
+#filepath = f"scripts/config/{filename}"
+filepath = f"config/{filename}"
 
 with open(filepath, 'r') as f:  
     data = yaml.safe_load(f)
@@ -68,10 +69,7 @@ for i in range(2):
 #        print(f"row : {row_idx}")
 #        print(f"col : {col_idx}")
         print(f"mask: {len(weights)}")
-        mask=(len(weights)-(3*35))
-        maskp=(len(weights)-(3*35))/(32*35)
-        activep=1-((len(weights)-(3*35))/(32*35))
-        print(f"#.mask pixel={mask},mask yield={maskp}, active yield={activep}")
+        print(f"mask yield: {1-(len(weights)/(35*35))}")
         h = ax.hist2d(
             col_idx,row_idx,
             bins=35,
