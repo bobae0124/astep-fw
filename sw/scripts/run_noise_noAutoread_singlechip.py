@@ -17,7 +17,8 @@ logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 layer, chip = 0,0
-pixel = [layer, chip, 0, 15] #layer, chip, row, column
+#pixel = [layer, chip, 0, 11] #layer, chip, row, column
+pixel = [layer, chip, 0, 0] #layer, chip, row, column
 
 print("creating object")
 astro = astepRun(inject=pixel)
@@ -33,17 +34,18 @@ async def main():
     await astro.enable_spi()
     
     print("initializing asic")
-    await astro.asic_init(yaml="test_quadchip", analog_col=[layer, chip ,pixel[3]])
+    #await astro.asic_init(yaml="test_quadchip", analog_col=[layer, chip ,pixel[3]])
+    await astro.asic_init(yaml="config_v3_none_may28", analog_col=[layer, chip ,pixel[3]])
     print(f"Header: {astro.get_log_header(layer, chip)}")
 
     print("initializing voltage")
-    await astro.init_voltages() ## th in mV
+    await astro.init_voltages(vthreshold=0) ## th in mV
 
     #print("FUNCTIONALITY CHECK")
     #await astro.functionalityCheck(holdBool=True)
 
     print("update threshold")
-    await astro.update_pixThreshold(layer, chip, 100)
+    await astro.update_pixThreshold(layer, chip, 0)
 
     print("enable pixel")
     await astro.enable_pixel(layer, chip, pixel[2], pixel[3])

@@ -1,0 +1,31 @@
+#-----------------------------------------------------------
+# Vivado v2022.1 (64-bit)
+# SW Build 3526262 on Mon Apr 18 15:47:01 MDT 2022
+# IP Build 3524634 on Mon Apr 18 20:55:01 MDT 2022
+# Start of session at: Tue Jun 25 15:53:06 2024
+# Process ID: 7544
+# Current directory: /home/becal-astropix/May28_gitmainbranch/astep-fw/fw/astep24-3l/target-multiboard/vivado-run/bitstreams
+# Command line: vivado
+# Log file: /home/becal-astropix/May28_gitmainbranch/astep-fw/fw/astep24-3l/target-multiboard/vivado-run/bitstreams/vivado.log
+# Journal file: /home/becal-astropix/May28_gitmainbranch/astep-fw/fw/astep24-3l/target-multiboard/vivado-run/bitstreams/vivado.jou
+# Running On: becalastropix, OS: Linux, CPU Frequency: 3000.000 MHz, CPU Physical cores: 6, Host memory: 33345 MB
+#-----------------------------------------------------------
+start_gui
+open_project /home/becal-astropix/dev_gsfc/astep-fw/fw/astep24-3l/target-multiboard/vivado-run/bitstreams/project_1/project_1.xpr
+update_compile_order -fileset sources_1
+open_hw_manager
+connect_hw_server -allow_non_jtag
+open_hw_target
+set_property PROGRAM.FILE {/home/becal-astropix/dev_gsfc/astep-fw/fw/astep24-3l/target-multiboard/vivado-run/bitstreams/astropix-nexys_3_SINGLE_LAYER_SCLOCK_SE_DIFF_24042301.bit} [get_hw_devices xc7a200t_0]
+current_hw_device [get_hw_devices xc7a200t_0]
+refresh_hw_device -update_hw_probes false [lindex [get_hw_devices xc7a200t_0] 0]
+set_property PROBES.FILE {} [get_hw_devices xc7a200t_0]
+set_property FULL_PROBES.FILE {} [get_hw_devices xc7a200t_0]
+set_property PROGRAM.FILE {/home/becal-astropix/May28_gitmainbranch/astep-fw/fw/astep24-3l/target-multiboard/vivado-run/bitstreams/astropix-nexys_3_SINGLE_LAYER_SCLOCK_SE_DIFF_24052801.bit} [get_hw_devices xc7a200t_0]
+program_hw_devices [get_hw_devices xc7a200t_0]
+refresh_hw_device [lindex [get_hw_devices xc7a200t_0] 0]
+set_property PROBES.FILE {} [get_hw_devices xc7a200t_0]
+set_property FULL_PROBES.FILE {} [get_hw_devices xc7a200t_0]
+set_property PROGRAM.FILE {/home/becal-astropix/May28_gitmainbranch/astep-fw/fw/astep24-3l/target-multiboard/vivado-run/bitstreams/astropix-nexys_3_SINGLE_LAYER_SCLOCK_SE_DIFF_24052801.bit} [get_hw_devices xc7a200t_0]
+program_hw_devices [get_hw_devices xc7a200t_0]
+refresh_hw_device [lindex [get_hw_devices xc7a200t_0] 0]

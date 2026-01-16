@@ -608,7 +608,8 @@ class astepRun:
         #list_hits = [readout[i:i+nmb_bytes] for i in range(0,len(readout),nmb_bytes)]
         list_hits =[]
         hit_list = []
-#        #Break full readout into separate data packets as defined by how many bytes are contained in each hit from the FW, use to fill array 'list_hits'
+
+        #Break full readout into separate data packets as defined by how many bytes are contained in each hit from the FW, use to fill array 'list_hits'
         b=0
         while b<len(readout):
             packet_len = int(readout[b])
@@ -622,14 +623,6 @@ class astepRun:
 
         #decode hit contents
         for hit in list_hits:
-            #if len(list_hits) < 2:
-            #    continue
-            #hit = list(binascii.unhexlify(hits))
-            #if len(hit) < 3:
-            #    continue
-            #if (int(hit[3])+int(hit[4]) == 510):
-            #    continue
-
             # Generates the values from the bitstream
             #if (sum(hit) == 1020) or (int(hit[0])+int(hit[1]) == 510): #HARDCODED MAX BUFFER or 'HIT' OF ONLY 1'S- WILL NEED TO REVISIT
             #    continue 
@@ -712,30 +705,9 @@ class astepRun:
                 break
             segment = readout[start:start + segment_length]
             if len(segment) == segment_length:
-                #if not segment.startswith('0a0104fffffff'):
-                #    list_hits.append(segment)
-                if not segment.endswith('ffffffffffffff'):
-                    list_hits.append(segment)
+                list_hits.append(segment)
             start += segment_length
         print(f"list_hits = {list_hits}")
-
-# for double layer
-#        list_hits =[]
-#        start = 0
-#        prefix='0a01' or '0a00'
-#        segment_length=22
-#        hit_list = []
-#        while start<len(readout):
-#            start = readout.find(prefix,start)
-#            if start == -1:
-#                break
-#            segment=readout[start:start+segment_length]
-#            if len(segment) == segment_length:
-#                if not segment.startswith('0a01f4f4f4f4f4'):
-#                    list_hits.append(segment)
-#            start += segment_length
-#        print(f"list_hits={list_hits}")
-            
  
         #Break full readout into separate data packets as defined by how many bytes are contained in each hit from the FW, use to fill array 'list_hits'
 #        b=0
@@ -755,20 +727,10 @@ class astepRun:
             #if (sum(hit) == 1020) or (int(hit[0])+int(hit[1]) == 510): #HARDCODED MAX BUFFER or 'HIT' OF ONLY 1'S- WILL NEED TO REVISIT
             #    continue 
         for hits in list_hits:  # 2024.June.2 update
-            #if len(list_hits) < 2:
-            #    continue
+            if len(list_hits) < 2:
+                continue
             # Generates the values from the bitstream
             hit = list(binascii.unhexlify(hits)) #2024.June.2 update
-            if len(hit) < 3:
-                continue
-            if ((int(hit[2]) >> 3) != 0 ): #id !=0
-                continue
-            if ((int(hit[2]) & 0b111) != 4 ): #payload !=4
-                continue
-            if ((int(hit[3])  & 0b111111)>34 ): #location>34
-                continue
-            if (int(hit[3])+int(hit[4]) == 510):
-                continue
             #if len(hit) < 3:
             #    short += short
             #    print(f"{short}---- ???  empty ???   len(hit) = {len(hit)}...{hit[0]}  {bytearray(hit)} ------------------------ << << ")

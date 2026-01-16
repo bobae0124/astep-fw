@@ -17,13 +17,14 @@ logging.getLogger().setLevel(logging.INFO)
 logger = logging.getLogger(__name__)
 
 layer, chip = 0,0
-pixel = [layer, chip, 0, 0] #layer, chip, row, column
+pixel = [layer, chip, 0, 11] #layer, chip, row, column
 cmod = False
 
-print("creating object")
-astro = astepRun(inject=pixel)
 
 async def main():
+    print("creating object")
+    astro = astepRun(inject=pixel)
+
     print("opening fpga")
     await astro.open_fpga(cmod=cmod, uart=False)
 
@@ -34,18 +35,23 @@ async def main():
     await astro.enable_spi()
     
     print("initializing asic")
-    await astro.asic_init(yaml="test_quadchip_new", analog_col=[layer, chip ,pixel[3]], chipsPerRow = 1)
+    #await astro.asic_init(yaml="test_quadchip_new", analog_col=[layer, chip ,pixel[3]], chipsPerRow = 1)
+    await astro.asic_init(yaml="config_v3_none_may28", analog_col=[layer, chip ,pixel[3]])
     print(f"Header: {astro.get_log_header(layer, chip)}") #give layer, chip
 
-    if not cmod:
-        print("initializing voltage")
-        await astro.init_voltages() ## th in mV
+#    if not cmod:
+#        print("initializing voltage")
+#        await astro.init_voltages() ## th in mV
+    print("initializing voltage")
 
-    print("FUNCTIONALITY CHECK")
-    await astro.functionalityCheck(holdBool=True)
+    #await astro.init_voltages() ## th in mV
+    await astro.init_voltages(vthreshold=200) ## th in mV
+
+#    print("FUNCTIONALITY CHECK")
+#    await astro.functionalityCheck(holdBool=True)
 
     print("update threshold")
-    await astro.update_pixThreshold(layer,chip,100) #give layer, chip, threshold in mV
+    await astro.update_pixThreshold(layer,chip,0) #give layer, chip, threshold in mV
 
     print("enable pixel")
     await astro.enable_pixel(layer, chip, pixel[2], pixel[3])  
@@ -69,7 +75,7 @@ async def main():
 
     t0 = time.time()
     inc = -2
-    while (time.time() < t0+5):
+    while (time.time() < t0+30):
         
         buff, readout = await(astro.get_readout())
         #if buff>4:
