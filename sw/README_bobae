@@ -1,0 +1,9 @@
+Use bit file:
+/home/daq/AstroPix/May28_gitmainbranch/astep-fw/fw/astep24-3l/target-multiboard/vivado-run/bitstreams/astropix-nexys_3_SINGLE_LAYER_SCLOCK_SE_DIFF_24052801.bit
+
+
+Run
+python3.12 scripts/run_test.py -M 10
+
+Decode
+python3.12 scripts/decode_postRun.py -f  /home/daq/AstroPix/May28_gitmainbranch/astep-fw/sw/_20260116_135346.log
