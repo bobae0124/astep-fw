@@ -124,6 +124,8 @@ def main():
                     help="Override a column bitmask, e.g. --col 3=0b001_00000_... (repeatable)")
     ap.add_argument("--apply-to", default="all",
                     help="Which configs to apply overrides to: all, 0,1,2,3 or comma list like 1,3. Default=all")
+    ap.add_argument("--cnum", type=int, choices=[4,9], required=True,
+                    help="Total config_chipnum Default=4")
     args = ap.parse_args()
 
     overrides = dict(parse_col_override(s) for s in args.col)
@@ -135,19 +137,33 @@ def main():
     else:
         apply_set = {int(x.strip()) for x in args.apply_to.split(",") if x.strip() != ""}
 
-    root = {
-        "astropix3": {
-            "chain": {"length": 4},
-            "geometry": {"cols": 35, "rows": 35},
+    print("chipnum:", args.chipnum, type(args.chipnum))
+    if args.chipnum == 4:
+        root = {
+            "astropix3": {
+                "chain": {"length": 4},
+                "geometry": {"cols": 35, "rows": 35},
+            }
         }
-    }
-
-    for i in range(4):
-        cfg_name = f"config_{i}"
-        if i in apply_set:
-            root["astropix3"][cfg_name] = build_config(args.default_bits, overrides)
-        else:
-            root["astropix3"][cfg_name] = build_config(args.default_bits, {})  # no overrides
+        for i in range(4):
+            cfg_name = f"config_{i}"
+            if i in apply_set:
+                root["astropix3"][cfg_name] = build_config(args.default_bits, overrides)
+            else:
+                root["astropix3"][cfg_name] = build_config(args.default_bits, {})  # no overrides
+    elif args.chipnum == 9:
+        root = {
+            "astropix3": {
+                "chain": {"length": 9},
+                "geometry": {"cols": 35, "rows": 35},
+            }
+        }
+        for i in range(9):
+            cfg_name = f"config_{i}"
+            if i in apply_set:
+                root["astropix3"][cfg_name] = build_config(args.default_bits, overrides)
+            else:
+                root["astropix3"][cfg_name] = build_config(args.default_bits, {})  # no overrides
 
     out_path = Path(args.out)
     out_path.write_text(yaml_dump_simple(root) + "\n", encoding="utf-8")
