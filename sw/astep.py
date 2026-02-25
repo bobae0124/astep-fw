@@ -42,7 +42,8 @@ class AstepRun:
         SR:bool - if True, configure with shift registers. If False, configure with SPI
         """
         if clock_period_ns is None:
-            clock_period_ns = 10 if chipversion == 3 else 25
+            #clock_period_ns = 10 if chipversion == 3 else 25
+            clock_period_ns = 5 if chipversion == 3 else 25
         self.sampleclock_period_ns = clock_period_ns
         self.chipversion = chipversion
         self.SR = SR  # define how to configure. If True, shift registers. If False, SPI
@@ -52,7 +53,8 @@ class AstepRun:
         """Create the Board Driver, open a connection to the hardware and performs a read test"""
         if cmod and uart:
             # self.boardDriver = drivers.boards.getCMODUartDriver() # Automatically find the correct port - TBC
-            self.boardDriver = drivers.boards.getCMODUartDriver("COM6")
+            #self.boardDriver = drivers.boards.getCMODUartDriver("COM6")
+            self.boardDriver = drivers.boards.getCMODUartDriver("/dev/ttyUSB1")
         elif cmod and not uart:
             self.boardDriver = drivers.boards.getCMODDriver()
         elif not cmod and uart:
@@ -77,10 +79,11 @@ class AstepRun:
 
     async def fpga_configure_clocks(
         self,
-        FPGATSfreq: int = 1000000,
+        FPGATSfreq: int = 40000000,
         useTLU: bool = False,
         SPIfreq: int = 1000000,
         flush: bool = True,
+        externalTS: bool = True, # added
     ):
         """
         Configure FPGA TS clock (frequency and source), SPI clock frequency
@@ -92,20 +95,20 @@ class AstepRun:
             targetFrequencyHz=FPGATSfreq, flush=flush
         )
 
+#        await self.boardDriver.layersConfigFPGATimestamp( # com out
+#            enable=True,
+#            use_divider=True,
+#            use_tlu=useTLU,
+#            flush=True,
+#        )
         await self.boardDriver.layersConfigFPGATimestamp(
-            enable=True,
-            use_divider=True,
-            use_tlu=useTLU,
-            flush=True,
+           enable=True,
+           force=False,
+           source_match_counter=True,
+           source_external=externalTS,
+           flush=flush,
         )
-        # await self.boardDriver.layersConfigFPGATimestamp(
-        #    enable=True,
-        #    force=False,
-        #    source_match_counter=True,
-        #    source_external=externalTS,
-        #    flush=flush,
-        # )
-        # Configure SPI readout
+       # Configure SPI readout
         await self.boardDriver.configureLayerSPIFrequency(SPIfreq, flush=flush)
 
     async def fpga_configure_autoread_keepalive(

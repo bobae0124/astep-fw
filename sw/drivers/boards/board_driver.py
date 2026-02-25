@@ -6,7 +6,7 @@ import time
 import rfg.core
 import rfg.io
 from bitstring import BitArray
-from bitstring import Array
+#from bitstring import Array
 from deprecated import deprecated
 
  

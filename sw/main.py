@@ -21,9 +21,9 @@ import pandas as pd
 from tqdm import tqdm
 
 import drivers.astep.serial
-import drivers.astropix.decode
+#import drivers.astropix.decode
+from drivers.astropix.decode import Decode
 import drivers.boards
-
 
 async def buffer_flush(boardDriver, layerlst=range(3)):
     """This method flushes data from SPI lanes then from FPGA buffer, and resets counters"""
@@ -127,8 +127,10 @@ async def printStatus(boardDriver, time=0.0, buff=0):
 # Needed to decode data
 class myhack:
     def __init__(self):
-        self.sampleclock_period_ns = 10
+        #self.sampleclock_period_ns = 10
+        self.sampleclock_period_ns = 5
 
+dec = Decode()
 
 def bin2csv(fprefix):
     with open("{}.bin".format(fprefix), "rb") as ofile:
@@ -136,8 +138,10 @@ def bin2csv(fprefix):
         i = 0
         while data := ofile.read(4096):
             datalst.append(
-                drivers.astropix.decode.decode_readout(
-                    myhack(), logger, data, i=i, printer=False
+                #drivers.astropix.decode.decode_readout(
+                dec.decode_readout(
+                    #myhack(), logger, data, i=i, printer=False
+                    logger, data, i=i, printer=False
                 )
             )
             # logger.info(binascii.hexlify(data))
@@ -178,8 +182,8 @@ async def newmain(args):
     logger.info("Opening FPGA")
 
     # Open Board, Gecco or CMOD UART
-    # await arun.open_fpga(cmod=True, uart=True) #CMOD
-    await arun.open_fpga(cmod=False, uart=False)  # Gecco
+    await arun.open_fpga(cmod=True, uart=True) #CMOD
+    #await arun.open_fpga(cmod=False, uart=False)  # Gecco
 
     logger.info("FPGA Opened")
 
@@ -204,7 +208,8 @@ async def main(args):
     print(args)  # Soon to be removed
     logger.debug("Start main()")
     # Setup FPGA communications
-    boardDriver = drivers.boards.getCMODUartDriver("COM6")
+    #boardDriver = drivers.boards.getCMODUartDriver("COM6")
+    boardDriver = drivers.boards.getCMODUartDriver("/dev/ttyUSB1")
     logger.debug(f"boardDriver instanciated: {boardDriver}")
     await boardDriver.open()
     logger.info("Opened FPGA, testing...")
@@ -214,22 +219,63 @@ async def main(args):
     except Exception:
         raise RuntimeError("Could not read or write from astropix!")
     logger.info("FPGA test successful.")
-    logger.debug("Set sensor clocks.")
+
+    logger.debug("Set External clocks.:setExternalClocks(enable=True, ext_clock_is_differential=False, waitForClockChange=True)")
+    ok = await boardDriver.setExternalClock(enable=True, ext_clock_is_differential=False, waitForClockChange=True) # add
+    logger.info(f"External clock switch result: {ok}")
+    c = await boardDriver.rfg.read_clock_ctrl()
+    logger.info(f"clock_ctrl=0x{c:08x}")
+    logger.info(f"clock_ctrl bits: ext_selected={(c>>2)&1}, diff={(c>>1)&1}, enable_req={(c>>0)&1}")
+
+    logger.debug("Set sensor clocks.:enableSensorClocks(flush=True)")
     await boardDriver.enableSensorClocks(flush=True)
+    logger.debug("Set FPGA TS: boardDriver.layersConfigFPGATimestampFrequency")
     # Setup FPGA timestamps
     await boardDriver.layersConfigFPGATimestampFrequency(
-        targetFrequencyHz=1000000, flush=True
+        targetFrequencyHz=40000000, flush=True #we don't use this. Use external one
+
     )
+#    #to start from 0 FPGA timestamp # didn't work
+#    await boardDriver.layersConfigFPGATimestampForcedValue(0, flush=True)
+#    await boardDriver.layersConfigFPGATimestamp(
+#        enable=True,
+#        use_divider=False,
+#        use_tlu=False,
+#        timestamp_size=1,
+#        forced_value=True,   
+#        flush=True,
+#    )
+#    await boardDriver.layersConfigFPGATimestamp( # didn't work
+#        enable=False,
+#        use_divider=False,   # 너 설정에 맞게
+#        use_tlu=False,
+#        timestamp_size=1,
+#        forced_value=False,
+#        flush=True,
+#    )
+#    await asyncio.sleep(0.05)
+
     await boardDriver.layersConfigFPGATimestamp(
         enable=True,
         forced_value=False,
+        #use_divider=False, #False, FPGA TS always 80 MHz
         use_divider=True,
         use_tlu=False,
         flush=True,
     )
+    await boardDriver.ioSetAstropixTSToFPGATS(True) #Add to check !
+#    logger.debug("Set:boardDriver.layersConfigFPGATimestamp(enable=True, force=False,source_match_counter=True,source_external=True,flush=True ")
+#    await self.boardDriver.layersConfigFPGATimestamp(
+#       enable=True,
+#       force=False,
+#       source_match_counter=True,
+#       source_external=True,
+#       flush=True,
+#    )
 
     logger.debug("Configure SPI readout")
-    await boardDriver.configureLayerSPIDivider(20, flush=True)
+    #await boardDriver.configureLayerSPIDivider(20, flush=True)
+    await boardDriver.configureLayerSPIDivider(10, flush=True)
     await boardDriver.rfg.write_layers_cfg_nodata_continue(value=8, flush=True)  # 8
     logger.debug("Instanciate ASIC drivers ...")
     # Configure chips in memory
@@ -339,9 +385,10 @@ async def main(args):
         dataStream_lst = []
         bufferLength_lst = []
     else:
-        ofile = open("{}.bin".format(args.outputPrefix), "wb")
+        #ofile = open("{}.bin".format(args.outputPrefix), "wb")
+        ofile = open("{}.bin".format(args.outputPrefix+args.name), "wb")
     if args.runTime is not None:
-        end_time = time.time() + (args.runTime * 60.0)
+        end_time = time.time() + (args.runTime )
     else:
         end_time = float("inf")
 
@@ -419,11 +466,13 @@ async def main(args):
                 "fpga_ts",
             ]
             df.columns = csvframe
-            df.to_csv(args.outputPrefix + ".csv")
+            #df.to_csv(args.outputPrefix + ".csv")
+            df.to_csv(args.outputPrefix+args.name+".csv")
         else:
             logger.warning("No data written to disk because none have been received.")
     else:
-        bin2csv(args.outputPrefix)
+#        bin2csv(args.outputPrefix)
+        bin2csv(args.outputPrefix+args.name)
 
 
 #######################################################
@@ -437,6 +486,9 @@ if __name__ == "__main__":
     )
 
     # Options related to outputs
+    parser.add_argument('-n', '--name', default='', required=False,
+                        help='Option to give additional name to output files upon running. Default: NONE')
+
     parser.add_argument(
         "-o",
         "--outputPrefix",
@@ -463,7 +515,7 @@ if __name__ == "__main__":
         type=float,
         action="store",
         default=None,
-        help="Maximum run time (in minutes). Default: NONE (run until user CTL+C)",
+        help="Maximum run time (in second). Default: NONE (run until user CTL+C)",
     )
     parser.add_argument(
         "-r",
@@ -516,8 +568,8 @@ if __name__ == "__main__":
         "--threshold",
         type=int,
         action="store",
-        default=100,
-        help="Threshold voltage for digital ToT (in mV). DEFAULT: 100",
+        default=200,
+        help="Threshold voltage for digital ToT (in mV). DEFAULT: 200",
     )
     parser.add_argument(
         "-a",
@@ -566,7 +618,8 @@ if __name__ == "__main__":
         loglevel = logging.WARNING
     elif ll == "C":
         loglevel = logging.CRITICAL
-    logname = args.outputPrefix + "_run.log"
+    #logname = args.outputPrefix + "_run.log"
+    logname = args.outputPrefix+args.name+ "_run.log"
     formatter = logging.Formatter(
         "%(asctime)s:%(msecs)d.%(name)s.%(levelname)s:%(message)s"
     )

@@ -36,8 +36,9 @@ class Decode:
                 b += packet_len+1
         return list_hits, packet_len
 
-    def decode_readout(self, logger, readout: bytearray, i: int, sample_clock_period_ns: int = 10, printer: bool = True) -> pd.DataFrame:
-
+    #def decode_readout(self, logger, readout: bytearray, i: int, sample_clock_period_ns: int = 10, printer: bool = True) -> pd.DataFrame:
+    def decode_readout(self, logger, readout: bytearray, i: int, printer: bool = True) -> pd.DataFrame:
+        sample_clock_period_ns = 5
         list_hits = []
         hit_list = []
 
