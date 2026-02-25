@@ -1,0 +1,92 @@
+Copyright 1986-2022 Xilinx, Inc. All Rights Reserved. Copyright 2022-2023 Advanced Micro Devices, Inc. All Rights Reserved.
+---------------------------------------------------------------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2023.2 (lin64) Build 4029153 Fri Oct 13 20:13:54 MDT 2023
+| Date         : Wed Feb 25 12:09:03 2026
+| Host         : argon running 64-bit Ubuntu 22.04.4 LTS
+| Command      : report_timing -file reports/report_timing.astropix-cmodr2_3_CONFIG_SE.log
+| Design       : astep24_3l_multitarget_top
+| Device       : 7a35t-cpg236
+| Speed File   : -1  PRODUCTION 1.23 2018-06-13
+| Design State : Routed
+---------------------------------------------------------------------------------------------------------------------------------------------
+
+Timing Report
+
+Slack (MET) :             0.768ns  (required time - arrival time)
+  Source:                 astep24_3l_top_I/main_rfg_I/hk_ctrl_reg_reg[4]/C
+                            (rising edge-triggered cell FDSE clocked by clk_80_clk_core_extorint_40  {rise@0.000ns fall@6.250ns period=12.500ns})
+  Destination:            ext_spi_mosi
+                            (output port clocked by hk_spi_divided  {rise@0.000ns fall@12.500ns period=25.000ns})
+  Path Group:             hk_spi_divided
+  Path Type:              Max at Slow Process Corner
+  Requirement:            12.500ns  (hk_spi_divided rise@25.000ns - clk_80_clk_core_extorint_40 rise@12.500ns)
+  Data Path Delay:        6.641ns  (logic 4.083ns (61.478%)  route 2.558ns (38.522%))
+  Logic Levels:           2  (LUT3=1 OBUF=1)
+  Output Delay:           5.000ns
+  Clock Path Skew:        0.020ns (DCD - SCD + CPR)
+    Destination Clock Delay (DCD):    -1.164ns = ( 23.836 - 25.000 ) 
+    Source Clock Delay      (SCD):    -0.701ns = ( 11.799 - 12.500 ) 
+    Clock Pessimism Removal (CPR):    0.483ns
+  Clock Uncertainty:      0.110ns  ((TSJ^2 + DJ^2)^1/2) / 2 + PE
+    Total System Jitter     (TSJ):    0.071ns
+    Discrete Jitter          (DJ):    0.209ns
+    Phase Error              (PE):    0.000ns
+
+    Location             Delay type                Incr(ns)  Path(ns)    Netlist Resource(s)
+  -------------------------------------------------------------------    -------------------
+                         (clock clk_80_clk_core_extorint_40 rise edge)
+                                                     12.500    12.500 r  
+    L17                                               0.000    12.500 r  sysclk (IN)
+                         net (fo=0)                   0.000    12.500    astep24_3l_top_I/clocking_reset_I/sys_to_40/inst/clk_in1
+    L17                  IBUF (Prop_ibuf_I_O)         1.476    13.976 r  astep24_3l_top_I/clocking_reset_I/sys_to_40/inst/clkin1_ibufg/O
+                         net (fo=1, routed)           1.233    15.209    astep24_3l_top_I/clocking_reset_I/sys_to_40/inst/clk_in1_clk_sys_to_40
+    MMCME2_ADV_X0Y0      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -6.965     8.244 r  astep24_3l_top_I/clocking_reset_I/sys_to_40/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.666     9.911    astep24_3l_top_I/clocking_reset_I/sys_to_40/inst/clk_out1_clk_sys_to_40
+    BUFGCTRL_X0Y10       BUFG (Prop_bufg_I_O)         0.096    10.007 r  astep24_3l_top_I/clocking_reset_I/sys_to_40/inst/clkout1_buf/O
+                         net (fo=34, routed)          1.575    11.582    astep24_3l_top_I/clocking_reset_I/intern_or_ext_to_internal/inst/clk_in1
+    MMCME2_ADV_X1Y0      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT1)
+                                                     -3.333     8.249 r  astep24_3l_top_I/clocking_reset_I/intern_or_ext_to_internal/inst/mmcm_adv_inst/CLKOUT1
+                         net (fo=1, routed)           1.661     9.911    astep24_3l_top_I/clocking_reset_I/intern_or_ext_to_internal/inst/clk_80_clk_core_extorint_40
+    BUFGCTRL_X0Y6        BUFG (Prop_bufg_I_O)         0.096    10.007 r  astep24_3l_top_I/clocking_reset_I/intern_or_ext_to_internal/inst/clkout2_buf/O
+                         net (fo=5282, routed)        1.792    11.799    astep24_3l_top_I/main_rfg_I/clk_80
+    SLICE_X3Y122         FDSE                                         r  astep24_3l_top_I/main_rfg_I/hk_ctrl_reg_reg[4]/C
+  -------------------------------------------------------------------    -------------------
+    SLICE_X3Y122         FDSE (Prop_fdse_C_Q)         0.456    12.255 r  astep24_3l_top_I/main_rfg_I/hk_ctrl_reg_reg[4]/Q
+                         net (fo=18, routed)          0.896    13.151    astep24_3l_top_I/housekeeping/ext_adcdac_driver/spi_io/mosi_byte_reg[0]_0[3]
+    SLICE_X1Y136         LUT3 (Prop_lut3_I1_O)        0.124    13.275 r  astep24_3l_top_I/housekeeping/ext_adcdac_driver/spi_io/ext_spi_mosi_OBUF_inst_i_1/O
+                         net (fo=1, routed)           1.663    14.937    ext_spi_mosi_OBUF
+    A15                  OBUF (Prop_obuf_I_O)         3.503    18.440 r  ext_spi_mosi_OBUF_inst/O
+                         net (fo=0)                   0.000    18.440    ext_spi_mosi
+    A15                                                               r  ext_spi_mosi (OUT)
+  -------------------------------------------------------------------    -------------------
+
+                         (clock hk_spi_divided rise edge)
+                                                     25.000    25.000 r  
+    L17                                               0.000    25.000 r  sysclk (IN)
+                         net (fo=0)                   0.000    25.000    astep24_3l_top_I/clocking_reset_I/sys_to_40/inst/clk_in1
+    L17                  IBUF (Prop_ibuf_I_O)         1.406    26.405 r  astep24_3l_top_I/clocking_reset_I/sys_to_40/inst/clkin1_ibufg/O
+                         net (fo=1, routed)           1.162    27.567    astep24_3l_top_I/clocking_reset_I/sys_to_40/inst/clk_in1_clk_sys_to_40
+    MMCME2_ADV_X0Y0      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT0)
+                                                     -7.221    20.346 r  astep24_3l_top_I/clocking_reset_I/sys_to_40/inst/mmcm_adv_inst/CLKOUT0
+                         net (fo=1, routed)           1.587    21.933    astep24_3l_top_I/clocking_reset_I/sys_to_40/inst/clk_out1_clk_sys_to_40
+    BUFGCTRL_X0Y10       BUFG (Prop_bufg_I_O)         0.091    22.024 r  astep24_3l_top_I/clocking_reset_I/sys_to_40/inst/clkout1_buf/O
+                         net (fo=34, routed)          1.457    23.481    astep24_3l_top_I/clocking_reset_I/intern_or_ext_to_internal/inst/clk_in1
+    MMCME2_ADV_X1Y0      MMCME2_ADV (Prop_mmcme2_adv_CLKIN1_CLKOUT1)
+                                                     -3.129    20.352 r  astep24_3l_top_I/clocking_reset_I/intern_or_ext_to_internal/inst/mmcm_adv_inst/CLKOUT1
+                         net (fo=1, routed)           1.581    21.933    astep24_3l_top_I/clocking_reset_I/intern_or_ext_to_internal/inst/clk_80_clk_core_extorint_40
+    BUFGCTRL_X0Y6        BUFG (Prop_bufg_I_O)         0.091    22.024 r  astep24_3l_top_I/clocking_reset_I/intern_or_ext_to_internal/inst/clkout2_buf/O
+                         net (fo=5282, routed)        1.445    23.469    astep24_3l_top_I/main_rfg_I/clk_80
+    SLICE_X36Y46         FDRE (Prop_fdre_C_Q)         0.367    23.836 r  astep24_3l_top_I/main_rfg_I/spi_hk_ckdivider_divided_clk_reg/Q
+                         clock pessimism              0.483    24.319    
+                         clock uncertainty           -0.110    24.209    
+                         output delay                -5.000    19.209    
+  -------------------------------------------------------------------
+                         required time                         19.209    
+                         arrival time                         -18.440    
+  -------------------------------------------------------------------
+                         slack                                  0.768    
+
+
+
+

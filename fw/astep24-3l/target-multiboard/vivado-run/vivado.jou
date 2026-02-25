@@ -1,0 +1,14 @@
+#-----------------------------------------------------------
+# Vivado v2023.2 (64-bit)
+# SW Build 4029153 on Fri Oct 13 20:13:54 MDT 2023
+# IP Build 4028589 on Sat Oct 14 00:45:43 MDT 2023
+# SharedData Build 4025554 on Tue Oct 10 17:18:54 MDT 2023
+# Start of session at: Wed Feb 25 12:01:57 2026
+# Process ID: 3820267
+# Current directory: /home/daq/AstroPix/260225_dev_richard/astep-fw/fw/astep24-3l/target-multiboard/vivado-run
+# Command line: vivado -mode batch -source ../cmodr2-astep.tcl
+# Log file: /home/daq/AstroPix/260225_dev_richard/astep-fw/fw/astep24-3l/target-multiboard/vivado-run/vivado.log
+# Journal file: /home/daq/AstroPix/260225_dev_richard/astep-fw/fw/astep24-3l/target-multiboard/vivado-run/vivado.jou
+# Running On: argon, OS: Linux, CPU Frequency: 3866.657 MHz, CPU Physical cores: 4, Host memory: 16650 MB
+#-----------------------------------------------------------
+source ../cmodr2-astep.tcl
